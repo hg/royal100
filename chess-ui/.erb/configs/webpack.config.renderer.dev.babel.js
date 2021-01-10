@@ -1,55 +1,58 @@
-import path from 'path';
-import fs from 'fs';
-import webpack from 'webpack';
-import chalk from 'chalk';
-import { merge } from 'webpack-merge';
-import { spawn, execSync } from 'child_process';
-import baseConfig from './webpack.config.base';
-import CheckNodeEnv from '../scripts/CheckNodeEnv';
-import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
+import path from "path";
+import fs from "fs";
+import webpack from "webpack";
+import chalk from "chalk";
+import { merge } from "webpack-merge";
+import { spawn, execSync } from "child_process";
+import baseConfig from "./webpack.config.base";
+import CheckNodeEnv from "../scripts/CheckNodeEnv";
+import ReactRefreshWebpackPlugin from "@pmmmwh/react-refresh-webpack-plugin";
 
 // When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
 // at the dev webpack config is not accidentally run in a production environment
-if (process.env.NODE_ENV === 'production') {
-  CheckNodeEnv('development');
+if (process.env.NODE_ENV === "production") {
+  CheckNodeEnv("development");
 }
 
 const port = process.env.PORT || 1212;
 const publicPath = `http://localhost:${port}/dist`;
-const dllDir = path.join(__dirname, '../dll');
-const manifest = path.resolve(dllDir, 'renderer.json');
+const dllDir = path.join(__dirname, "../dll");
+const manifest = path.resolve(dllDir, "renderer.json");
 const requiredByDLLConfig = module.parent.filename.includes(
-  'webpack.config.renderer.dev.dll'
+  "webpack.config.renderer.dev.dll"
 );
 
 /**
  * Warn if the DLL is not built
  */
-if (!requiredByDLLConfig && !(fs.existsSync(dllDir) && fs.existsSync(manifest))) {
+if (
+  !requiredByDLLConfig &&
+  !(fs.existsSync(dllDir) && fs.existsSync(manifest))
+) {
   console.log(
     chalk.black.bgYellow.bold(
       'The DLL files are missing. Sit back while we build them for you with "yarn build-dll"'
     )
   );
-  execSync('yarn build-dll');
+  execSync("yarn build-dll");
 }
 
 export default merge(baseConfig, {
-  devtool: 'inline-source-map',
+  devtool: "inline-source-map",
 
-  mode: 'development',
+  mode: "development",
 
-  target: 'electron-renderer',
+  target: "electron-renderer",
 
   entry: [
-    'core-js',
-    'regenerator-runtime/runtime',
-    require.resolve('../../src/index.tsx'),
+    "core-js",
+    "regenerator-runtime/runtime",
+    require.resolve("../../src/index.tsx"),
   ],
 
   output: {
     publicPath: `http://localhost:${port}/dist/`,
-    filename: 'renderer.dev.js',
+    filename: "renderer.dev.js",
   },
 
   module: {
@@ -59,11 +62,9 @@ export default merge(baseConfig, {
         exclude: /node_modules/,
         use: [
           {
-            loader: require.resolve('babel-loader'),
+            loader: require.resolve("babel-loader"),
             options: {
-              plugins: [
-                require.resolve('react-refresh/babel'),
-              ].filter(Boolean),
+              plugins: [require.resolve("react-refresh/babel")].filter(Boolean),
             },
           },
         ],
@@ -72,10 +73,10 @@ export default merge(baseConfig, {
         test: /\.global\.css$/,
         use: [
           {
-            loader: 'style-loader',
+            loader: "style-loader",
           },
           {
-            loader: 'css-loader',
+            loader: "css-loader",
             options: {
               sourceMap: true,
             },
@@ -86,13 +87,13 @@ export default merge(baseConfig, {
         test: /^((?!\.global).)*\.css$/,
         use: [
           {
-            loader: 'style-loader',
+            loader: "style-loader",
           },
           {
-            loader: 'css-loader',
+            loader: "css-loader",
             options: {
               modules: {
-                localIdentName: '[name]__[local]__[hash:base64:5]',
+                localIdentName: "[name]__[local]__[hash:base64:5]",
               },
               sourceMap: true,
               importLoaders: 1,
@@ -105,16 +106,16 @@ export default merge(baseConfig, {
         test: /\.global\.(scss|sass)$/,
         use: [
           {
-            loader: 'style-loader',
+            loader: "style-loader",
           },
           {
-            loader: 'css-loader',
+            loader: "css-loader",
             options: {
               sourceMap: true,
             },
           },
           {
-            loader: 'sass-loader',
+            loader: "sass-loader",
           },
         ],
       },
@@ -123,23 +124,23 @@ export default merge(baseConfig, {
         test: /^((?!\.global).)*\.(scss|sass)$/,
         use: [
           {
-            loader: 'style-loader',
+            loader: "style-loader",
           },
           {
-            loader: '@teamsupercell/typings-for-css-modules-loader',
+            loader: "@teamsupercell/typings-for-css-modules-loader",
           },
           {
-            loader: 'css-loader',
+            loader: "css-loader",
             options: {
               modules: {
-                localIdentName: '[name]__[local]__[hash:base64:5]',
+                localIdentName: "[name]__[local]__[hash:base64:5]",
               },
               sourceMap: true,
               importLoaders: 1,
             },
           },
           {
-            loader: 'sass-loader',
+            loader: "sass-loader",
           },
         ],
       },
@@ -147,10 +148,10 @@ export default merge(baseConfig, {
       {
         test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
         use: {
-          loader: 'url-loader',
+          loader: "url-loader",
           options: {
             limit: 10000,
-            mimetype: 'application/font-woff',
+            mimetype: "application/font-woff",
           },
         },
       },
@@ -158,10 +159,10 @@ export default merge(baseConfig, {
       {
         test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
         use: {
-          loader: 'url-loader',
+          loader: "url-loader",
           options: {
             limit: 10000,
-            mimetype: 'application/font-woff',
+            mimetype: "application/font-woff",
           },
         },
       },
@@ -169,44 +170,43 @@ export default merge(baseConfig, {
       {
         test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
         use: {
-          loader: 'url-loader',
+          loader: "url-loader",
           options: {
             limit: 10000,
-            mimetype: 'application/octet-stream',
+            mimetype: "application/octet-stream",
           },
         },
       },
       // EOT Font
       {
         test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-        use: 'file-loader',
+        use: "file-loader",
       },
       // SVG Font
       {
         test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
         use: {
-          loader: 'url-loader',
+          loader: "url-loader",
           options: {
             limit: 10000,
-            mimetype: 'image/svg+xml',
+            mimetype: "image/svg+xml",
           },
         },
       },
       // Common Image Formats
       {
         test: /\.(?:ico|gif|png|jpg|jpeg|webp)$/,
-        use: 'url-loader',
+        use: "url-loader",
       },
     ],
   },
   plugins: [
-
     requiredByDLLConfig
       ? null
       : new webpack.DllReferencePlugin({
-          context: path.join(__dirname, '../dll'),
+          context: path.join(__dirname, "../dll"),
           manifest: require(manifest),
-          sourceType: 'var',
+          sourceType: "var",
         }),
 
     new webpack.NoEmitOnErrorsPlugin(),
@@ -224,7 +224,7 @@ export default merge(baseConfig, {
      * 'staging', for example, by changing the ENV variables in the npm scripts
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'development',
+      NODE_ENV: "development",
     }),
 
     new webpack.LoaderOptionsPlugin({
@@ -244,12 +244,12 @@ export default merge(baseConfig, {
     publicPath,
     compress: true,
     noInfo: false,
-    stats: 'errors-only',
+    stats: "errors-only",
     inline: true,
     lazy: false,
     hot: true,
-    headers: { 'Access-Control-Allow-Origin': '*' },
-    contentBase: path.join(__dirname, 'dist'),
+    headers: { "Access-Control-Allow-Origin": "*" },
+    contentBase: path.join(__dirname, "dist"),
     watchOptions: {
       aggregateTimeout: 300,
       ignored: /node_modules/,
@@ -260,14 +260,14 @@ export default merge(baseConfig, {
       disableDotRule: false,
     },
     before() {
-      console.log('Starting Main Process...');
-        spawn('npm', ['run', 'start:main'], {
-          shell: true,
-          env: process.env,
-          stdio: 'inherit',
-        })
-          .on('close', (code) => process.exit(code))
-          .on('error', (spawnError) => console.error(spawnError));
+      console.log("Starting Main Process...");
+      spawn("npm", ["run", "start:main"], {
+        shell: true,
+        env: process.env,
+        stdio: "inherit",
+      })
+        .on("close", (code) => process.exit(code))
+        .on("error", (spawnError) => console.error(spawnError));
     },
   },
 });
