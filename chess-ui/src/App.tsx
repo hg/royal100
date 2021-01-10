@@ -1,46 +1,31 @@
 import React from "react";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { BrowserRouter, Route, Switch } from "react-router-dom";
+import ruRu from "antd/lib/locale-provider/ru_RU";
+import { ConfigProvider } from "antd";
+import { FullScreenWrap } from "./components/FullScreenWrap";
+import { Spinner } from "./components/Spinner";
+import { Home } from "./pages/Home";
 
-const Hello = () => {
-  return (
-    <div>
-      <h1>electron-react-boilerplate</h1>
-      <div className="Hello">
-        <a
-          href="https://electron-react-boilerplate.js.org/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="books">
-              📚
-            </span>
-            Read our docs
-          </button>
-        </a>
-        <a
-          href="https://github.com/sponsors/electron-react-boilerplate"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="books">
-              🙏
-            </span>
-            Donate
-          </button>
-        </a>
-      </div>
-    </div>
-  );
-};
+const suspenseFallback = (
+  <FullScreenWrap>
+    <Spinner loading />
+  </FullScreenWrap>
+);
 
-export default function App() {
+const AppRoutes = () => (
+  <Switch>
+    <Route path="/" component={Home} />
+  </Switch>
+);
+
+export function App() {
   return (
-    <Router>
-      <Switch>
-        <Route path="/" component={Hello} />
-      </Switch>
-    </Router>
+    <ConfigProvider locale={ruRu}>
+      <BrowserRouter>
+        <React.Suspense fallback={suspenseFallback}>
+          <AppRoutes />
+        </React.Suspense>
+      </BrowserRouter>
+    </ConfigProvider>
   );
 }
