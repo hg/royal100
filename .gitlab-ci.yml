@@ -1,0 +1,23 @@
+build:
+  stage: build
+  image: electronuserland/builder:wine
+  variables:
+    ELECTRON_CACHE: $HOME/.cache/electron
+    ELECTRON_BUILDER_CACHE: $HOME/.cache/electron-builder
+  script:
+    - cd chess-ui/
+    - yarn install
+    - yarn package:all
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - chess-ui/node_modules
+      - $HOME/.cache/electron
+      - $HOME/.cache/electron-builder
+  artifacts:
+    paths:
+      - chess-ui/release/*.AppImage
+      - chess-ui/release/*.exe
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
