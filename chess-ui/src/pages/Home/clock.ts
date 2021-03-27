@@ -1,16 +1,25 @@
 import moment from "moment";
 
 export class Clock {
-  private passedSeconds = 0;
-  private interval?: NodeJS.Timeout;
+  private remainingSeconds = 0;
+  private interval?: ReturnType<typeof setInterval>;
 
   private updateClock = () => {
-    this.passedSeconds++;
+    this.remainingSeconds--;
+    if (this.remainingSeconds <= 0) {
+      this.remainingSeconds = 0;
+      this.stop();
+    }
   };
 
-  start(): void {
-    this.stop();
-    this.reset();
+  set(value: number): void {
+    if (value <= 0) {
+      throw new Error("invalid time");
+    }
+    this.remainingSeconds = value;
+  }
+
+  continue() {
     this.interval = setInterval(this.updateClock, 1000);
   }
 
@@ -21,15 +30,11 @@ export class Clock {
     }
   }
 
-  reset(): void {
-    this.passedSeconds = 0;
+  get remainingSecs(): number {
+    return this.remainingSeconds;
   }
 
-  get passed(): number {
-    return this.passedSeconds;
-  }
-
-  get passedFormatted(): string {
-    return moment().seconds(this.passedSeconds).format("HH:mm:ss");
+  get remaining(): string {
+    return moment().seconds(this.remainingSeconds).format("HH:mm:ss");
   }
 }

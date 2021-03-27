@@ -1,41 +1,29 @@
 import { Api } from "chessgroundx/api";
-import * as cg from "chessgroundx/types";
-import { Color, FEN, Piece } from "chessgroundx/types";
+import { Color, FEN, Key, Piece } from "chessgroundx/types";
 import { Chessground } from "chessgroundx";
 import { getEnginePath, numCpus } from "../../utils/system";
 import { notification } from "antd";
 import { Engine, Promotions } from "./engine";
 import { Clock } from "./clock";
 import { choosePromotion } from "./gameUi";
-
-const dimension10x10 = 4; // Geometry.dim10x10
-
-// Мат в пару ходов
-// const startFen = "55/55/5k4/55/4Q~B4/55/2Q~1T5/55/8K1/551 w - Ss 18 10";
-
-// promotion в один ход
-// const startFen = "55/4k2P2/8P1/55/1p8/1s8/4T5/55/1B6K1/551 w - Ss 146 74";
-
-// стартовая позиция
-// const startFen =
-//   "rnbskqtbnr/pppppppppp/10/10/10/10/10/10/PPPPPPPPPP/RNBSKQTBNR1 w - - 0 1";
-
-const startFen =
-  "rnbskqt3/ppppppPPPP/10/10/10/10/10/10/PPPPPP4/RNBSKQTBNR1 w KQkq Ss 0 1";
+import { Dimension, Fen } from "../../utils/consts";
+import { otherColor } from "../../utils/chess";
+import { observable } from "mobx";
 
 interface GameConfig {
+  skill: number;
   myColor: Color;
   fen?: FEN;
+  totalTime: number;
+  plyTime: number;
 }
 
-function otherColor(color: Color): Color {
-  switch (color) {
-    case "black":
-      return "white";
-
-    case "white":
-      return "black";
-  }
+interface Move {
+  color: Color;
+  from: Key;
+  to: Key;
+  captured?: Piece;
+  piece?: Piece;
 }
 
 export class Game {
@@ -44,22 +32,24 @@ export class Game {
   private myColor: Color = "white";
   private opponentColor: Color = "black";
   private turnColor: Color = "white";
-  private halfMove = 0;
-  private move = 1;
-  private clockWhite = new Clock();
-  private clockBlack = new Clock();
+  private halfMoves = 0;
+  private fullMoves = 1;
+  private clocks = {
+    white: new Clock(),
+    black: new Clock(),
+  };
   private promotions?: Promotions;
+
+  moves = observable<Move>([]);
 
   constructor(element: HTMLElement) {
     const enginePath = getEnginePath();
     this.engine = new Engine(enginePath);
 
     this.ground = Chessground(element, {
-      geometry: dimension10x10,
+      geometry: Dimension.dim10x10,
       variant: "chess",
-      fen: startFen,
       turnColor: this.turnColor,
-      orientation: this.myColor,
       autoCastle: true,
       movable: {
         free: false,
@@ -72,12 +62,18 @@ export class Game {
     });
   }
 
-  private onMove = async (
-    orig: cg.Key,
-    dest: cg.Key,
-    capturedPiece?: cg.Piece
-  ) => {
+  private onMove = async (orig: Key, dest: Key, capturedPiece?: Piece) => {
     console.log("move", { orig, dest, capturedPiece });
+
+    const piece = this.ground.state.pieces[dest];
+
+    this.moves.push({
+      from: orig,
+      to: dest,
+      color: this.turnColor,
+      captured: capturedPiece,
+      piece,
+    });
 
     if (this.turnColor === this.myColor && this.promotions) {
       const promotions = this.promotions[orig + dest];
@@ -96,18 +92,28 @@ export class Game {
 
     await this.toggleColor();
 
+    // Если взяли фигуру или подвинули пешку, сбрасываем полу-ходы
+    if (capturedPiece || piece?.role === "p-piece") {
+      this.halfMoves = 0;
+      console.log("half-moves reset");
+    }
+
     if (this.turnColor === this.opponentColor) {
       await this.step();
     }
   };
 
   private async toggleColor() {
+    this.clocks[this.turnColor].stop();
+
     if (this.turnColor === "black") {
-      this.move++;
+      this.fullMoves++;
       this.turnColor = "white";
     } else {
       this.turnColor = "black";
     }
+
+    this.clocks[this.turnColor].continue();
 
     this.ground.set({
       turnColor: this.turnColor,
@@ -117,23 +123,29 @@ export class Game {
       await this.updateValidMoves();
     }
 
-    this.halfMove++;
+    this.halfMoves++;
+
+    if (this.halfMoves >= 100) {
+      notification.warn({ message: "Ничья" });
+      throw new Error("100 half-moves draw");
+    }
   }
 
-  async newGame({ myColor, fen }: GameConfig) {
+  async newGame({ myColor, fen, totalTime, skill, plyTime }: GameConfig) {
     const { engine, ground } = this;
 
     await engine.isReady();
     await engine.configure({
-      skill: 10,
+      skill,
       threads: numCpus(),
     });
     await engine.newGame();
 
     ground.set({
       turnColor: "white",
+      orientation: this.myColor,
       lastMove: undefined,
-      fen: fen || startFen,
+      fen: fen || Fen.start,
     });
 
     this.turnColor = "white";
@@ -141,6 +153,10 @@ export class Game {
     this.opponentColor = otherColor(myColor);
 
     await this.updateValidMoves();
+
+    this.clocks.black.set(totalTime);
+    this.clocks.white.set(totalTime);
+    this.clocks.white.continue();
   }
 
   private async updateValidMoves() {
@@ -159,10 +175,8 @@ export class Game {
 
   private get fullFen(): string {
     const fen = this.ground.getFen().replaceAll("10", "55");
-    const fullFen = `${fen}1 ${this.turnColor[0]} - - ${this.halfMove} ${this.move}`;
-
+    const fullFen = `${fen}1 ${this.turnColor[0]} - - ${this.halfMoves} ${this.fullMoves}`;
     console.log({ fullFen });
-
     return fullFen;
   }
 

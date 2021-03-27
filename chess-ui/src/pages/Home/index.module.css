@@ -6,6 +6,44 @@
 }
 
 .board {
+  flex: 0 0 auto;
   height: 800px;
   width: 800px;
+  margin: 0 16px;
+}
+
+.left {
+  flex: 1 0 auto;
+}
+
+.right {
+  flex: 1 0 auto;
+  height: 100%;
+  overflow-y: auto;
+  border-left: 1px solid #aeaeae;
+  padding: 8px;
+}
+
+.piece {
+  background-size: cover;
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+}
+
+.movePiece {
+  margin-right: 4px;
+}
+
+.historyTable {
+  table-layout: fixed;
+  width: -webkit-fill-available;
+  border-collapse: collapse;
+}
+
+.historyTable td,
+.historyTable th {
+  text-align: center;
+  border: 1px solid #282828;
+  padding: 2px;
 }

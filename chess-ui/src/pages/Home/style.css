@@ -232,63 +232,63 @@ cg-board piece.fading {
   }
 }
 
-.cg-wrap piece.h-piece.white {
+.h-piece.white {
   background-image: url("/assets/images/pieces/kaneo/wH.svg");
 }
-.cg-wrap piece.e-piece.white {
+.e-piece.white {
   background-image: url("/assets/images/pieces/kaneo/wE.svg");
 }
-.cg-wrap piece.h-piece.black {
+.h-piece.black {
   background-image: url("/assets/images/pieces/kaneo/bH.svg");
 }
-.cg-wrap piece.e-piece.black {
+.e-piece.black {
   background-image: url("/assets/images/pieces/kaneo/bE.svg");
 }
-.cg-wrap piece.p-piece.white {
+.p-piece.white {
   background-image: url("/assets/images/pieces/kaneo/wP.svg");
 }
-.cg-wrap piece.b-piece.white {
+.b-piece.white {
   background-image: url("/assets/images/pieces/kaneo/wB.svg");
 }
-.cg-wrap piece.n-piece.white {
+.n-piece.white {
   background-image: url("/assets/images/pieces/kaneo/wN.svg");
 }
-.cg-wrap piece.r-piece.white {
+.r-piece.white {
   background-image: url("/assets/images/pieces/kaneo/wR.svg");
 }
-.cg-wrap piece.q-piece.white {
+.q-piece.white {
   background-image: url("/assets/images/pieces/kaneo/wQ.svg");
 }
-.cg-wrap piece.k-piece.white {
+.k-piece.white {
   background-image: url("/assets/images/pieces/kaneo/wK.svg");
 }
-.cg-wrap piece.p-piece.black {
+.p-piece.black {
   background-image: url("/assets/images/pieces/kaneo/bP.svg");
 }
-.cg-wrap piece.b-piece.black {
+.b-piece.black {
   background-image: url("/assets/images/pieces/kaneo/bB.svg");
 }
-.cg-wrap piece.n-piece.black {
+.n-piece.black {
   background-image: url("/assets/images/pieces/kaneo/bN.svg");
 }
-.cg-wrap piece.r-piece.black {
+.r-piece.black {
   background-image: url("/assets/images/pieces/kaneo/bR.svg");
 }
-.cg-wrap piece.q-piece.black {
+.q-piece.black {
   background-image: url("/assets/images/pieces/kaneo/bQ.svg");
 }
-.cg-wrap piece.k-piece.black {
+.k-piece.black {
   background-image: url("/assets/images/pieces/kaneo/bK.svg");
 }
-.cg-wrap piece.t-piece.black {
+.t-piece.black {
   background-image: url("/assets/images/pieces/kaneo/bCh.svg");
 }
-.cg-wrap piece.t-piece.white {
+.t-piece.white {
   background-image: url("/assets/images/pieces/kaneo/wCh.svg");
 }
-.cg-wrap piece.s-piece.black {
+.s-piece.black {
   background-image: url("/assets/images/pieces/kaneo/bH.svg");
 }
-.cg-wrap piece.s-piece.white {
+.s-piece.white {
   background-image: url("/assets/images/pieces/kaneo/wH.svg");
 }
