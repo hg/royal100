@@ -2,7 +2,7 @@ import { Api } from "chessgroundx/api";
 import * as cg from "chessgroundx/types";
 import { Color, FEN, Piece } from "chessgroundx/types";
 import { Chessground } from "chessgroundx";
-import { numCpus } from "../../utils/system";
+import { getEnginePath, numCpus } from "../../utils/system";
 import { notification } from "antd";
 import { Engine, Promotions } from "./engine";
 import { Clock } from "./clock";
@@ -22,10 +22,6 @@ const dimension10x10 = 4; // Geometry.dim10x10
 
 const startFen =
   "rnbskqt3/ppppppPPPP/10/10/10/10/10/10/PPPPPP4/RNBSKQTBNR1 w KQkq Ss 0 1";
-
-const enginePath = "/home/neko/royal";
-
-// const enginePath = "/home/neko/src/my/royal100/engine/royal100";
 
 interface GameConfig {
   myColor: Color;
@@ -55,6 +51,7 @@ export class Game {
   private promotions?: Promotions;
 
   constructor(element: HTMLElement) {
+    const enginePath = getEnginePath();
     this.engine = new Engine(enginePath);
 
     this.ground = Chessground(element, {
