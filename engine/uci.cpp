@@ -192,6 +192,16 @@ namespace {
 
 } // namespace
 
+void print_valid_moves(const Position &pos) {
+    for (const auto &move : MoveList<LEGAL>(pos)) {
+        std::cout
+            << UCI::square(from_sq(move.move))
+            << ":"
+            << UCI::square(to_sq(move.move))
+            << " ";
+    }
+    std::cout << std::endl;
+}
 
 /// UCI::loop() waits for a command from stdin, parses it and calls the appropriate
 /// function. Also intercepts EOF from stdin to ensure gracefully exiting if the
@@ -240,6 +250,8 @@ void UCI::loop(int argc, char* argv[]) {
       else if (token == "position")   position(pos, is, states);
       else if (token == "ucinewgame") Search::clear();
       else if (token == "isready")    sync_cout << "readyok" << sync_endl;
+
+      else if (token == "valid_moves") print_valid_moves(pos);
 
       // Additional custom non-UCI commands, mainly for debugging.
       // Do not use these commands during a search!
