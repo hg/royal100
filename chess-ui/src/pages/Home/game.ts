@@ -156,6 +156,7 @@ export class Game {
         dests: moves.destinations,
       },
     });
+
     this.promotions = moves.promotions;
   }
 

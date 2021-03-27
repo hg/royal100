@@ -56,7 +56,6 @@ export class Engine {
 
   async configure({ threads, skill }: Options) {
     await this.setOption("Debug Log File", "/tmp/log");
-
     if (threads) {
       await this.setOption("Threads", threads + "");
     }
@@ -65,90 +64,10 @@ export class Engine {
     }
   }
 
-  isReady(): Promise<void> {
-    const { stdin, stdout } = this.engine;
-
-    stdin.write("isready\n");
-
-    return new Promise((resolve, reject) => {
-      function errorListener(error: Error) {
-        stdout.off("data", dataListener);
-        reject(error);
-      }
-
-      function dataListener(rawData: Buffer) {
-        const data = rawData.toString();
-
-        if (data.indexOf("readyok") !== -1) {
-          stdin.off("data", dataListener);
-          stdout.off("data", errorListener);
-          resolve();
-        }
-      }
-
-      stdout.on("data", dataListener);
-      stdout.once("error", errorListener);
-    });
-  }
-
-  async position(fen: string) {
-    const { stdin } = this.engine;
-
-    stdin.write(`position fen ${fen}\n`);
-    await this.isReady();
-  }
-
-  validMoves(): Promise<ValidMoves> {
-    const { stdin, stdout } = this.engine;
-
-    stdin.write("valid_moves\n");
-
-    return new Promise((resolve, reject) => {
-      function unsub() {
-        stdout.off("data", dataHandler);
-        stdout.off("error", errorHandler);
-      }
-
-      function errorHandler(error: Error) {
-        unsub();
-        reject(error);
-      }
-
-      function dataHandler(dataRaw: Buffer) {
-        unsub();
-
-        const moves = dataRaw.toString().matchAll(reMove);
-        const result: ValidMoves = {
-          promotions: {},
-          destinations: {},
-        };
-
-        for (let [, from, to, promotion] of moves) {
-          from = enginePositionToBoard(from);
-          to = enginePositionToBoard(to);
-
-          result.destinations[from] = result.destinations[from] || [];
-          result.destinations[from].push(to);
-
-          if (promotion) {
-            const fromTo = from + to;
-            result.promotions[fromTo] = result.promotions[fromTo] || [];
-            result.promotions[fromTo].push(promotion);
-          }
-        }
-
-        resolve(result);
-      }
-
-      stdout.once("data", dataHandler);
-      stdout.on("error", errorHandler);
-    });
-  }
-
-  go(depth: number): Promise<MoveResult> {
-    const { stdin, stdout } = this.engine;
-
-    stdin.write(`go depth ${depth}\n`);
+  private receiveUntil = (
+    predicate: (data: string) => boolean
+  ): Promise<string> => {
+    const { stdout } = this.engine;
 
     return new Promise((resolve, reject) => {
       function unsub() {
@@ -156,43 +75,89 @@ export class Engine {
         stdout.off("error", errorListener);
       }
 
-      function dataListener(rawData: Buffer) {
-        const data = rawData.toString();
-
-        const mated = data.match(reMated);
-        if (mated) {
-          unsub();
-          resolve({
-            info: { mated: true },
-          });
-          return;
-        }
-
-        const matchMove = data.match(reBestMove);
-        if (matchMove) {
-          unsub();
-
-          const [, from, to, promotion] = matchMove;
-
-          resolve({
-            move: {
-              from: enginePositionToBoard(from),
-              to: enginePositionToBoard(to),
-              promotion: promotion as Letter,
-            },
-          });
-          return;
-        }
-      }
-
       function errorListener(error: Error) {
         unsub();
         reject(error);
       }
 
+      function dataListener(rawData: Buffer) {
+        const data = rawData.toString();
+        if (predicate(data)) {
+          resolve(data);
+          unsub();
+        }
+      }
+
       stdout.on("data", dataListener);
       stdout.once("error", errorListener);
     });
+  };
+
+  async isReady(): Promise<void> {
+    const { stdin } = this.engine;
+    stdin.write("isready\n");
+    await this.receiveUntil((data) => data.includes("readyok"));
+  }
+
+  async position(fen: string) {
+    const { stdin } = this.engine;
+    stdin.write(`position fen ${fen}\n`);
+    await this.isReady();
+  }
+
+  async validMoves(): Promise<ValidMoves> {
+    const { stdin } = this.engine;
+    stdin.write("valid_moves\n");
+
+    const data = await this.receiveUntil(() => true);
+    const moves = data.matchAll(reMove);
+
+    const result: ValidMoves = {
+      promotions: {},
+      destinations: {},
+    };
+
+    for (let [, from, to, promotion] of moves) {
+      from = enginePositionToBoard(from);
+      to = enginePositionToBoard(to);
+
+      result.destinations[from] = result.destinations[from] || [];
+      result.destinations[from].push(to);
+
+      if (promotion) {
+        const fromTo = from + to;
+        result.promotions[fromTo] = result.promotions[fromTo] || [];
+        result.promotions[fromTo].push(promotion);
+      }
+    }
+
+    return result;
+  }
+
+  async go(depth: number): Promise<MoveResult> {
+    const { stdin } = this.engine;
+    stdin.write(`go depth ${depth}\n`);
+
+    const data = await this.receiveUntil((buf) => buf.includes("bestmove"));
+
+    const mated = data.match(reMated);
+    if (mated) {
+      return { info: { mated: true } };
+    }
+
+    const matchMove = data.match(reBestMove);
+    if (matchMove) {
+      const [, from, to, promotion] = matchMove;
+      return {
+        move: {
+          from: enginePositionToBoard(from),
+          to: enginePositionToBoard(to),
+          promotion: promotion as Letter,
+        },
+      };
+    }
+
+    throw new Error("unexpected data: " + data);
   }
 
   quit() {
