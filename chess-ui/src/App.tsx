@@ -5,6 +5,10 @@ import { ConfigProvider } from "antd";
 import { FullScreenWrap } from "./components/FullScreenWrap";
 import { Spinner } from "./components/Spinner";
 import { Home } from "./pages/Home";
+import "moment/locale/ru";
+import moment from "moment";
+
+moment.locale("ru");
 
 const suspenseFallback = (
   <FullScreenWrap>
@@ -18,14 +22,12 @@ const AppRoutes = () => (
   </Switch>
 );
 
-export function App() {
-  return (
-    <ConfigProvider locale={ruRu}>
-      <BrowserRouter>
-        <React.Suspense fallback={suspenseFallback}>
-          <AppRoutes />
-        </React.Suspense>
-      </BrowserRouter>
-    </ConfigProvider>
-  );
-}
+export const App = () => (
+  <ConfigProvider locale={ruRu}>
+    <BrowserRouter>
+      <React.Suspense fallback={suspenseFallback}>
+        <AppRoutes />
+      </React.Suspense>
+    </BrowserRouter>
+  </ConfigProvider>
+);

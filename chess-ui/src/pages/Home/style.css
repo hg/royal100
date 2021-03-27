@@ -1,0 +1,294 @@
+:root {
+  --ranks-right: -15px;
+  --ranks-top: 0px;
+  --files-bottom: -16px;
+  --files-left: 0px;
+  --ranks-top-shogi: -25px;
+  --files: 8;
+  --ranks: 8;
+  --editorLength: 6;
+  --pocketLength: 5;
+  --pocketMargin: 10px;
+  --movelist-max-height: 8rem;
+}
+
+:root {
+  --main-max-width: auto;
+}
+.cg-wrap svg {
+  position: absolute;
+}
+
+cg-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: block;
+  bottom: 0;
+}
+
+.cg-wrap {
+  background-size: cover;
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 0;
+  background-image: url("/assets/images/board/10x10brown.svg");
+  padding-bottom: 100%;
+}
+
+cg-board {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  line-height: 0;
+  background-size: cover;
+  cursor: pointer;
+}
+
+cg-board square {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  width: 10%;
+  height: 10%;
+}
+
+cg-board square.move-dest {
+  background: radial-gradient(
+    rgba(20, 85, 30, 0.5) 22%,
+    #208530 0,
+    rgba(0, 0, 0, 0.3) 0,
+    rgba(0, 0, 0, 0) 0
+  );
+  pointer-events: auto;
+}
+
+cg-board square.premove-dest {
+  background: radial-gradient(
+    rgba(20, 30, 85, 0.5) 22%,
+    #203085 0,
+    rgba(0, 0, 0, 0.3) 0,
+    rgba(0, 0, 0, 0) 0
+  );
+}
+
+cg-board square.oc.move-dest {
+  background: radial-gradient(
+    transparent 0%,
+    transparent 80%,
+    rgba(20, 85, 0, 0.3) 80%
+  );
+}
+
+cg-board square.oc.premove-dest {
+  background: radial-gradient(
+    transparent 0%,
+    transparent 80%,
+    rgba(20, 30, 85, 0.2) 80%
+  );
+}
+
+cg-board square.move-dest:hover {
+  background: rgba(20, 85, 30, 0.3);
+}
+
+cg-board square.premove-dest:hover {
+  background: rgba(20, 30, 85, 0.2);
+}
+
+cg-board square.last-move {
+  will-change: transform;
+  background-color: rgba(155, 199, 0, 0.41);
+}
+
+cg-board square.selected {
+  background-color: rgba(20, 85, 30, 0.5);
+}
+
+cg-board square.check {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 0, 0, 1) 0%,
+    rgba(231, 0, 0, 1) 25%,
+    rgba(169, 0, 0, 0) 89%,
+    rgba(158, 0, 0, 0) 100%
+  );
+}
+
+cg-board square.current-premove {
+  background-color: rgba(20, 30, 85, 0.5);
+}
+
+.cg-wrap piece {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-size: cover;
+  z-index: 2;
+  will-change: transform;
+  pointer-events: none;
+  width: 10%;
+  height: 10%;
+}
+
+.blindfold piece {
+  opacity: 0;
+}
+
+cg-board piece.dragging {
+  cursor: move;
+  z-index: 9;
+}
+
+cg-board piece.anim {
+  z-index: 8;
+}
+
+cg-board piece.fading {
+  z-index: 1;
+  opacity: 0.5;
+}
+
+.cg-wrap square.move-dest:hover {
+  background-color: rgba(20, 85, 30, 0.3);
+}
+
+.cg-wrap piece.ghost {
+  opacity: 0.3;
+}
+
+.cg-wrap svg {
+  overflow: hidden;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.6;
+}
+
+.cg-wrap svg image {
+  opacity: 0.5;
+}
+
+.cg-wrap coords {
+  position: absolute;
+  display: flex;
+  pointer-events: none;
+  opacity: 0.8;
+  font-size: 0.85em;
+  font-weight: bold;
+}
+
+/* hide coords */
+@media (max-width: 799px) and (orientation: portrait) {
+  .cg-wrap coords {
+    display: none;
+  }
+}
+
+.cg-wrap coords.ranks {
+  right: var(--ranks-right);
+  top: var(--ranks-top);
+  flex-flow: column-reverse;
+  height: 100%;
+  width: 12px;
+}
+
+.cg-wrap coords.ranks.black {
+  flex-flow: column;
+}
+
+.cg-wrap coords.files {
+  bottom: var(--files-bottom);
+  left: var(--files-left);
+  flex-flow: row;
+  width: 100%;
+  height: 16px;
+  text-align: center;
+}
+
+.cg-wrap coords.files.black {
+  flex-flow: row-reverse;
+}
+
+.cg-wrap coords coord {
+  flex: 1 1 auto;
+}
+
+@media (min-width: 800px) and (min-height: 500px) {
+  .cg-wrap coords.ranks coord {
+    transform: translateY(39%);
+  }
+}
+
+.cg-wrap piece.h-piece.white {
+  background-image: url("/assets/images/pieces/kaneo/wH.svg");
+}
+.cg-wrap piece.e-piece.white {
+  background-image: url("/assets/images/pieces/kaneo/wE.svg");
+}
+.cg-wrap piece.h-piece.black {
+  background-image: url("/assets/images/pieces/kaneo/bH.svg");
+}
+.cg-wrap piece.e-piece.black {
+  background-image: url("/assets/images/pieces/kaneo/bE.svg");
+}
+.cg-wrap piece.p-piece.white {
+  background-image: url("/assets/images/pieces/kaneo/wP.svg");
+}
+.cg-wrap piece.b-piece.white {
+  background-image: url("/assets/images/pieces/kaneo/wB.svg");
+}
+.cg-wrap piece.n-piece.white {
+  background-image: url("/assets/images/pieces/kaneo/wN.svg");
+}
+.cg-wrap piece.r-piece.white {
+  background-image: url("/assets/images/pieces/kaneo/wR.svg");
+}
+.cg-wrap piece.q-piece.white {
+  background-image: url("/assets/images/pieces/kaneo/wQ.svg");
+}
+.cg-wrap piece.k-piece.white {
+  background-image: url("/assets/images/pieces/kaneo/wK.svg");
+}
+.cg-wrap piece.p-piece.black {
+  background-image: url("/assets/images/pieces/kaneo/bP.svg");
+}
+.cg-wrap piece.b-piece.black {
+  background-image: url("/assets/images/pieces/kaneo/bB.svg");
+}
+.cg-wrap piece.n-piece.black {
+  background-image: url("/assets/images/pieces/kaneo/bN.svg");
+}
+.cg-wrap piece.r-piece.black {
+  background-image: url("/assets/images/pieces/kaneo/bR.svg");
+}
+.cg-wrap piece.q-piece.black {
+  background-image: url("/assets/images/pieces/kaneo/bQ.svg");
+}
+.cg-wrap piece.k-piece.black {
+  background-image: url("/assets/images/pieces/kaneo/bK.svg");
+}
+.cg-wrap piece.t-piece.black {
+  background-image: url("/assets/images/pieces/kaneo/bCh.svg");
+}
+.cg-wrap piece.t-piece.white {
+  background-image: url("/assets/images/pieces/kaneo/wCh.svg");
+}
+.cg-wrap piece.s-piece.black {
+  background-image: url("/assets/images/pieces/kaneo/bH.svg");
+}
+.cg-wrap piece.s-piece.white {
+  background-image: url("/assets/images/pieces/kaneo/wH.svg");
+}

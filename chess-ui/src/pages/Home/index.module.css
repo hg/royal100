@@ -1,0 +1,11 @@
+.wrap {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.board {
+  height: 800px;
+  width: 800px;
+}
