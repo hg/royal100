@@ -1,11 +1,12 @@
 import { Api } from "chessgroundx/api";
+import * as cg from "chessgroundx/types";
 import { Color, FEN, Piece } from "chessgroundx/types";
 import { Chessground } from "chessgroundx";
-import * as cg from "chessgroundx/types";
 import { numCpus } from "../../utils/system";
 import { notification } from "antd";
-import { Engine } from "./engine";
+import { Engine, Promotions } from "./engine";
 import { Clock } from "./clock";
+import { choosePromotion } from "./gameUi";
 
 const dimension10x10 = 4; // Geometry.dim10x10
 
@@ -16,9 +17,11 @@ const dimension10x10 = 4; // Geometry.dim10x10
 // const startFen = "55/4k2P2/8P1/55/1p8/1s8/4T5/55/1B6K1/551 w - Ss 146 74";
 
 // стартовая позиция
+// const startFen =
+//   "rnbskqtbnr/pppppppppp/10/10/10/10/10/10/PPPPPPPPPP/RNBSKQTBNR1 w - - 0 1";
+
 const startFen =
-  "rnbskqtbnr/pppppppppp/10/10/10/10/10/10/PPPPPPPPPP/RNBSKQTBNR1 w - - 0 1";
-// const startFen = "rnbskqtbnr/pppppppppp/10/10/10/10/10/10/PPPPPPPPPP/RNBSKQTBNR1 w KQkq Ss 0 1";
+  "rnbskqt3/ppppppPPPP/10/10/10/10/10/10/PPPPPP4/RNBSKQTBNR1 w KQkq Ss 0 1";
 
 const enginePath = "/home/neko/royal";
 
@@ -49,6 +52,7 @@ export class Game {
   private move = 1;
   private clockWhite = new Clock();
   private clockBlack = new Clock();
+  private promotions?: Promotions;
 
   constructor(element: HTMLElement) {
     this.engine = new Engine(enginePath);
@@ -71,13 +75,32 @@ export class Game {
     });
   }
 
-  private onMove = (orig: cg.Key, dest: cg.Key, capturedPiece?: cg.Piece) => {
+  private onMove = async (
+    orig: cg.Key,
+    dest: cg.Key,
+    capturedPiece?: cg.Piece
+  ) => {
     console.log("move", { orig, dest, capturedPiece });
 
-    this.toggleColor();
+    if (this.turnColor === this.myColor && this.promotions) {
+      const promotions = this.promotions[orig + dest];
+      if (promotions?.length) {
+        const promotion = await choosePromotion(promotions);
+
+        this.ground.setPieces({
+          [dest]: {
+            color: this.myColor,
+            promoted: true,
+            role: `${promotion}-piece`,
+          } as Piece,
+        });
+      }
+    }
+
+    await this.toggleColor();
 
     if (this.turnColor === this.opponentColor) {
-      this.step();
+      await this.step();
     }
   };
 
@@ -130,9 +153,10 @@ export class Game {
 
     this.ground.set({
       movable: {
-        dests: moves,
+        dests: moves.destinations,
       },
     });
+    this.promotions = moves.promotions;
   }
 
   private get fullFen(): string {

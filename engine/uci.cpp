@@ -194,11 +194,7 @@ namespace {
 
 void print_valid_moves(const Position &pos) {
     for (const auto &move : MoveList<LEGAL>(pos)) {
-        std::cout
-            << UCI::square(from_sq(move.move))
-            << ":"
-            << UCI::square(to_sq(move.move))
-            << " ";
+        std::cout << UCI::move(move.move) << " ";
     }
     std::cout << std::endl;
 }

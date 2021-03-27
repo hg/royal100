@@ -1,11 +1,20 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { Key, Letter } from "chessgroundx/types";
+import { enginePositionToBoard } from "../../utils/interop";
 
 const reMated = /\binfo .* score mate 0\b/;
 const reBestMove = /\bbestmove (\w\d+)(\w\d+)(\w?)\b/;
+const reMove = /\b(\w\d+)(\w\d+)(\w?)\b/g;
+
+export interface Promotions {
+  [fromTo: string]: string[];
+}
 
 interface ValidMoves {
-  [key: string]: Key[];
+  destinations: {
+    [key: string]: Key[];
+  };
+  promotions: Promotions;
 }
 
 interface Options {
@@ -108,20 +117,24 @@ export class Engine {
       function dataHandler(dataRaw: Buffer) {
         unsub();
 
-        const data = dataRaw.toString();
-        const moves = data.trim().split(" ");
-        const result: ValidMoves = {};
+        const moves = dataRaw.toString().matchAll(reMove);
+        const result: ValidMoves = {
+          promotions: {},
+          destinations: {},
+        };
 
-        for (const move of moves) {
-          const [from, to] = move.split(":");
-          if (!from || !to) {
-            console.error("invalid move", { from, to });
-            continue;
+        for (let [, from, to, promotion] of moves) {
+          from = enginePositionToBoard(from);
+          to = enginePositionToBoard(to);
+
+          result.destinations[from] = result.destinations[from] || [];
+          result.destinations[from].push(to);
+
+          if (promotion) {
+            const fromTo = from + to;
+            result.promotions[fromTo] = result.promotions[fromTo] || [];
+            result.promotions[fromTo].push(promotion);
           }
-          if (!result[from]) {
-            result[from] = [];
-          }
-          result[from].push(to);
         }
 
         resolve(result);
@@ -159,14 +172,14 @@ export class Engine {
         if (matchMove) {
           unsub();
 
-          let [, from, to, promotion] = matchMove;
-
-          // chessboardx uses : instead of 10
-          from = from.replace("10", ":");
-          to = to.replace("10", ":");
+          const [, from, to, promotion] = matchMove;
 
           resolve({
-            move: { from, to, promotion: promotion as Letter },
+            move: {
+              from: enginePositionToBoard(from),
+              to: enginePositionToBoard(to),
+              promotion: promotion as Letter,
+            },
           });
           return;
         }
