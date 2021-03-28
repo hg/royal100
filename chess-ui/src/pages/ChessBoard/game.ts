@@ -14,7 +14,7 @@ import { boardFenToEngine } from "../../utils/interop";
 import { read } from "chessgroundx/fen";
 
 export interface GameConfig {
-  skill: number;
+  rating: number;
   myColor: Color;
   fen?: FEN;
   totalTime: number;
@@ -259,14 +259,14 @@ export class Game {
     }
   };
 
-  async newGame({ myColor, fen, totalTime, skill }: GameConfig) {
+  async newGame({ myColor, fen, totalTime, rating }: GameConfig) {
     assert.ok(!this.isPlaying);
 
     const { engine, ground } = this;
 
     await engine.isReady();
     await engine.configure({
-      skill,
+      rating,
       threads: numCpus(),
     });
     await engine.newGame();

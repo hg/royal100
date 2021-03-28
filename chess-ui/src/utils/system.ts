@@ -1,6 +1,10 @@
 import os from "os";
 import path from "path";
 
+export function isDevMode(): boolean {
+  return process.env.NODE_ENV === "development";
+}
+
 export function numCpus(): number {
   return os.cpus().length;
 }

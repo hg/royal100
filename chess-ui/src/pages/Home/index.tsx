@@ -1,6 +1,6 @@
 import { Button, Form, Select, Slider, TimePicker } from "antd";
 import React, { FC } from "react";
-import { Skill } from "../../utils/consts";
+import { Rating } from "../../utils/consts";
 import { GameConfig } from "../ChessBoard/game";
 import { FaChess } from "react-icons/all";
 import { useHistory } from "react-router";
@@ -31,12 +31,12 @@ export const Home: FC<Props> = ({ config, setConfig }) => {
         <h2>Королевские шахматы</h2>
 
         <Form {...formLayout}>
-          <Form.Item label="Уровень игры компьютера">
+          <Form.Item label="Рейтинг компьютера">
             <Slider
-              value={config.skill}
-              min={Skill.min}
-              max={Skill.max}
-              onChange={(skill: number) => setConfig({ ...config, skill })}
+              value={config.rating}
+              min={Rating.min}
+              max={Rating.max}
+              onChange={(rating: number) => setConfig({ ...config, rating })}
             />
           </Form.Item>
 

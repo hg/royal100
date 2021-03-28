@@ -2,6 +2,7 @@ import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { Key, Letter } from "chessgroundx/types";
 import { enginePositionToBoard } from "../../utils/interop";
 import { Clocks } from "./game";
+import { isDevMode } from "../../utils/system";
 
 const reBestMove = /\bbestmove (\w\d+)(\w\d+)(\w?)\b/;
 const reMove = /\b(\w\d+)(\w\d+)(\w?)\b/g;
@@ -19,7 +20,7 @@ export interface ValidMoves {
 
 interface Options {
   threads?: number;
-  skill?: number;
+  rating?: number;
 }
 
 export interface BestMove {
@@ -47,13 +48,16 @@ export class Engine {
     await this.isReady();
   }
 
-  async configure({ threads, skill }: Options) {
-    await this.setOption("Debug Log File", "/tmp/log");
+  async configure({ threads, rating }: Options) {
+    if (isDevMode()) {
+      await this.setOption("Debug Log File", "/tmp/log");
+    }
     if (threads) {
       await this.setOption("Threads", threads + "");
     }
-    if (typeof skill === "number" && skill >= 0 && skill <= 20) {
-      await this.setOption("Skill Level", skill + "");
+    if (typeof rating === "number" && rating) {
+      await this.setOption("UCI_LimitStrength", "true");
+      await this.setOption("UCI_Elo", String(rating));
     }
   }
 

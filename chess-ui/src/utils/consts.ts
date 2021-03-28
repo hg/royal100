@@ -10,8 +10,8 @@ export const Fen = {
     "rnbskqtbnr/pppppppppp/55/55/55/55/55/55/PPPPPPPPPP/RNBSKQTBNR w KQkq Ss - 0 1",
 };
 
-export const Skill = {
-  min: 0,
-  max: 20,
-  default: 10,
+export const Rating = {
+  min: 1350,
+  max: 2850,
+  default: 2000,
 };

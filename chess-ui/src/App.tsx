@@ -10,7 +10,7 @@ import moment from "moment";
 import { Home } from "./pages/Home";
 import { routes } from "./pages/routes";
 import { GameConfig } from "./pages/ChessBoard/game";
-import { Skill } from "./utils/consts";
+import { Rating } from "./utils/consts";
 
 moment.locale("ru");
 
@@ -23,7 +23,7 @@ const suspenseFallback = (
 const AppRoutes = () => {
   const [config, setConfig] = useState<GameConfig>({
     myColor: "white",
-    skill: Skill.default,
+    rating: Rating.default,
     totalTime: 3600,
     plyTime: 300,
   });
