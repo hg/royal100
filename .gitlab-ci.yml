@@ -1,10 +1,32 @@
-build:
-  stage: build
+stages:
+  - build-engine
+  - build-app
+
+build-engine:
+  stage: build-engine
+  image: burningdaylight/mingw-arch
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - engine-bin/
+  script:
+    - mkdir engine-bin/
+    - cd engine/
+    - make -j$(nproc) ARCH=x86-64-modern COMP=gcc clean build
+    - mv royal100 ../engine-bin/
+    - make -j$(nproc) ARCH=x86-64-modern COMP=mingw clean build
+    - mv royal100.exe ../engine-bin/
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+build-app:
+  stage: build-app
   image: electronuserland/builder:wine
   variables:
     ELECTRON_CACHE: $HOME/.cache/electron
     ELECTRON_BUILDER_CACHE: $HOME/.cache/electron-builder
   script:
+    - mv engine-bin/* chess-ui/assets/bin/engine/
     - cd chess-ui/
     - yarn install
     - yarn package:all
