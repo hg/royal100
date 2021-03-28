@@ -13,7 +13,7 @@ import assert from "assert";
 import { boardFenToEngine } from "../../utils/interop";
 import { read } from "chessgroundx/fen";
 
-interface GameConfig {
+export interface GameConfig {
   skill: number;
   myColor: Color;
   fen?: FEN;
@@ -77,7 +77,6 @@ export class Game {
     this.ground = Chessground(element, {
       geometry: Dimension.dim10x10,
       variant: "chess",
-      turnColor: this.turnColor,
       autoCastle: true,
       movable: {
         free: false,
@@ -274,11 +273,11 @@ export class Game {
 
     ground.set({
       turnColor: "white",
-      orientation: this.myColor,
+      orientation: myColor,
       lastMove: undefined,
       fen: fen || Fen.start,
       movable: {
-        color: this.myColor,
+        color: myColor,
       },
     });
 
@@ -286,12 +285,17 @@ export class Game {
     this.turnColor = "white";
     this.myColor = myColor;
     this.opponentColor = otherColor(myColor);
+    this.moves.splice(0);
 
     await this.updateValidMoves();
 
     this.clocks.white.set(totalTime);
     this.clocks.white.continue();
     this.clocks.black.set(totalTime);
+
+    if (this.turnColor === this.opponentColor) {
+      this.step();
+    }
   }
 
   private async updateValidMoves() {

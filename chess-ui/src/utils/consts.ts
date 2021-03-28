@@ -13,4 +13,5 @@ export const Fen = {
 export const Skill = {
   min: 0,
   max: 20,
+  default: 10,
 };
