@@ -1,5 +1,8 @@
 import { action, computed, observable } from "mobx";
 
+const secondsInMinute = 60;
+const secondsInHour = secondsInMinute * 60;
+
 export class Clock {
   private time = observable({ secs: 0 });
   private interval?: ReturnType<typeof setInterval>;
@@ -36,25 +39,30 @@ export class Clock {
   }
 
   @computed
+  get remainingMs(): number {
+    return this.remainingSecs * 1000;
+  }
+
+  @computed
   get remaining(): string {
     let secs = this.remainingSecs;
 
     let hhrs = 0;
-    if (secs >= 60 * 60) {
-      hhrs = Math.floor(secs / (60 * 60));
-      secs -= hhrs * 60 * 60;
+    if (secs >= secondsInHour) {
+      hhrs = Math.floor(secs / secondsInHour);
+      secs -= hhrs * secondsInHour;
     }
 
     let mins = 0;
-    if (secs >= 60) {
-      mins = Math.floor(secs / 60);
-      secs -= mins * 60;
+    if (secs >= secondsInMinute) {
+      mins = Math.floor(secs / secondsInMinute);
+      secs -= mins * secondsInMinute;
     }
 
-    const th = hhrs.toFixed(0).padStart(2, "0");
-    const tm = mins.toFixed(0).padStart(2, "0");
-    const ts = secs.toFixed(0).padStart(2, "0");
+    const hh = hhrs.toFixed(0).padStart(2, "0");
+    const mm = mins.toFixed(0).padStart(2, "0");
+    const ss = secs.toFixed(0).padStart(2, "0");
 
-    return `${th}:${tm}:${ts}`;
+    return `${hh}:${mm}:${ss}`;
   }
 }

@@ -4,16 +4,19 @@ import { Game } from "./game";
 import { Skill } from "../../utils/consts";
 import { observer } from "mobx-react-lite";
 import { TimeClock } from "./TimeClock";
+import { Button, message } from "antd";
+import { BiHelpCircle } from "react-icons/all";
 
 export const Home = observer(() => {
   const ref = useRef<HTMLDivElement | null>(null);
   const [game, setGame] = useState<Game | null>(null);
+  const [hintThinking, setHintThinking] = useState(false);
 
   async function run(elem: HTMLElement) {
     const game = new Game(elem);
     await game.newGame({
       myColor: "white",
-      skill: Skill.max,
+      skill: Skill.min,
       totalTime: 3600,
       plyTime: 300,
     });
@@ -26,6 +29,22 @@ export const Home = observer(() => {
     }
   }, []);
 
+  async function getHint() {
+    if (game) {
+      setHintThinking(true);
+      try {
+        const move = await game.getHint();
+        if (!move) {
+          message.error({ content: "Хороших ходов нет" });
+        } else {
+          message.success({ content: `Попробуйте ${move.from}—${move.to}` });
+        }
+      } finally {
+        setHintThinking(false);
+      }
+    }
+  }
+
   return (
     <div className={styles.wrap}>
       <div className={styles.left}>
@@ -33,6 +52,15 @@ export const Home = observer(() => {
           <Fragment>
             <TimeClock color="white" clock={game.clocks.white} />
             <TimeClock color="black" clock={game.clocks.black} />
+
+            <Button
+              block
+              type="primary"
+              onClick={getHint}
+              disabled={hintThinking}
+            >
+              <BiHelpCircle /> Подсказка
+            </Button>
           </Fragment>
         )}
       </div>

@@ -1,6 +1,7 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { Key, Letter } from "chessgroundx/types";
 import { enginePositionToBoard } from "../../utils/interop";
+import { Clocks } from "./game";
 
 const reMated = /\binfo .* score mate 0\b/;
 const reBestMove = /\bbestmove (\w\d+)(\w\d+)(\w?)\b/;
@@ -22,16 +23,16 @@ interface Options {
   skill?: number;
 }
 
-interface MoveResult {
+export interface MoveResult {
   info?: Info;
-  move?: Move;
+  move?: BestMove;
 }
 
 interface Info {
   mated: boolean;
 }
 
-interface Move {
+export interface BestMove {
   from: Key;
   to: Key;
   promotion?: Letter;
@@ -39,9 +40,11 @@ interface Move {
 
 export class Engine {
   private readonly engine: ChildProcessWithoutNullStreams;
+  private readonly clocks: Clocks;
 
-  constructor(path: string) {
+  constructor(path: string, clocks: Clocks) {
     this.engine = spawn(path);
+    this.clocks = clocks;
   }
 
   private async setOption(name: string, value: string) {
@@ -134,9 +137,13 @@ export class Engine {
     return result;
   }
 
-  async go(depth: number): Promise<MoveResult> {
+  async go(): Promise<MoveResult> {
     const { stdin } = this.engine;
-    stdin.write(`go depth ${depth}\n`);
+    const { clocks } = this;
+
+    stdin.write(
+      `go depth 15 wtime ${clocks.white.remainingMs} btime ${clocks.black.remainingMs}\n`
+    );
 
     const data = await this.receiveUntil((buf) => buf.includes("bestmove"));
 

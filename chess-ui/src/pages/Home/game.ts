@@ -3,7 +3,7 @@ import { Color, FEN, Key, Piece } from "chessgroundx/types";
 import { Chessground } from "chessgroundx";
 import { getEnginePath, numCpus } from "../../utils/system";
 import { notification } from "antd";
-import { Engine, Promotions } from "./engine";
+import { BestMove, Engine, Promotions } from "./engine";
 import { Clock } from "./clock";
 import { choosePromotion } from "./gameUi";
 import { Dimension, Fen } from "../../utils/consts";
@@ -26,6 +26,11 @@ interface Move {
   piece?: Piece;
 }
 
+export interface Clocks {
+  white: Clock;
+  black: Clock;
+}
+
 export class Game {
   private engine: Engine;
   private ground: Api;
@@ -36,12 +41,15 @@ export class Game {
   private fullMoves = 1;
   private promotions?: Promotions;
 
-  clocks = { white: new Clock(), black: new Clock() };
+  clocks: Clocks = {
+    white: new Clock(),
+    black: new Clock(),
+  };
   moves = observable<Move>([]);
 
   constructor(element: HTMLElement) {
     const enginePath = getEnginePath();
-    this.engine = new Engine(enginePath);
+    this.engine = new Engine(enginePath, this.clocks);
 
     this.ground = Chessground(element, {
       geometry: Dimension.dim10x10,
@@ -181,11 +189,24 @@ export class Game {
     await this.engine.position(this.fullFen);
   }
 
-  async step() {
+  async getHint(): Promise<BestMove | undefined> {
+    const { engine, ground } = this;
+
+    await this.updatePosition();
+    const { move } = await engine.go();
+
+    if (move) {
+      ground.selectSquare(move.from);
+    }
+
+    return move;
+  }
+
+  private async step() {
     const { ground, engine } = this;
 
     await this.updatePosition();
-    const { move, info } = await engine.go(5);
+    const { move, info } = await engine.go();
 
     console.log({ move, info });
 
