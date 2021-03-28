@@ -3,33 +3,38 @@ import styles from "./index.module.css";
 import { Game } from "./game";
 import { Skill } from "../../utils/consts";
 import { observer } from "mobx-react-lite";
+import { TimeClock } from "./TimeClock";
 
 export const Home = observer(() => {
   const ref = useRef<HTMLDivElement | null>(null);
   const [game, setGame] = useState<Game | null>(null);
 
-  async function run() {
-    if (ref.current) {
-      const game = new Game(ref.current);
-      await game.newGame({
-        myColor: "white",
-        skill: Skill.max,
-        totalTime: 3600,
-        plyTime: 300,
-      });
-      setGame(game);
-    }
+  async function run(elem: HTMLElement) {
+    const game = new Game(elem);
+    await game.newGame({
+      myColor: "white",
+      skill: Skill.max,
+      totalTime: 3600,
+      plyTime: 300,
+    });
+    setGame(game);
   }
 
   useEffect(() => {
-    run();
+    if (ref.current) {
+      run(ref.current);
+    }
   }, []);
 
   return (
     <div className={styles.wrap}>
       <div className={styles.left}>
-        <p>clock 1</p>
-        <p>clock 2</p>
+        {game && (
+          <Fragment>
+            <TimeClock color="white" clock={game.clocks.white} />
+            <TimeClock color="black" clock={game.clocks.black} />
+          </Fragment>
+        )}
       </div>
 
       <div className={styles.board}>

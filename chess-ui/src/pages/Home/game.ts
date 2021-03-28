@@ -34,12 +34,9 @@ export class Game {
   private turnColor: Color = "white";
   private halfMoves = 0;
   private fullMoves = 1;
-  private clocks = {
-    white: new Clock(),
-    black: new Clock(),
-  };
   private promotions?: Promotions;
 
+  clocks = { white: new Clock(), black: new Clock() };
   moves = observable<Move>([]);
 
   constructor(element: HTMLElement) {
@@ -131,7 +128,7 @@ export class Game {
     }
   }
 
-  async newGame({ myColor, fen, totalTime, skill, plyTime }: GameConfig) {
+  async newGame({ myColor, fen, totalTime, skill }: GameConfig) {
     const { engine, ground } = this;
 
     await engine.isReady();
@@ -154,9 +151,9 @@ export class Game {
 
     await this.updateValidMoves();
 
-    this.clocks.black.set(totalTime);
     this.clocks.white.set(totalTime);
     this.clocks.white.continue();
+    this.clocks.black.set(totalTime);
   }
 
   private async updateValidMoves() {
