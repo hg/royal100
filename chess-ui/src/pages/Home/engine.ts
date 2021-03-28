@@ -3,7 +3,6 @@ import { Key, Letter } from "chessgroundx/types";
 import { enginePositionToBoard } from "../../utils/interop";
 import { Clocks } from "./game";
 
-const reMated = /\binfo .* score mate 0\b/;
 const reBestMove = /\bbestmove (\w\d+)(\w\d+)(\w?)\b/;
 const reMove = /\b(\w\d+)(\w\d+)(\w?)\b/g;
 
@@ -21,15 +20,6 @@ export interface ValidMoves {
 interface Options {
   threads?: number;
   skill?: number;
-}
-
-export interface MoveResult {
-  info?: Info;
-  move?: BestMove;
-}
-
-interface Info {
-  mated: boolean;
 }
 
 export interface BestMove {
@@ -137,30 +127,22 @@ export class Engine {
     return result;
   }
 
-  async go(): Promise<MoveResult> {
-    const { stdin } = this.engine;
+  async think(): Promise<BestMove> {
     const { clocks } = this;
 
-    stdin.write(
+    this.engine.stdin.write(
       `go depth 5 wtime ${clocks.white.remainingMs} btime ${clocks.black.remainingMs}\n`
     );
 
     const data = await this.receiveUntil((buf) => buf.includes("bestmove"));
 
-    const mated = data.match(reMated);
-    if (mated) {
-      return { info: { mated: true } };
-    }
-
     const matchMove = data.match(reBestMove);
     if (matchMove) {
       const [, from, to, promotion] = matchMove;
       return {
-        move: {
-          from: enginePositionToBoard(from),
-          to: enginePositionToBoard(to),
-          promotion: promotion as Letter,
-        },
+        from: enginePositionToBoard(from),
+        to: enginePositionToBoard(to),
+        promotion: promotion as Letter,
       };
     }
 

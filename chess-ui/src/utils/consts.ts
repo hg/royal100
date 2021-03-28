@@ -6,8 +6,8 @@ export const Dimension = {
 };
 
 export const Fen = {
-  start: "rnbskqt3/ppppppqqqq/10/10/10/10/10/10/10/4KQ41 w KQkq Ss 0 1",
-  // "rnbskqt3/ppppppPPPP/10/10/10/10/10/10/PPPPPP4/RNBSKQTBNR1 w KQkq Ss 0 1",
+  start:
+    "rnbskqtbnr/pppppppppp/55/55/55/55/55/55/PPPPPPPPPP/RNBSKQTBNR w KQkq Ss - 0 1",
 };
 
 export const Skill = {

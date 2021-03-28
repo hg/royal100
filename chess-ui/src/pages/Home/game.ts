@@ -2,16 +2,16 @@ import { Api } from "chessgroundx/api";
 import { Color, FEN, Key, Piece } from "chessgroundx/types";
 import { Chessground } from "chessgroundx";
 import { getEnginePath, numCpus } from "../../utils/system";
-import { notification } from "antd";
 import { BestMove, Engine, ValidMoves } from "./engine";
 import { Clock } from "./clock";
 import { choosePromotion } from "./gameUi";
 import { Dimension, Fen } from "../../utils/consts";
-import { otherColor } from "../../utils/chess";
+import { getEnPassant, otherColor } from "../../utils/chess";
 import { action, makeAutoObservable, reaction } from "mobx";
 import { isEmpty } from "../../utils/util";
 import assert from "assert";
 import { boardFenToEngine } from "../../utils/interop";
+import { read } from "chessgroundx/fen";
 
 interface GameConfig {
   skill: number;
@@ -58,6 +58,8 @@ export class Game {
   private halfMoves = 0;
   private fullMoves = 1;
   private validMoves?: ValidMoves;
+  private enPassantTarget?: Key;
+  private enPassant: Key[] = [];
 
   lossReason = LossReason.Mate;
   state = GameState.Paused;
@@ -78,7 +80,6 @@ export class Game {
       autoCastle: true,
       movable: {
         free: false,
-        color: this.myColor,
         showDests: true,
       },
       events: {
@@ -110,6 +111,7 @@ export class Game {
   @action
   private setLoss = (side: Color, reason: LossReason) => {
     if (this.isPlaying) {
+      this.ground.stop();
       const state =
         side === "white" ? GameState.LossWhite : GameState.LossBlack;
       this.setState(state);
@@ -121,20 +123,52 @@ export class Game {
   private setState = (state: GameState) => {
     this.state = state;
 
-    console.log({ state });
-
     if (!this.isPlaying) {
       this.clocks.black.stop();
       this.clocks.white.stop();
     }
   };
 
+  private checkEnPassant = (dest: Key): Piece | undefined => {
+    this.assertPlayingState();
+
+    const { ground, enPassant, enPassantTarget } = this;
+    let captured: Piece | undefined;
+
+    // Если поставили фигуру на одну из ячеек, пропущенных пешкой
+    // при длинном прыжке, ищем ходившую пешку и срубаем её.
+    if (enPassant.includes(dest)) {
+      captured = ground.state.pieces[enPassantTarget];
+      ground.setPieces({
+        [enPassantTarget]: undefined,
+      });
+    }
+
+    return captured;
+  };
+
+  private get pieces() {
+    // TODO: state.pieces почему-то содержит только поле 8×8, но если перегнать
+    //       FEN в Piece[], строится корректное поле 10×10. Медленно, надо разобраться.
+    return read(this.ground.getFen());
+  }
+
+  @action
+  private addMove = (move: Move) => {
+    this.moves.push(move);
+    console.log("move", move);
+  };
+
   private onMove = async (orig: Key, dest: Key, captured?: Piece) => {
-    console.log("move", { orig, dest, captured });
+    if (!captured) {
+      captured = this.checkEnPassant(dest);
+    }
+    this.enPassant.splice(0);
+    this.enPassantTarget = undefined;
 
-    const piece = this.ground.state.pieces[dest];
+    const piece = this.pieces[dest];
 
-    this.moves.push({
+    this.addMove({
       from: orig,
       to: dest,
       color: this.turnColor,
@@ -143,8 +177,16 @@ export class Game {
       piece,
     });
 
+    // Если пешка скакнула на 2-3 ячейки, запоминаем для передачи в движок,
+    // что её можно срубить на проходе.
+    if (piece?.role === "p-piece") {
+      this.enPassant = getEnPassant(orig, dest);
+      this.enPassantTarget = dest;
+    }
+
     if (this.turnColor === this.myColor && this.validMoves?.promotions) {
       const promotions = this.validMoves.promotions[orig + dest];
+
       if (promotions?.length) {
         const promotion = await choosePromotion(promotions);
 
@@ -167,9 +209,9 @@ export class Game {
     // Если взяли фигуру или подвинули пешку, сбрасываем полу-ходы
     if (captured || piece?.role === "p-piece") {
       this.halfMoves = 0;
-      console.log("half-moves reset");
     }
 
+    // Если следующий ход противника, даём движку подумать
     if (this.turnColor === this.opponentColor) {
       await this.step();
     }
@@ -234,6 +276,9 @@ export class Game {
       orientation: this.myColor,
       lastMove: undefined,
       fen: fen || Fen.start,
+      movable: {
+        color: this.myColor,
+      },
     });
 
     this.setState(GameState.Playing);
@@ -249,8 +294,6 @@ export class Game {
   }
 
   private async updateValidMoves() {
-    this.assertPlayingState();
-
     await this.updatePosition();
 
     this.validMoves = await this.engine.validMoves();
@@ -263,10 +306,12 @@ export class Game {
   }
 
   private get fullFen(): string {
-    const fen = boardFenToEngine(this.ground.getFen());
-    const fullFen = `${fen} ${this.turnColor[0]} - - ${this.halfMoves} ${this.fullMoves}`;
-    console.log({ fullFen });
-    return fullFen;
+    const { ground, turnColor, halfMoves, fullMoves, enPassant } = this;
+    const fen = boardFenToEngine(ground.getFen());
+
+    return `${fen} ${turnColor[0]} KQkq Ss ${
+      enPassant || "-"
+    } ${halfMoves} ${fullMoves}`;
   }
 
   private async updatePosition() {
@@ -275,15 +320,11 @@ export class Game {
   }
 
   async getHint(): Promise<BestMove | undefined> {
-    this.assertPlayingState();
-
-    const { engine, ground } = this;
-
     await this.updatePosition();
-    const { move } = await engine.go();
 
+    const move = await this.engine.think();
     if (move) {
-      ground.selectSquare(move.from);
+      this.ground.selectSquare(move.from);
     }
 
     return move;
@@ -296,27 +337,14 @@ export class Game {
   }
 
   private async step() {
-    this.assertPlayingState();
-
-    const { ground, engine } = this;
-
     await this.updatePosition();
-    const { move, info } = await engine.go();
 
-    console.log({ move, info });
-
-    if (info?.mated) {
-      notification.success({
-        message: "Мат",
-      });
-      return;
-    }
-
+    const move = await this.engine.think();
     if (move) {
-      ground.move(move.from, move.to);
+      this.ground.move(move.from, move.to);
 
       if (move.promotion) {
-        ground.setPieces({
+        this.ground.setPieces({
           [move.to]: {
             color: this.turnColor,
             role: `${move.promotion}-piece`,
