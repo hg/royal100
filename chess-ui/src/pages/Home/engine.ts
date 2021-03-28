@@ -11,7 +11,7 @@ export interface Promotions {
   [fromTo: string]: string[];
 }
 
-interface ValidMoves {
+export interface ValidMoves {
   destinations: {
     [key: string]: Key[];
   };
@@ -142,7 +142,7 @@ export class Engine {
     const { clocks } = this;
 
     stdin.write(
-      `go depth 15 wtime ${clocks.white.remainingMs} btime ${clocks.black.remainingMs}\n`
+      `go depth 5 wtime ${clocks.white.remainingMs} btime ${clocks.black.remainingMs}\n`
     );
 
     const data = await this.receiveUntil((buf) => buf.includes("bestmove"));

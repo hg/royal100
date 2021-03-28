@@ -3,12 +3,15 @@ import { Color, FEN, Key, Piece } from "chessgroundx/types";
 import { Chessground } from "chessgroundx";
 import { getEnginePath, numCpus } from "../../utils/system";
 import { notification } from "antd";
-import { BestMove, Engine, Promotions } from "./engine";
+import { BestMove, Engine, ValidMoves } from "./engine";
 import { Clock } from "./clock";
 import { choosePromotion } from "./gameUi";
 import { Dimension, Fen } from "../../utils/consts";
 import { otherColor } from "../../utils/chess";
-import { observable } from "mobx";
+import { action, makeAutoObservable, reaction } from "mobx";
+import { isEmpty } from "../../utils/util";
+import assert from "assert";
+import { boardFenToEngine } from "../../utils/interop";
 
 interface GameConfig {
   skill: number;
@@ -24,11 +27,26 @@ interface Move {
   to: Key;
   captured?: Piece;
   piece?: Piece;
+  fen: string;
 }
 
 export interface Clocks {
   white: Clock;
   black: Clock;
+}
+
+export enum GameState {
+  Paused,
+  Playing,
+  LossWhite,
+  LossBlack,
+  Draw,
+}
+
+export enum LossReason {
+  Mate,
+  Timeout,
+  Forfeit,
 }
 
 export class Game {
@@ -39,13 +57,15 @@ export class Game {
   private turnColor: Color = "white";
   private halfMoves = 0;
   private fullMoves = 1;
-  private promotions?: Promotions;
+  private validMoves?: ValidMoves;
 
+  lossReason = LossReason.Mate;
+  state = GameState.Paused;
+  moves: Move[] = [];
   clocks: Clocks = {
     white: new Clock(),
     black: new Clock(),
   };
-  moves = observable<Move>([]);
 
   constructor(element: HTMLElement) {
     const enginePath = getEnginePath();
@@ -65,10 +85,52 @@ export class Game {
         move: this.onMove,
       },
     });
+
+    makeAutoObservable(this);
+
+    reaction(
+      () => this.clocks.white.remainingSecs,
+      (secs) => {
+        if (secs <= 0) {
+          this.setLoss("white", LossReason.Timeout);
+        }
+      }
+    );
+
+    reaction(
+      () => this.clocks.black.remainingSecs,
+      (secs) => {
+        if (secs <= 0) {
+          this.setLoss("black", LossReason.Timeout);
+        }
+      }
+    );
   }
 
-  private onMove = async (orig: Key, dest: Key, capturedPiece?: Piece) => {
-    console.log("move", { orig, dest, capturedPiece });
+  @action
+  private setLoss = (side: Color, reason: LossReason) => {
+    if (this.isPlaying) {
+      const state =
+        side === "white" ? GameState.LossWhite : GameState.LossBlack;
+      this.setState(state);
+      this.lossReason = reason;
+    }
+  };
+
+  @action
+  private setState = (state: GameState) => {
+    this.state = state;
+
+    console.log({ state });
+
+    if (!this.isPlaying) {
+      this.clocks.black.stop();
+      this.clocks.white.stop();
+    }
+  };
+
+  private onMove = async (orig: Key, dest: Key, captured?: Piece) => {
+    console.log("move", { orig, dest, captured });
 
     const piece = this.ground.state.pieces[dest];
 
@@ -76,12 +138,13 @@ export class Game {
       from: orig,
       to: dest,
       color: this.turnColor,
-      captured: capturedPiece,
+      fen: this.fullFen,
+      captured,
       piece,
     });
 
-    if (this.turnColor === this.myColor && this.promotions) {
-      const promotions = this.promotions[orig + dest];
+    if (this.turnColor === this.myColor && this.validMoves?.promotions) {
+      const promotions = this.validMoves.promotions[orig + dest];
       if (promotions?.length) {
         const promotion = await choosePromotion(promotions);
 
@@ -97,8 +160,12 @@ export class Game {
 
     await this.toggleColor();
 
+    if (!this.isPlaying) {
+      return;
+    }
+
     // Если взяли фигуру или подвинули пешку, сбрасываем полу-ходы
-    if (capturedPiece || piece?.role === "p-piece") {
+    if (captured || piece?.role === "p-piece") {
       this.halfMoves = 0;
       console.log("half-moves reset");
     }
@@ -107,6 +174,14 @@ export class Game {
       await this.step();
     }
   };
+
+  get isPlaying(): boolean {
+    return this.state === GameState.Playing;
+  }
+
+  get isMyTurn(): boolean {
+    return this.isPlaying && this.turnColor === this.myColor;
+  }
 
   private async toggleColor() {
     this.clocks[this.turnColor].stop();
@@ -119,24 +194,32 @@ export class Game {
     }
 
     this.clocks[this.turnColor].continue();
+    this.ground.set({ turnColor: this.turnColor });
 
-    this.ground.set({
-      turnColor: this.turnColor,
-    });
+    await this.updateValidMoves();
 
-    if (this.turnColor === this.myColor) {
-      await this.updateValidMoves();
+    this.detectMate();
+
+    if (!this.isPlaying) {
+      return;
     }
 
     this.halfMoves++;
 
     if (this.halfMoves >= 100) {
-      notification.warn({ message: "Ничья" });
-      throw new Error("100 half-moves draw");
+      this.setState(GameState.Draw);
     }
   }
 
+  private detectMate = () => {
+    if (this.validMoves && isEmpty(this.validMoves?.destinations)) {
+      this.setLoss(this.turnColor, LossReason.Mate);
+    }
+  };
+
   async newGame({ myColor, fen, totalTime, skill }: GameConfig) {
+    assert.ok(!this.isPlaying);
+
     const { engine, ground } = this;
 
     await engine.isReady();
@@ -153,6 +236,7 @@ export class Game {
       fen: fen || Fen.start,
     });
 
+    this.setState(GameState.Playing);
     this.turnColor = "white";
     this.myColor = myColor;
     this.opponentColor = otherColor(myColor);
@@ -165,31 +249,34 @@ export class Game {
   }
 
   private async updateValidMoves() {
+    this.assertPlayingState();
+
     await this.updatePosition();
 
-    const moves = await this.engine.validMoves();
+    this.validMoves = await this.engine.validMoves();
 
     this.ground.set({
       movable: {
-        dests: moves.destinations,
+        dests: this.validMoves.destinations,
       },
     });
-
-    this.promotions = moves.promotions;
   }
 
   private get fullFen(): string {
-    const fen = this.ground.getFen().replaceAll("10", "55");
-    const fullFen = `${fen}1 ${this.turnColor[0]} - - ${this.halfMoves} ${this.fullMoves}`;
+    const fen = boardFenToEngine(this.ground.getFen());
+    const fullFen = `${fen} ${this.turnColor[0]} - - ${this.halfMoves} ${this.fullMoves}`;
     console.log({ fullFen });
     return fullFen;
   }
 
   private async updatePosition() {
+    this.assertPlayingState();
     await this.engine.position(this.fullFen);
   }
 
   async getHint(): Promise<BestMove | undefined> {
+    this.assertPlayingState();
+
     const { engine, ground } = this;
 
     await this.updatePosition();
@@ -202,7 +289,15 @@ export class Game {
     return move;
   }
 
+  forfeit() {
+    if (this.isPlaying) {
+      this.setLoss(this.myColor, LossReason.Forfeit);
+    }
+  }
+
   private async step() {
+    this.assertPlayingState();
+
     const { ground, engine } = this;
 
     await this.updatePosition();
@@ -233,6 +328,11 @@ export class Game {
   }
 
   stop = () => {
+    this.setState(GameState.Paused);
     this.engine.quit();
+  };
+
+  private assertPlayingState = () => {
+    assert.ok(this.isPlaying);
   };
 }

@@ -1,24 +1,27 @@
-import { action, computed, observable } from "mobx";
+import { action, makeAutoObservable } from "mobx";
 
 const secondsInMinute = 60;
 const secondsInHour = secondsInMinute * 60;
 
 export class Clock {
-  private time = observable({ secs: 0 });
+  private secs = 0;
   private interval?: ReturnType<typeof setInterval>;
 
-  @action
+  constructor() {
+    makeAutoObservable(this);
+  }
+
   private updateClock = () => {
-    this.set(this.time.secs - 1);
+    this.set(this.secs - 1);
   };
 
   @action
   set = (value: number) => {
     if (value <= 0) {
-      this.time.secs = 0;
+      this.secs = 0;
       this.stop();
     } else {
-      this.time.secs = value;
+      this.secs = value;
     }
   };
 
@@ -33,17 +36,14 @@ export class Clock {
     }
   };
 
-  @computed
   get remainingSecs(): number {
-    return this.time.secs;
+    return this.secs;
   }
 
-  @computed
   get remainingMs(): number {
     return this.remainingSecs * 1000;
   }
 
-  @computed
   get remaining(): string {
     let secs = this.remainingSecs;
 
