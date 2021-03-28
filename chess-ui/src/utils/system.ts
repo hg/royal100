@@ -14,10 +14,14 @@ const engineBinaries = {
   win32: "royal100.exe",
 };
 
-export function getEnginePath() {
+export function getAudioPath(filename: string): string {
+  return `${__dirname}/../assets/sounds/${filename}`;
+}
+
+export function getEnginePath(): string {
   const binary = engineBinaries[os.platform() as keyof typeof engineBinaries];
   if (!binary) {
     throw new Error("unsupported platform " + os.platform());
   }
-  return path.join(__dirname, "../assets/bin/engine/" + binary);
+  return `${__dirname}/../assets/bin/engine/${binary}`;
 }

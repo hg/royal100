@@ -12,6 +12,7 @@ import { isEmpty } from "../../utils/util";
 import assert from "assert";
 import { boardFenToEngine } from "../../utils/interop";
 import { read } from "chessgroundx/fen";
+import { sound, Track } from "./audio";
 
 export interface GameConfig {
   rating: number;
@@ -165,6 +166,12 @@ export class Game {
     }
     this.enPassant.splice(0);
     this.enPassantTarget = undefined;
+
+    if (captured) {
+      sound.play(Track.Capture);
+    } else {
+      sound.play(Track.Move);
+    }
 
     const piece = this.pieces[dest];
 
