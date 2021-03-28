@@ -64,6 +64,7 @@ export class Game {
   lossReason = LossReason.Mate;
   state = GameState.Paused;
   moves: Move[] = [];
+  isThinking = false;
   clocks: Clocks = {
     white: new Clock(),
     black: new Clock(),
@@ -322,12 +323,16 @@ export class Game {
   async getHint(): Promise<BestMove | undefined> {
     await this.updatePosition();
 
-    const move = await this.engine.think();
-    if (move) {
-      this.ground.selectSquare(move.from);
+    this.isThinking = true;
+    try {
+      const move = await this.engine.think();
+      if (move) {
+        this.ground.selectSquare(move.from);
+      }
+      return move;
+    } finally {
+      this.isThinking = false;
     }
-
-    return move;
   }
 
   forfeit() {
@@ -339,19 +344,30 @@ export class Game {
   private async step() {
     await this.updatePosition();
 
-    const move = await this.engine.think();
-    if (move) {
-      this.ground.move(move.from, move.to);
+    this.isThinking = true;
+    try {
+      const move = await this.engine.think();
+      if (move) {
+        this.ground.move(move.from, move.to);
 
-      if (move.promotion) {
-        this.ground.setPieces({
-          [move.to]: {
-            color: this.turnColor,
-            role: `${move.promotion}-piece`,
-            promoted: true,
-          } as Piece,
-        });
+        if (move.promotion) {
+          this.ground.setPieces({
+            [move.to]: {
+              color: this.turnColor,
+              role: `${move.promotion}-piece`,
+              promoted: true,
+            } as Piece,
+          });
+        }
       }
+    } finally {
+      this.isThinking = false;
+    }
+  }
+
+  async stopThinking() {
+    if (this.isThinking) {
+      await this.engine.stopThinking();
     }
   }
 

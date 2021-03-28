@@ -5,7 +5,7 @@ import { Skill } from "../../utils/consts";
 import { observer } from "mobx-react-lite";
 import { TimeClock } from "./TimeClock";
 import { Button, message, Modal } from "antd";
-import { BiHelpCircle, FaChess, FiFlag } from "react-icons/all";
+import { BiHelpCircle, FaChess, FiFlag, GiStopSign } from "react-icons/all";
 import { reaction } from "mobx";
 
 function onStateChanged(game: Game, state: GameState) {
@@ -87,6 +87,10 @@ export const Home = observer(() => {
     game?.forfeit();
   }
 
+  function stopThinking() {
+    game?.stopThinking();
+  }
+
   return (
     <div className={styles.wrap}>
       <div className={styles.left}>
@@ -100,9 +104,20 @@ export const Home = observer(() => {
               type="primary"
               block
               onClick={getHint}
-              disabled={!game.isMyTurn}
+              disabled={!(game.isMyTurn && !game.isThinking)}
             >
               <BiHelpCircle /> Подсказка
+            </Button>
+
+            <Button
+              size="large"
+              type="primary"
+              block
+              danger
+              onClick={stopThinking}
+              disabled={!game.isThinking}
+            >
+              <GiStopSign /> Остановить обдумывание
             </Button>
 
             <Button

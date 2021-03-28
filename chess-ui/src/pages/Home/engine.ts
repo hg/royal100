@@ -127,11 +127,15 @@ export class Engine {
     return result;
   }
 
+  async stopThinking() {
+    await this.engine.stdin.write("stop\n");
+  }
+
   async think(): Promise<BestMove> {
     const { clocks } = this;
 
     this.engine.stdin.write(
-      `go depth 5 wtime ${clocks.white.remainingMs} btime ${clocks.black.remainingMs}\n`
+      `go depth 15 wtime ${clocks.white.remainingMs} btime ${clocks.black.remainingMs}\n`
     );
 
     const data = await this.receiveUntil((buf) => buf.includes("bestmove"));
