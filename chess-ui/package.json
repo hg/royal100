@@ -92,7 +92,7 @@
       "repo": "electron-react-boilerplate"
     }
   },
-  "license": "MIT",
+  "license": "GPL-3.0",
   "keywords": [
     "games",
     "chess"
