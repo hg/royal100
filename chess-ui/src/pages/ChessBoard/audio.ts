@@ -13,8 +13,12 @@ class Sound {
   private sounds: Sounds = {};
 
   constructor() {
-    this.sounds[Track.Move] = new Audio(getAudioPath("move.ogg"));
-    this.sounds[Track.Capture] = new Audio(getAudioPath("capture.ogg"));
+    this.addSound(Track.Move, "move.ogg");
+    this.addSound(Track.Capture, "capture.ogg");
+  }
+
+  private addSound(track: Track, filename: string) {
+    this.sounds[track] = new Audio(getAudioPath(filename));
   }
 
   play(track: Track) {
