@@ -9,7 +9,7 @@ import "moment/locale/ru";
 import moment from "moment";
 import { Home } from "./pages/Home";
 import { routes } from "./pages/routes";
-import { GameConfig } from "./pages/ChessBoard/game";
+import { GameConfig, OpponentType } from "./pages/ChessBoard/game";
 import { Rating } from "./utils/consts";
 
 moment.locale("ru");
@@ -25,6 +25,7 @@ const AppRoutes = () => {
     myColor: "white",
     rating: Rating.default,
     totalTime: 3600,
+    opponent: OpponentType.Computer,
   });
 
   return (

@@ -15,7 +15,13 @@ import { read } from "chessgroundx/fen";
 import { sound, Track } from "./audio";
 import { opposite } from "chessgroundx/util";
 
+export enum OpponentType {
+  Computer,
+  Human,
+}
+
 export interface GameConfig {
+  opponent: OpponentType;
   rating: number;
   depth?: number;
   myColor: Color;
@@ -55,15 +61,18 @@ export enum LossReason {
 export class Game {
   private engine: Engine;
   private ground: Api;
+  private opponent = OpponentType.Computer;
   private myColor: Color = "white";
-  private opponentColor: Color = "black";
   private turnColor: Color = "white";
   private halfMoves = 0;
   private fullMoves = 1;
   private validMoves?: ValidMoves;
   private enPassantTarget?: Key;
   private enPassant: Key[] = [];
-  private refusedPrincessPromotion = false;
+  private refusedPrincessPromotion = {
+    black: false,
+    white: false,
+  };
 
   lossReason = LossReason.Mate;
   state = GameState.Paused;
@@ -225,15 +234,11 @@ export class Game {
       this.halfMoves = 0;
     }
 
-    // Если следующий ход противника, даём движку подумать
-    if (this.turnColor === this.opponentColor) {
-      await this.step();
-    }
+    await this.makeOpponentMove();
   };
 
   private async checkRoyaltyPromotions(captured: Piece) {
     const oppColor = opposite(this.turnColor);
-    const capturedMyPiece = oppColor === this.myColor;
     assert.deepStrictEqual(captured.color, oppColor);
 
     // Если срубили короля — пробуем поднять принца до статуса короля
@@ -252,26 +257,30 @@ export class Game {
 
     // Если срубили ферзя — пробуем поднять принцессу в ферзя
     if (captured.role === Pieces.Queen) {
+      // Ферзь реального игрока (не компьютера)?
+      const capturedHumanPiece =
+        this.opponent === OpponentType.Human || oppColor === this.myColor;
+
       // Игрок уже отказывался от превращения — больше не спрашиваем
-      if (capturedMyPiece && this.refusedPrincessPromotion) {
+      if (capturedHumanPiece && this.refusedPrincessPromotion[oppColor]) {
         return;
       }
       const princessLocation = this.locatePiece(Pieces.Princess, oppColor);
       if (!princessLocation) {
         return;
       }
-      if (capturedMyPiece) {
+      if (capturedHumanPiece) {
         const promote = await confirmPrincessPromotion();
         if (!promote) {
-          this.refusedPrincessPromotion = true;
+          this.refusedPrincessPromotion[oppColor] = true;
           return;
         }
       }
       this.ground.setPieces({
         [princessLocation]: {
           role: Pieces.Queen,
-          promoted: true,
           color: oppColor,
+          promoted: true,
         },
       });
     }
@@ -300,7 +309,10 @@ export class Game {
   }
 
   get isMyTurn(): boolean {
-    return this.isPlaying && this.turnColor === this.myColor;
+    return (
+      this.isPlaying &&
+      (this.turnColor === this.myColor || this.opponent === OpponentType.Human)
+    );
   }
 
   private async toggleColor() {
@@ -326,6 +338,15 @@ export class Game {
 
     if (this.halfMoves >= 100) {
       this.setState(GameState.Draw);
+    }
+
+    if (this.opponent === OpponentType.Human) {
+      this.ground.set({
+        orientation: this.turnColor,
+        movable: {
+          color: this.turnColor,
+        },
+      });
     }
   }
 
@@ -365,7 +386,8 @@ export class Game {
 
     this.ground.set({
       turnColor: "white",
-      orientation: config.myColor,
+      orientation:
+        this.opponent === OpponentType.Computer ? config.myColor : "white",
       lastMove: undefined,
       fen: config.fen || Fen.start,
       movable: {
@@ -374,10 +396,13 @@ export class Game {
     });
 
     this.setState(GameState.Playing);
-    this.refusedPrincessPromotion = false;
+    this.opponent = config.opponent;
+    this.refusedPrincessPromotion = {
+      white: false,
+      black: false,
+    };
     this.turnColor = "white";
     this.myColor = config.myColor;
-    this.opponentColor = opposite(config.myColor);
     this.moves.splice(0);
 
     await this.updateValidMoves();
@@ -386,9 +411,7 @@ export class Game {
     this.clocks.white.continue();
     this.clocks.black.set(config.totalTime);
 
-    if (this.turnColor === this.opponentColor) {
-      await this.step();
-    }
+    await this.makeOpponentMove();
   }
 
   private async updateValidMoves() {
@@ -439,7 +462,14 @@ export class Game {
     }
   }
 
-  private async step() {
+  private async makeOpponentMove() {
+    if (
+      this.opponent !== OpponentType.Computer ||
+      this.turnColor === this.myColor
+    ) {
+      return;
+    }
+
     await this.updatePosition();
 
     this.isThinking = true;

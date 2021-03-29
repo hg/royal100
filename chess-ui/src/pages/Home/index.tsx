@@ -9,8 +9,8 @@ import {
 } from "antd";
 import React, { FC } from "react";
 import { Depth, Rating } from "../../utils/consts";
-import { GameConfig } from "../ChessBoard/game";
-import { FaChess } from "react-icons/all";
+import { GameConfig, OpponentType } from "../ChessBoard/game";
+import { IoIosPerson, MdComputer } from "react-icons/all";
 import { useHistory } from "react-router";
 import { routes } from "../routes";
 import styles from "./index.module.css";
@@ -36,7 +36,8 @@ export const Home: FC<Props> = ({ config, setConfig }) => {
   const history = useHistory();
   const canStart = !config.fen || validateFen(config.fen);
 
-  function startGame() {
+  function startGame(opponent: OpponentType) {
+    setConfig({ ...config, opponent });
     if (canStart && config.totalTime > 0) {
       history.push(routes.chess);
     }
@@ -139,16 +140,21 @@ export const Home: FC<Props> = ({ config, setConfig }) => {
           </Collapse.Panel>
         </Collapse>
 
-        <div className="footer">
+        <Button.Group size="large" className="footer">
           <Button
-            size="large"
             type="primary"
-            onClick={startGame}
+            onClick={() => startGame(OpponentType.Computer)}
             disabled={!canStart}
           >
-            <FaChess className="icon" /> Начать игру
+            <MdComputer className="icon" /> Играть против компьютера
           </Button>
-        </div>
+          <Button
+            onClick={() => startGame(OpponentType.Human)}
+            disabled={!canStart}
+          >
+            <IoIosPerson className="icon" /> Играть против партнёра
+          </Button>
+        </Button.Group>
       </div>
     </div>
   );
