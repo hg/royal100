@@ -21,6 +21,8 @@ export interface ValidMoves {
 interface Options {
   threads?: number;
   rating?: number;
+  depth?: number;
+  moveTime?: number;
 }
 
 export interface BestMove {
@@ -32,6 +34,8 @@ export interface BestMove {
 export class Engine {
   private readonly engine: ChildProcessWithoutNullStreams;
   private readonly clocks: Clocks;
+  private depth?: number;
+  private moveMs?: number;
 
   constructor(path: string, clocks: Clocks) {
     this.engine = spawn(path);
@@ -43,12 +47,13 @@ export class Engine {
     await this.isReady();
   }
 
-  async newGame() {
+  async newGame(options: Options) {
+    await this.configure(options);
     this.engine.stdin.write("ucinewgame\n");
     await this.isReady();
   }
 
-  async configure({ threads, rating }: Options) {
+  private async configure({ threads, rating, depth, moveTime }: Options) {
     if (isDevMode()) {
       await this.setOption("Debug Log File", "/tmp/log");
     }
@@ -59,6 +64,12 @@ export class Engine {
       await this.setOption("UCI_LimitStrength", "true");
       await this.setOption("UCI_Elo", String(rating));
     }
+    if (moveTime) {
+      this.moveMs = moveTime * 1000;
+    } else {
+      this.moveMs = undefined;
+    }
+    this.depth = depth;
   }
 
   private receiveUntil = (
@@ -135,12 +146,17 @@ export class Engine {
     await this.engine.stdin.write("stop\n");
   }
 
-  async think(): Promise<BestMove> {
-    const { clocks } = this;
+  private get command(): string {
+    const wtime = this.clocks.white.remainingMs;
+    const btime = this.clocks.black.remainingMs;
+    const depth = this.depth ? `depth ${this.depth}` : "";
+    const moveTime = this.moveMs ? `movetime ${this.moveMs}` : "";
 
-    this.engine.stdin.write(
-      `go depth 15 wtime ${clocks.white.remainingMs} btime ${clocks.black.remainingMs}\n`
-    );
+    return `go ${depth} ${moveTime} wtime ${wtime} btime ${btime}\n`;
+  }
+
+  async think(): Promise<BestMove> {
+    this.engine.stdin.write(this.command);
 
     const data = await this.receiveUntil((buf) => buf.includes("bestmove"));
 

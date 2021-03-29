@@ -16,13 +16,14 @@ import { sound, Track } from "./audio";
 
 export interface GameConfig {
   rating: number;
+  depth?: number;
   myColor: Color;
   fen?: FEN;
   totalTime: number;
-  plyTime: number;
+  plyTime?: number;
 }
 
-interface Move {
+export interface Move {
   color: Color;
   from: Key;
   to: Key;
@@ -266,19 +267,26 @@ export class Game {
     }
   };
 
-  async newGame({ myColor, fen, totalTime, rating }: GameConfig) {
+  async newGame({
+    myColor,
+    fen,
+    totalTime,
+    rating,
+    depth,
+    plyTime,
+  }: GameConfig) {
     assert.ok(!this.isPlaying);
 
-    const { engine, ground } = this;
+    await this.engine.isReady();
 
-    await engine.isReady();
-    await engine.configure({
+    await this.engine.newGame({
       rating,
+      depth,
       threads: numCpus(),
+      moveTime: plyTime,
     });
-    await engine.newGame();
 
-    ground.set({
+    this.ground.set({
       turnColor: "white",
       orientation: myColor,
       lastMove: undefined,

@@ -1,13 +1,24 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import styles from "./index.module.css";
-import { Game, GameConfig, GameState, LossReason } from "./game";
+import { Game, GameConfig, GameState, LossReason, Move } from "./game";
 import { observer } from "mobx-react-lite";
 import { TimeClock } from "./TimeClock";
 import { Button, message, Modal, notification } from "antd";
-import { BiHelpCircle, FaChess, FiFlag, GiStopSign } from "react-icons/all";
+import {
+  AiOutlineArrowDown,
+  AiOutlineDownload,
+  BiHelpCircle,
+  BsArrowUpRight,
+  FaChess,
+  FaChessKnight,
+  FiFlag,
+  GiStopSign,
+  HiOutlineRefresh,
+} from "react-icons/all";
 import { reaction } from "mobx";
 import { useHistory } from "react-router";
 import { routes } from "../routes";
+import { clipboard } from "electron";
 
 function onStateChanged(game: Game, state: GameState) {
   let reason = "";
@@ -93,6 +104,13 @@ export const ChessBoard = observer(({ config }: Props) => {
     game?.stopThinking();
   }
 
+  function copyFen(num: number, fen: string) {
+    notification.success({
+      message: `Нотация хода №${num} скопирована в буфер обмена`,
+    });
+    clipboard.writeText(fen);
+  }
+
   return (
     <div className={styles.wrap}>
       <div className={styles.left}>
@@ -108,7 +126,7 @@ export const ChessBoard = observer(({ config }: Props) => {
               onClick={getHint}
               disabled={!(game.isMyTurn && !game.isThinking)}
             >
-              <BiHelpCircle /> Подсказка
+              <BiHelpCircle className="icon" /> Подсказка
             </Button>
 
             <Button
@@ -119,7 +137,7 @@ export const ChessBoard = observer(({ config }: Props) => {
               onClick={stopThinking}
               disabled={!game.isThinking}
             >
-              <GiStopSign /> Остановить обдумывание
+              <GiStopSign className="icon" /> Остановить обдумывание
             </Button>
 
             <Button
@@ -130,7 +148,7 @@ export const ChessBoard = observer(({ config }: Props) => {
               onClick={forfeit}
               disabled={!game.isPlaying}
             >
-              <FiFlag /> Сдаться
+              <FiFlag className="icon" /> Сдаться
             </Button>
 
             <Button
@@ -139,54 +157,67 @@ export const ChessBoard = observer(({ config }: Props) => {
               onClick={startNewGame}
               disabled={game.isPlaying}
             >
-              <FaChess /> Новая партия
+              <FaChess className="icon" /> Новая партия
             </Button>
           </Fragment>
         )}
       </div>
 
-      <div className={styles.board}>
-        <div ref={ref} className="cg-wrap" />
+      <div className={styles.boardWrap}>
+        <div className={styles.board}>
+          <div ref={ref} className="cg-wrap" />
+        </div>
       </div>
 
       <div className={styles.right}>
         <h3>История ходов</h3>
 
-        <div>
-          <table className={styles.historyTable}>
-            <thead>
-              <tr>
-                <th>№</th>
-                <th title="Фигура">Ф</th>
-                <th title="Из позиции">Из</th>
-                <th title="В позицию">В</th>
-                <th title="Взятие">Вз</th>
-              </tr>
-            </thead>
+        <table className={styles.historyTable}>
+          <thead>
+            <tr>
+              <th>№</th>
+              <th title="Фигура">
+                <FaChessKnight />
+              </th>
+              <th title="Из позиции">
+                <BsArrowUpRight />
+              </th>
+              <th title="В позицию">
+                <AiOutlineArrowDown />
+              </th>
+              <th title="Взятие">
+                <HiOutlineRefresh />
+              </th>
+            </tr>
+          </thead>
 
-            <tbody>
-              {game?.moves.map((move, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td>
+          <tbody>
+            {game?.moves.map((move, index) => (
+              <tr
+                key={index}
+                title="Скопировать позицию в нотации FEN"
+                role="button"
+                onClick={() => copyFen(index + 1, move.fen)}
+              >
+                <td>{index + 1}</td>
+                <td>
+                  <div
+                    className={`${move.piece?.role} ${move.color} ${styles.piece} ${styles.movePiece}`}
+                  />
+                </td>
+                <td>{move.from}</td>
+                <td>{move.to}</td>
+                <td>
+                  {move.captured && (
                     <div
-                      className={`${move.piece?.role} ${move.color} ${styles.piece} ${styles.movePiece}`}
+                      className={`${move.captured.role} ${move.captured.color} ${styles.piece}`}
                     />
-                  </td>
-                  <td>{move.from}</td>
-                  <td>{move.to}</td>
-                  <td>
-                    {move.captured && (
-                      <div
-                        className={`${move.captured.role} ${move.captured.color} ${styles.piece}`}
-                      />
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

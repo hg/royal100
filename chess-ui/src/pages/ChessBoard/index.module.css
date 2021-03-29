@@ -1,29 +1,37 @@
 .wrap {
   height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .board {
-  flex: 0 0 auto;
   height: 800px;
   width: 800px;
-  margin: 0 16px;
+}
+
+.boardWrap {
+  flex: 1 0 auto;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-left: 1px solid #424242;
+  border-right: 1px solid #424242;
+  height: 100%;
+  overflow: hidden;
 }
 
 .left {
   flex: 0 0 auto;
   width: 320px;
-  padding: 0 8px;
+  padding: 16px;
 }
 
 .right {
-  flex: 1 0 auto;
+  flex: 0 0 auto;
   height: 100%;
   overflow-y: auto;
-  border-left: 1px solid #aeaeae;
   padding: 8px;
+  width: 320px;
 }
 
 .piece {
@@ -39,7 +47,7 @@
 
 .historyTable {
   table-layout: fixed;
-  width: -webkit-fill-available;
+  width: 100%;
   border-collapse: collapse;
 }
 
@@ -47,5 +55,9 @@
 .historyTable th {
   text-align: center;
   border: 1px solid #282828;
-  padding: 2px;
+  padding: 0;
+}
+
+.historyTable tbody tr {
+  cursor: pointer;
 }

@@ -1,6 +1,36 @@
 import { Color, Key } from "chessgroundx/types";
+import { read } from "chessgroundx/fen";
 
 const reKey = /^([abcdefghij])([0-9:])$/;
+
+export function validateFen(fen: string) {
+  const field = read(fen);
+  const squares = Object.keys(field).filter(Boolean);
+
+  if (squares.length < 2) {
+    return false;
+  }
+
+  // TODO: грубая проверка, доработать
+  let hasWhite = false,
+    hasBlack = false;
+
+  for (const square of squares) {
+    const piece = field[square];
+
+    if (piece?.color === "black") {
+      hasBlack = true;
+    }
+    if (piece?.color === "white") {
+      hasWhite = true;
+    }
+    if (hasWhite && hasBlack) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 export function getEnPassant(from: Key, to: Key): Key[] {
   const fromMatch = from.match(reKey);

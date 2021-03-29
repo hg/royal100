@@ -6,8 +6,28 @@
 }
 
 .form {
-  width: 800px;
-  padding: 16px;
+  width: 1100px;
+  padding: 16px 32px;
   border: 1px solid #424242;
   border-radius: 4px;
+}
+
+.sideButton {
+  background: transparent;
+  border: 1px solid #323232;
+  border-radius: 4px;
+  padding: 8px 16px;
+  margin-right: 8px;
+}
+
+.sideButton.active {
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.23);
+  background: #242424;
+}
+
+.sideIcon {
+  width: 64px;
+  height: 64px;
+  background-position: center;
+  background-size: contain;
 }

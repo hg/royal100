@@ -25,7 +25,6 @@ const AppRoutes = () => {
     myColor: "white",
     rating: Rating.default,
     totalTime: 3600,
-    plyTime: 300,
   });
 
   return (
