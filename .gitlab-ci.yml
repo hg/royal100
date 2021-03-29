@@ -39,6 +39,8 @@ build-app:
   artifacts:
     paths:
       - chess-ui/release/*.AppImage
+      - chess-ui/release/*.deb
+      - chess-ui/release/*.rpm
       - chess-ui/release/*.exe
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

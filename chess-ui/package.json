@@ -1,5 +1,6 @@
 {
-  "name": "chess-ui",
+  "name": "royal100",
+  "homepage": "https://gitlab.com/zura/royal100",
   "productName": "Royal 100 Chess",
   "description": "Royal 100 Chess",
   "scripts": {
@@ -44,11 +45,13 @@
     ],
     "win": {
       "target": [
-        "nsis"
+        "portable"
       ]
     },
     "linux": {
       "target": [
+        "deb",
+        "rpm",
         "AppImage"
       ],
       "category": "Games"
@@ -60,12 +63,7 @@
     },
     "extraResources": [
       "./assets/**"
-    ],
-    "publish": {
-      "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate"
-    }
+    ]
   },
   "license": "GPL-3.0",
   "keywords": [
