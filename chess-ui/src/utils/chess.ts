@@ -1,5 +1,6 @@
-import { Color, Key } from "chessgroundx/types";
+import { Key } from "chessgroundx/types";
 import { read } from "chessgroundx/fen";
+import { enginePositionToBoard } from "./interop";
 
 const reKey = /^([abcdefghij])([0-9:])$/;
 
@@ -76,12 +77,25 @@ export function getEnPassant(from: Key, to: Key): Key[] {
   return [];
 }
 
-export function otherColor(color: Color): Color {
-  switch (color) {
-    case "black":
-      return "white";
+export interface PieceMove {
+  from: string;
+  to: string;
+  promotion?: string;
+}
 
-    case "white":
-      return "black";
+const reMove = /\b(\w\d+)(\w\d+)(\w?)\b/g;
+
+export function parseMoves(data: string): PieceMove[] {
+  const moves = data.matchAll(reMove);
+  const result: PieceMove[] = [];
+
+  for (const [, from, to, promotion] of moves) {
+    result.push({
+      from: enginePositionToBoard(from),
+      to: enginePositionToBoard(to),
+      promotion,
+    });
   }
+
+  return result;
 }

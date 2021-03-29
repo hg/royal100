@@ -1,12 +1,11 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import styles from "./index.module.css";
-import { Game, GameConfig, GameState, LossReason, Move } from "./game";
+import { Game, GameConfig, GameState, LossReason } from "./game";
 import { observer } from "mobx-react-lite";
 import { TimeClock } from "./TimeClock";
 import { Button, message, Modal, notification } from "antd";
 import {
   AiOutlineArrowDown,
-  AiOutlineDownload,
   BiHelpCircle,
   BsArrowUpRight,
   FaChess,
@@ -96,14 +95,6 @@ export const ChessBoard = observer(({ config }: Props) => {
     }
   }
 
-  function forfeit() {
-    game?.forfeit();
-  }
-
-  function stopThinking() {
-    game?.stopThinking();
-  }
-
   function copyFen(num: number, fen: string) {
     notification.success({
       message: `Нотация хода №${num} скопирована в буфер обмена`,
@@ -134,7 +125,7 @@ export const ChessBoard = observer(({ config }: Props) => {
               type="primary"
               block
               danger
-              onClick={stopThinking}
+              onClick={() => game?.stopThinking()}
               disabled={!game.isThinking}
             >
               <GiStopSign className="icon" /> Остановить обдумывание
@@ -145,7 +136,7 @@ export const ChessBoard = observer(({ config }: Props) => {
               type="primary"
               danger
               block
-              onClick={forfeit}
+              onClick={() => game?.forfeit()}
               disabled={!game.isPlaying}
             >
               <FiFlag className="icon" /> Сдаться

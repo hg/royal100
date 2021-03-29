@@ -30,6 +30,22 @@ const propsHide: ButtonProps = {
   style: { display: "none" },
 };
 
+export function confirmPrincessPromotion(): Promise<boolean> {
+  return new Promise((resolve) => {
+    Modal.confirm({
+      title: "Превращение принцессы в королеву",
+      content: (
+        <Fragment>
+          <p>Ваша королева была взята.</p>
+          <p>Желаете превратить принцессу в королеву?</p>
+        </Fragment>
+      ),
+      onOk: () => resolve(true),
+      onCancel: () => resolve(false),
+    });
+  });
+}
+
 export async function choosePromotion(promotions: string[]) {
   return new Promise((resolve) => {
     function done(promotion: string) {

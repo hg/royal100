@@ -3,9 +3,9 @@ import { Key, Letter } from "chessgroundx/types";
 import { enginePositionToBoard } from "../../utils/interop";
 import { Clocks } from "./game";
 import { isDevMode } from "../../utils/system";
+import { parseMoves } from "../../utils/chess";
 
 const reBestMove = /\bbestmove (\w\d+)(\w\d+)(\w?)\b/;
-const reMove = /\b(\w\d+)(\w\d+)(\w?)\b/g;
 
 export interface Promotions {
   [fromTo: string]: string[];
@@ -72,9 +72,7 @@ export class Engine {
     this.depth = depth;
   }
 
-  private receiveUntil = (
-    predicate: (data: string) => boolean
-  ): Promise<string> => {
+  private receiveUntil(predicate: (data: string) => boolean): Promise<string> {
     const { stdout } = this.engine;
 
     return new Promise((resolve, reject) => {
@@ -99,7 +97,7 @@ export class Engine {
       stdout.on("data", dataListener);
       stdout.once("error", errorListener);
     });
-  };
+  }
 
   async isReady(): Promise<void> {
     const { stdin } = this.engine;
@@ -118,17 +116,13 @@ export class Engine {
     stdin.write("valid_moves\n");
 
     const data = await this.receiveUntil(() => true);
-    const moves = data.matchAll(reMove);
 
     const result: ValidMoves = {
       promotions: {},
       destinations: {},
     };
 
-    for (let [, from, to, promotion] of moves) {
-      from = enginePositionToBoard(from);
-      to = enginePositionToBoard(to);
-
+    for (const { from, to, promotion } of parseMoves(data)) {
       result.destinations[from] = result.destinations[from] || [];
       result.destinations[from].push(to);
 

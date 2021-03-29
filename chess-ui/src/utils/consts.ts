@@ -1,8 +1,18 @@
 // Импорт констант по пока не выясненной причине не работает,
 // поэтому перетаскию нужные сюда вручную
 
+import { Role } from "chessgroundx/types";
+
 export const Dimension = {
   dim10x10: 4,
+};
+
+export const Pieces: { [key: string]: Role } = {
+  Pawn: "p-piece",
+  Prince: "t-piece",
+  Princess: "s-piece",
+  King: "k-piece",
+  Queen: "q-piece",
 };
 
 export const Fen = {

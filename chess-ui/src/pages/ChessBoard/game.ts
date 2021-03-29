@@ -1,18 +1,19 @@
 import { Api } from "chessgroundx/api";
-import { Color, FEN, Key, Piece } from "chessgroundx/types";
+import { Color, FEN, Key, Piece, Role } from "chessgroundx/types";
 import { Chessground } from "chessgroundx";
 import { getEnginePath, numCpus } from "../../utils/system";
 import { BestMove, Engine, ValidMoves } from "./engine";
 import { Clock } from "./clock";
-import { choosePromotion } from "./gameUi";
-import { Dimension, Fen } from "../../utils/consts";
-import { getEnPassant, otherColor } from "../../utils/chess";
+import { choosePromotion, confirmPrincessPromotion } from "./gameUi";
+import { Dimension, Fen, Pieces } from "../../utils/consts";
+import { getEnPassant } from "../../utils/chess";
 import { action, makeAutoObservable, reaction } from "mobx";
 import { isEmpty } from "../../utils/util";
 import assert from "assert";
 import { boardFenToEngine } from "../../utils/interop";
 import { read } from "chessgroundx/fen";
 import { sound, Track } from "./audio";
+import { opposite } from "chessgroundx/util";
 
 export interface GameConfig {
   rating: number;
@@ -62,6 +63,7 @@ export class Game {
   private validMoves?: ValidMoves;
   private enPassantTarget?: Key;
   private enPassant: Key[] = [];
+  private refusedPrincessPromotion = false;
 
   lossReason = LossReason.Mate;
   state = GameState.Paused;
@@ -131,7 +133,7 @@ export class Game {
     }
   };
 
-  private checkEnPassant = (dest: Key): Piece | undefined => {
+  private checkEnPassant(dest: Key): Piece | undefined {
     this.assertPlayingState();
 
     const { ground, enPassant, enPassantTarget } = this;
@@ -147,7 +149,7 @@ export class Game {
     }
 
     return captured;
-  };
+  }
 
   private get pieces() {
     // TODO: state.pieces почему-то содержит только поле 8×8, но если перегнать
@@ -160,6 +162,19 @@ export class Game {
     this.moves.push(move);
     console.log("move", move);
   };
+
+  private locatePiece(role: Role, color: Color): Key | undefined {
+    // TODO: адски медленно, разобраться, почему в pieces лежит поле 8×8
+    const pieces = read(this.ground.getFen());
+
+    for (const [key, piece] of Object.entries(pieces)) {
+      if (piece && piece.role === role && piece.color === color) {
+        return key;
+      }
+    }
+
+    return undefined;
+  }
 
   private onMove = async (orig: Key, dest: Key, captured?: Piece) => {
     if (!captured) {
@@ -185,27 +200,18 @@ export class Game {
       piece,
     });
 
-    // Если пешка скакнула на 2-3 ячейки, запоминаем для передачи в движок,
-    // что её можно срубить на проходе.
-    if (piece?.role === "p-piece") {
+    if (captured) {
+      await this.checkRoyaltyPromotions(captured);
+    }
+
+    // Если пешка скакнула на 2-3 ячейки, запоминаем, что её можно срубить на проходе
+    if (piece?.role === Pieces.Pawn) {
       this.enPassant = getEnPassant(orig, dest);
       this.enPassantTarget = dest;
     }
 
-    if (this.turnColor === this.myColor && this.validMoves?.promotions) {
-      const promotions = this.validMoves.promotions[orig + dest];
-
-      if (promotions?.length) {
-        const promotion = await choosePromotion(promotions);
-
-        this.ground.setPieces({
-          [dest]: {
-            color: this.myColor,
-            promoted: true,
-            role: `${promotion}-piece`,
-          } as Piece,
-        });
-      }
+    if (this.turnColor === this.myColor) {
+      await this.checkPawnPromotions(orig, dest);
     }
 
     await this.toggleColor();
@@ -224,6 +230,70 @@ export class Game {
       await this.step();
     }
   };
+
+  private async checkRoyaltyPromotions(captured: Piece) {
+    const oppColor = opposite(this.turnColor);
+    const capturedMyPiece = oppColor === this.myColor;
+    assert.deepStrictEqual(captured.color, oppColor);
+
+    // Если срубили короля — пробуем поднять принца до статуса короля
+    if (captured.role === Pieces.King) {
+      const princeLocation = this.locatePiece(Pieces.Prince, oppColor);
+      if (princeLocation) {
+        this.ground.setPieces({
+          [princeLocation]: {
+            role: Pieces.King,
+            promoted: true,
+            color: oppColor,
+          },
+        });
+      }
+    }
+
+    // Если срубили ферзя — пробуем поднять принцессу в ферзя
+    if (captured.role === Pieces.Queen) {
+      // Игрок уже отказывался от превращения — больше не спрашиваем
+      if (capturedMyPiece && this.refusedPrincessPromotion) {
+        return;
+      }
+      const princessLocation = this.locatePiece(Pieces.Princess, oppColor);
+      if (!princessLocation) {
+        return;
+      }
+      if (capturedMyPiece) {
+        const promote = await confirmPrincessPromotion();
+        if (!promote) {
+          this.refusedPrincessPromotion = true;
+          return;
+        }
+      }
+      this.ground.setPieces({
+        [princessLocation]: {
+          role: Pieces.Queen,
+          promoted: true,
+          color: oppColor,
+        },
+      });
+    }
+  }
+
+  private async checkPawnPromotions(orig: Key, dest: Key) {
+    if (this.validMoves?.promotions) {
+      const promotions = this.validMoves.promotions[orig + dest];
+
+      if (promotions?.length) {
+        const promotion = await choosePromotion(promotions);
+
+        this.ground.setPieces({
+          [dest]: {
+            color: this.myColor,
+            promoted: true,
+            role: `${promotion}-piece`,
+          } as Piece,
+        });
+      }
+    }
+  }
 
   get isPlaying(): boolean {
     return this.state === GameState.Playing;
@@ -267,49 +337,43 @@ export class Game {
     }
   };
 
-  async newGame({
-    myColor,
-    fen,
-    totalTime,
-    rating,
-    depth,
-    plyTime,
-  }: GameConfig) {
+  async newGame(config: GameConfig) {
     assert.ok(!this.isPlaying);
 
     await this.engine.isReady();
 
     await this.engine.newGame({
-      rating,
-      depth,
+      rating: config.rating,
+      depth: config.depth,
       threads: numCpus(),
-      moveTime: plyTime,
+      moveTime: config.plyTime,
     });
 
     this.ground.set({
       turnColor: "white",
-      orientation: myColor,
+      orientation: config.myColor,
       lastMove: undefined,
-      fen: fen || Fen.start,
+      fen: config.fen || Fen.start,
       movable: {
-        color: myColor,
+        color: config.myColor,
       },
     });
 
     this.setState(GameState.Playing);
+    this.refusedPrincessPromotion = false;
     this.turnColor = "white";
-    this.myColor = myColor;
-    this.opponentColor = otherColor(myColor);
+    this.myColor = config.myColor;
+    this.opponentColor = opposite(config.myColor);
     this.moves.splice(0);
 
     await this.updateValidMoves();
 
-    this.clocks.white.set(totalTime);
+    this.clocks.white.set(config.totalTime);
     this.clocks.white.continue();
-    this.clocks.black.set(totalTime);
+    this.clocks.black.set(config.totalTime);
 
     if (this.turnColor === this.opponentColor) {
-      this.step();
+      await this.step();
     }
   }
 
@@ -329,7 +393,7 @@ export class Game {
     const { ground, turnColor, halfMoves, fullMoves, enPassant } = this;
     const fen = boardFenToEngine(ground.getFen());
 
-    return `${fen} ${turnColor[0]} KQkq Ss ${
+    return `${fen} ${turnColor[0]} - - ${
       enPassant || "-"
     } ${halfMoves} ${fullMoves}`;
   }
