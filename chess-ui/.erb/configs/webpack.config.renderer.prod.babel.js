@@ -6,7 +6,6 @@ import path from "path";
 import webpack from "webpack";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import OptimizeCSSAssetsPlugin from "optimize-css-assets-webpack-plugin";
-import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 import { merge } from "webpack-merge";
 import TerserPlugin from "terser-webpack-plugin";
 import baseConfig from "./webpack.config.base";
@@ -17,11 +16,7 @@ CheckNodeEnv("production");
 DeleteSourceMaps();
 
 const devtoolsConfig =
-  process.env.DEBUG_PROD === "true"
-    ? {
-        devtool: "source-map",
-      }
-    : {};
+  process.env.DEBUG_PROD === "true" ? { devtool: "source-map" } : {};
 
 export default merge(baseConfig, {
   ...devtoolsConfig,
@@ -214,12 +209,6 @@ export default merge(baseConfig, {
 
     new MiniCssExtractPlugin({
       filename: "style.css",
-    }),
-
-    new BundleAnalyzerPlugin({
-      analyzerMode:
-        process.env.OPEN_ANALYZER === "true" ? "server" : "disabled",
-      openAnalyzer: process.env.OPEN_ANALYZER === "true",
     }),
   ],
 });

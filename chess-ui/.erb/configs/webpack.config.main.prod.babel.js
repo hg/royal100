@@ -6,7 +6,6 @@ import path from "path";
 import webpack from "webpack";
 import { merge } from "webpack-merge";
 import TerserPlugin from "terser-webpack-plugin";
-import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 import baseConfig from "./webpack.config.base";
 import CheckNodeEnv from "../scripts/CheckNodeEnv";
 import DeleteSourceMaps from "../scripts/DeleteSourceMaps";
@@ -15,11 +14,7 @@ CheckNodeEnv("production");
 DeleteSourceMaps();
 
 const devtoolsConfig =
-  process.env.DEBUG_PROD === "true"
-    ? {
-        devtool: "source-map",
-      }
-    : {};
+  process.env.DEBUG_PROD === "true" ? { devtool: "source-map" } : {};
 
 export default merge(baseConfig, {
   ...devtoolsConfig,
@@ -44,12 +39,6 @@ export default merge(baseConfig, {
   },
 
   plugins: [
-    new BundleAnalyzerPlugin({
-      analyzerMode:
-        process.env.OPEN_ANALYZER === "true" ? "server" : "disabled",
-      openAnalyzer: process.env.OPEN_ANALYZER === "true",
-    }),
-
     /**
      * Create global constants which can be configured at compile time.
      *

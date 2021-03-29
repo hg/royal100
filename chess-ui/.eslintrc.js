@@ -1,4 +1,9 @@
 module.exports = {
+  extends: [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+  ],
   rules: {
     // A temporary hack related to IDE not resolving correct package.json
     "import/no-extraneous-dependencies": "off",

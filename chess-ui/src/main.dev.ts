@@ -12,16 +12,6 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 import path from "path";
 import { app, BrowserWindow, shell } from "electron";
-import { autoUpdater } from "electron-updater";
-import log from "electron-log";
-
-export default class AppUpdater {
-  constructor() {
-    log.transports.file.level = "info";
-    autoUpdater.logger = log;
-    autoUpdater.checkForUpdatesAndNotify();
-  }
-}
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -30,41 +20,14 @@ if (process.env.NODE_ENV === "production") {
   sourceMapSupport.install();
 }
 
-if (
-  process.env.NODE_ENV === "development" ||
-  process.env.DEBUG_PROD === "true"
-) {
-  require("electron-debug")();
-}
-
-const installExtensions = async () => {
-  const installer = require("electron-devtools-installer");
-  const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
-  const extensions = ["REACT_DEVELOPER_TOOLS"];
-
-  return installer
-    .default(
-      extensions.map((name) => installer[name]),
-      forceDownload
-    )
-    .catch(console.log);
-};
-
 async function createWindow() {
-  if (
-    process.env.NODE_ENV === "development" ||
-    process.env.DEBUG_PROD === "true"
-  ) {
-    await installExtensions();
-  }
-
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, "resources")
     : path.join(__dirname, "../resources");
 
-  const getAssetPath = (...paths: string[]): string => {
+  function getAssetPath(...paths: string[]): string {
     return path.join(RESOURCES_PATH, ...paths);
-  };
+  }
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -101,10 +64,6 @@ async function createWindow() {
     event.preventDefault();
     shell.openExternal(url);
   });
-
-  // Remove this if your app does not use auto updates
-  // eslint-disable-next-line
-  new AppUpdater();
 }
 
 /**
