@@ -7,11 +7,10 @@ import { Clock } from "./clock";
 import { choosePromotion, confirmPrincessPromotion } from "./gameUi";
 import { Dimension, Fen, Pieces } from "../../utils/consts";
 import { getEnPassant } from "../../utils/chess";
-import { action, makeAutoObservable, reaction } from "mobx";
+import { action, AnnotationsMap, makeAutoObservable, reaction } from "mobx";
 import { isEmpty } from "../../utils/util";
 import assert from "assert";
 import { boardFenToEngine } from "../../utils/interop";
-import { read } from "chessgroundx/fen";
 import { sound, Track } from "./audio";
 import { opposite } from "chessgroundx/util";
 
@@ -100,7 +99,10 @@ export class Game {
       },
     });
 
-    makeAutoObservable(this);
+    makeAutoObservable(this, {
+      engine: false,
+      ground: false,
+    } as AnnotationsMap<this, never>);
 
     reaction(
       () => this.clocks.white.remainingSecs,
@@ -160,12 +162,6 @@ export class Game {
     return captured;
   }
 
-  private get pieces() {
-    // TODO: state.pieces почему-то содержит только поле 8×8, но если перегнать
-    //       FEN в Piece[], строится корректное поле 10×10. Медленно, надо разобраться.
-    return read(this.ground.getFen());
-  }
-
   @action
   private addMove = (move: Move) => {
     this.moves.push(move);
@@ -173,8 +169,7 @@ export class Game {
   };
 
   private locatePiece(role: Role, color: Color): Key | undefined {
-    // TODO: адски медленно, разобраться, почему в pieces лежит поле 8×8
-    const pieces = read(this.ground.getFen());
+    const { pieces } = this.ground.state;
 
     for (const [key, piece] of Object.entries(pieces)) {
       if (piece && piece.role === role && piece.color === color) {
@@ -198,7 +193,7 @@ export class Game {
       sound.play(Track.Move);
     }
 
-    const piece = this.pieces[dest];
+    const piece = this.ground.state.pieces[dest];
 
     this.addMove({
       from: orig,
