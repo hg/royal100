@@ -22,10 +22,9 @@ build-engine:
 build-app:
   stage: build-app
   image: electronuserland/builder:wine
-  variables:
-    ELECTRON_CACHE: $HOME/.cache/electron
-    ELECTRON_BUILDER_CACHE: $HOME/.cache/electron-builder
   script:
+    - export ELECTRON_CACHE=$PWD/cache/electron
+    - export ELECTRON_BUILDER_CACHE=$PWD/cache/electron-builder
     - mv engine-bin/* chess-ui/assets/bin/engine/
     - cd chess-ui/
     - yarn install
@@ -34,8 +33,8 @@ build-app:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
       - chess-ui/node_modules
-      - $HOME/.cache/electron
-      - $HOME/.cache/electron-builder
+      - cache/electron
+      - cache/electron-builder
   artifacts:
     paths:
       - chess-ui/release/*.AppImage
