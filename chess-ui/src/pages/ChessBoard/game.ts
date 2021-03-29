@@ -115,7 +115,6 @@ export class Game {
   @action
   private setLoss = (side: Color, reason: LossReason) => {
     if (this.isPlaying) {
-      this.ground.stop();
       const state =
         side === "white" ? GameState.LossWhite : GameState.LossBlack;
       this.setState(state);
@@ -128,6 +127,7 @@ export class Game {
     this.state = state;
 
     if (!this.isPlaying) {
+      this.ground.stop();
       this.clocks.black.stop();
       this.clocks.white.stop();
     }
@@ -308,17 +308,15 @@ export class Game {
 
     if (this.turnColor === "black") {
       this.fullMoves++;
-      this.turnColor = "white";
-    } else {
-      this.turnColor = "black";
     }
+
+    this.turnColor = opposite(this.turnColor);
 
     this.clocks[this.turnColor].continue();
     this.ground.set({ turnColor: this.turnColor });
 
     await this.updateValidMoves();
-
-    this.detectMate();
+    await this.detectEndGame();
 
     if (!this.isPlaying) {
       return;
@@ -331,11 +329,27 @@ export class Game {
     }
   }
 
-  private detectMate = () => {
-    if (this.validMoves && isEmpty(this.validMoves?.destinations)) {
-      this.setLoss(this.turnColor, LossReason.Mate);
+  private get hasNoMoves(): boolean {
+    return Boolean(this.validMoves && isEmpty(this.validMoves.destinations));
+  }
+
+  private async detectEndGame() {
+    this.assertPlayingState();
+
+    if (this.hasNoMoves) {
+      const color = this.turnColor;
+      this.turnColor = opposite(color);
+      await this.updateValidMoves();
+      this.turnColor = color;
+
+      // Если у противника тоже нет ходов — объявляем ничью
+      if (this.hasNoMoves) {
+        this.setState(GameState.Draw);
+      } else {
+        this.setLoss(this.turnColor, LossReason.Mate);
+      }
     }
-  };
+  }
 
   async newGame(config: GameConfig) {
     assert.ok(!this.isPlaying);
@@ -393,6 +407,7 @@ export class Game {
     const { ground, turnColor, halfMoves, fullMoves, enPassant } = this;
     const fen = boardFenToEngine(ground.getFen());
 
+    // фигуры  цвет_хода  рокировка  превращение_принцессы  взятие_на_проходе  полуходы  полные_ходы
     return `${fen} ${turnColor[0]} - - ${
       enPassant || "-"
     } ${halfMoves} ${fullMoves}`;
