@@ -214,10 +214,7 @@ export class Game {
       this.enPassantTarget = dest;
     }
 
-    if (this.turnColor === this.myColor) {
-      await this.checkPawnPromotions(orig, dest);
-    }
-
+    await this.checkPawnPromotions(orig, dest);
     await this.toggleColor();
 
     if (!this.isPlaying) {
@@ -282,6 +279,12 @@ export class Game {
   }
 
   private async checkPawnPromotions(orig: Key, dest: Key) {
+    if (
+      this.opponent !== OpponentType.Human &&
+      this.turnColor !== this.myColor
+    ) {
+      return;
+    }
     if (this.validMoves?.promotions) {
       const promotions = this.validMoves.promotions[orig + dest];
 
@@ -290,7 +293,7 @@ export class Game {
 
         this.ground.setPieces({
           [dest]: {
-            color: this.myColor,
+            color: this.turnColor,
             promoted: true,
             role: `${promotion}-piece`,
           } as Piece,
@@ -379,14 +382,16 @@ export class Game {
       moveTime: config.plyTime,
     });
 
+    const nextColor =
+      config.opponent === OpponentType.Computer ? config.myColor : "white";
+
     this.ground.set({
       turnColor: "white",
-      orientation:
-        this.opponent === OpponentType.Computer ? config.myColor : "white",
+      orientation: nextColor,
       lastMove: undefined,
       fen: config.fen || Fen.start,
       movable: {
-        color: config.myColor,
+        color: nextColor,
       },
     });
 
