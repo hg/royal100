@@ -45,14 +45,12 @@
     ],
     "win": {
       "target": [
-        "portable"
+        "zip"
       ]
     },
     "linux": {
       "target": [
-        "deb",
-        "rpm",
-        "AppImage"
+        "tar.gz"
       ],
       "category": "Games"
     },

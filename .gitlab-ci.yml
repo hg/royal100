@@ -26,9 +26,12 @@ build-app:
     - export ELECTRON_CACHE=$PWD/cache/electron
     - export ELECTRON_BUILDER_CACHE=$PWD/cache/electron-builder
     - mv engine-bin/* chess-ui/assets/bin/engine/
+    - mkdir -p release/{linux,windows}
     - cd chess-ui/
     - yarn install
     - yarn package:all
+    - mv release/*.tar.gz ../release/linux/
+    - mv release/*.zip ../release/windows/
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
@@ -37,10 +40,7 @@ build-app:
       - cache/electron-builder
   artifacts:
     paths:
-      - chess-ui/release/*.AppImage
-      - chess-ui/release/*.deb
-      - chess-ui/release/*.rpm
-      - chess-ui/release/*.exe
+      - release/
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
