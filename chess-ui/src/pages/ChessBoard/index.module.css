@@ -21,6 +21,10 @@
 }
 
 .left {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
   flex: 0 0 auto;
   width: 320px;
   padding: 16px;

@@ -108,7 +108,7 @@ export const ChessBoard = observer(({ config }: Props) => {
     <div className={styles.wrap}>
       <div className={styles.left}>
         {game && (
-          <Fragment>
+          <div>
             <TimeClock color="white" clock={game.clocks.white} />
             <TimeClock color="black" clock={game.clocks.black} />
 
@@ -152,7 +152,7 @@ export const ChessBoard = observer(({ config }: Props) => {
             >
               <FaChess className="icon" /> Новая партия
             </Button>
-          </Fragment>
+          </div>
         )}
       </div>
 

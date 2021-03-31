@@ -232,18 +232,6 @@ cg-board piece.fading {
   }
 }
 
-.h-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wH.svg");
-}
-.e-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wE.svg");
-}
-.h-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bH.svg");
-}
-.e-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bE.svg");
-}
 .p-piece.white {
   background-image: url("/assets/images/pieces/kaneo/wP.svg");
 }

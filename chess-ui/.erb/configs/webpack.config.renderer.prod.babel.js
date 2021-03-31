@@ -125,7 +125,7 @@ export default merge(baseConfig, {
         use: {
           loader: "url-loader",
           options: {
-            limit: 10000,
+            limit: 262144,
             mimetype: "application/font-woff",
           },
         },
@@ -136,7 +136,7 @@ export default merge(baseConfig, {
         use: {
           loader: "url-loader",
           options: {
-            limit: 10000,
+            limit: 262144,
             mimetype: "application/font-woff",
           },
         },
@@ -147,7 +147,7 @@ export default merge(baseConfig, {
         use: {
           loader: "url-loader",
           options: {
-            limit: 10000,
+            limit: 262144,
             mimetype: "application/octet-stream",
           },
         },
@@ -163,7 +163,7 @@ export default merge(baseConfig, {
         use: {
           loader: "url-loader",
           options: {
-            limit: 10000,
+            limit: 262144,
             mimetype: "image/svg+xml",
           },
         },

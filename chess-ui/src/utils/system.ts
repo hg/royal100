@@ -1,4 +1,5 @@
 import os from "os";
+import path from "path";
 
 export function isDevMode(): boolean {
   return process.env.NODE_ENV === "development";
@@ -14,7 +15,7 @@ const engineBinaries = {
 };
 
 export function getAudioPath(filename: string): string {
-  return `${__dirname}/../assets/sounds/${filename}`;
+  return getAssetPath("sounds", filename);
 }
 
 export function getEnginePath(): string {
@@ -22,5 +23,14 @@ export function getEnginePath(): string {
   if (!binary) {
     throw new Error("unsupported platform " + os.platform());
   }
-  return `${__dirname}/../assets/bin/engine/${binary}`;
+  return getAssetPath("bin", "engine", binary);
+}
+
+function getAssetPath(...components: string[]): string {
+  if (isDevMode()) {
+    return path.join(__dirname, "..", "assets", ...components);
+  } else {
+    const resources = process.resourcesPath;
+    return path.join(resources, "assets", ...components);
+  }
 }
