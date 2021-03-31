@@ -1,18 +1,18 @@
 import { Api } from "chessgroundx/api";
 import { Color, FEN, Key, Piece, Role } from "chessgroundx/types";
 import { Chessground } from "chessgroundx";
-import { getEnginePath, numCpus } from "../../utils/system";
-import { BestMove, Engine, ValidMoves } from "./engine";
 import { Clock } from "./clock";
 import { choosePromotion, confirmPrincessPromotion } from "./gameUi";
-import { Dimension, Fen, Pieces } from "../../utils/consts";
-import { getEnPassant } from "../../utils/chess";
 import { action, AnnotationsMap, makeAutoObservable, reaction } from "mobx";
-import { isEmpty } from "../../utils/util";
 import assert from "assert";
-import { boardFenToEngine } from "../../utils/interop";
 import { sound, Track } from "./audio";
 import { opposite } from "chessgroundx/util";
+import { BestMove, getEnPassant } from "../utils/chess";
+import { getEnginePath, numCpus } from "../utils/system";
+import { isEmpty } from "../utils/util";
+import { boardFenToEngine } from "../utils/interop";
+import { Engine, ValidMoves } from "./engine";
+import { Dimension, Fen, Pieces } from "../utils/consts";
 
 export enum OpponentType {
   Computer,
@@ -81,6 +81,7 @@ export class Game {
     white: new Clock(),
     black: new Clock(),
   };
+  bottomColor: Color = "black";
 
   constructor(element: HTMLElement) {
     this.onMove = this.onMove.bind(this);
@@ -123,6 +124,10 @@ export class Game {
         }
       }
     );
+  }
+
+  get topColor(): Color {
+    return opposite(this.bottomColor);
   }
 
   @action
@@ -341,6 +346,7 @@ export class Game {
     }
 
     if (this.opponent === OpponentType.Human) {
+      this.bottomColor = this.turnColor;
       this.ground.set({
         orientation: this.turnColor,
         movable: {
@@ -401,15 +407,16 @@ export class Game {
       white: false,
       black: false,
     };
+    this.bottomColor = nextColor;
     this.turnColor = "white";
     this.myColor = config.myColor;
     this.moves.splice(0);
 
     await this.updateValidMoves();
 
-    this.clocks.white.set(config.totalTime);
+    this.clocks.white.set(config.totalTime * 1000);
     this.clocks.white.continue();
-    this.clocks.black.set(config.totalTime);
+    this.clocks.black.set(config.totalTime * 1000);
 
     await this.makeOpponentMove();
   }

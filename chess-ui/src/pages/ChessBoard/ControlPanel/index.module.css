@@ -1,0 +1,23 @@
+.panel {
+  height: 100%;
+  width: 100%;
+  overflow-y: hidden;
+}
+
+.clock {
+  height: 25vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.buttons {
+  height: calc(50vh - 32px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.buttons > * {
+  margin: 4px 0;
+}

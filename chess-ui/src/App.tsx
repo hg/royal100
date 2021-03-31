@@ -9,7 +9,7 @@ import "moment/locale/ru";
 import moment from "moment";
 import { Home } from "./pages/Home";
 import { routes } from "./pages/routes";
-import { GameConfig, OpponentType } from "./pages/ChessBoard/game";
+import { GameConfig, OpponentType } from "./game/game";
 import { Rating } from "./utils/consts";
 
 moment.locale("ru");

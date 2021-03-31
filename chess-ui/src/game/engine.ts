@@ -1,13 +1,13 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { Key } from "chessgroundx/types";
 import { Clocks } from "./game";
-import { isDevMode, numCpus } from "../../utils/system";
-import { BestMove, parseBestMove, parseValidMoves } from "../../utils/chess";
-import { sleep, withTimeout } from "../../utils/async";
 import assert from "assert";
-import { clamp } from "../../utils/util";
-import { Rating } from "../../utils/consts";
 import { EventEmitter } from "events";
+import { sleep, withTimeout } from "../utils/async";
+import { BestMove, parseBestMove, parseValidMoves } from "../utils/chess";
+import { isDevMode, numCpus } from "../utils/system";
+import { Rating } from "../utils/consts";
+import { clamp } from "../utils/util";
 
 export interface Promotions {
   [fromTo: string]: string[];

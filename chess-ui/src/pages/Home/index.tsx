@@ -9,7 +9,6 @@ import {
 } from "antd";
 import React, { FC } from "react";
 import { Depth, Rating } from "../../utils/consts";
-import { GameConfig, OpponentType } from "../ChessBoard/game";
 import { IoIosPerson, MdComputer } from "react-icons/all";
 import { useHistory } from "react-router";
 import { routes } from "../routes";
@@ -18,6 +17,7 @@ import { formLayout } from "../../utils/forms";
 import { SliderMarks } from "antd/lib/slider";
 import { momentToSeconds, secondsToMoment } from "../../utils/time";
 import { validateFen } from "../../utils/chess";
+import { GameConfig, OpponentType } from "../../game/game";
 
 interface Props {
   config: GameConfig;

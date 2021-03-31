@@ -2,9 +2,10 @@ import { action, makeAutoObservable } from "mobx";
 
 const secondsInMinute = 60;
 const secondsInHour = secondsInMinute * 60;
+const updateInterval = 250;
 
 export class Clock {
-  private secs = 0;
+  private msec = 0;
   private interval?: ReturnType<typeof setInterval>;
 
   constructor() {
@@ -12,7 +13,7 @@ export class Clock {
   }
 
   private updateClock = () => {
-    this.set(this.secs - 1);
+    this.set(this.msec - updateInterval);
   };
 
   get isActive(): boolean {
@@ -20,17 +21,17 @@ export class Clock {
   }
 
   @action
-  set = (value: number) => {
-    if (value <= 0) {
-      this.secs = 0;
+  set = (ms: number) => {
+    if (ms <= 0) {
+      this.msec = 0;
       this.stop();
     } else {
-      this.secs = value;
+      this.msec = ms;
     }
   };
 
   continue = () => {
-    this.interval = setInterval(this.updateClock, 1000);
+    this.interval = setInterval(this.updateClock, updateInterval);
   };
 
   stop = () => {
@@ -41,11 +42,11 @@ export class Clock {
   };
 
   get remainingSecs(): number {
-    return this.secs;
+    return this.remainingMs / 1000;
   }
 
   get remainingMs(): number {
-    return this.remainingSecs * 1000;
+    return this.msec;
   }
 
   get remaining(): string {

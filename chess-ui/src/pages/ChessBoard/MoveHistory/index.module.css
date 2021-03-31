@@ -1,0 +1,27 @@
+.historyTable {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.historyTable td,
+.historyTable th {
+  text-align: center;
+  border: 1px solid #282828;
+  padding: 0;
+}
+
+.historyTable tbody tr {
+  cursor: pointer;
+}
+
+.piece {
+  background-size: cover;
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+}
+
+.movePiece {
+  margin-right: 4px;
+}

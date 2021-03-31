@@ -1,4 +1,4 @@
-import { getAudioPath } from "../../utils/system";
+import { getAudioPath } from "../utils/system";
 
 export enum Track {
   Move,
