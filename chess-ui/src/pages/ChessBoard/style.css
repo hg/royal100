@@ -281,14 +281,14 @@ cg-board piece.fading {
   background-image: url("/assets/images/pieces/kaneo/bK.svg");
 }
 .t-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bCh.svg");
+  background-image: url("/assets/images/pieces/kaneo/bT.svg");
 }
 .t-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wCh.svg");
+  background-image: url("/assets/images/pieces/kaneo/wT.svg");
 }
 .s-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bH.svg");
+  background-image: url("/assets/images/pieces/kaneo/bS.svg");
 }
 .s-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wH.svg");
+  background-image: url("/assets/images/pieces/kaneo/wS.svg");
 }
