@@ -24,6 +24,7 @@
 #include <string>
 
 #include "evaluate.h"
+#include "misc.h"
 #include "movegen.h"
 #include "position.h"
 #include "search.h"
@@ -193,10 +194,14 @@ namespace {
 } // namespace
 
 void print_valid_moves(const Position &pos) {
+    string reply{"valid_moves: "};
+
     for (const auto &move : MoveList<LEGAL>(pos)) {
-        std::cout << UCI::move(move.move) << " ";
+        reply += UCI::move(move.move);
+        reply += " ";
     }
-    std::cout << std::endl;
+
+    sync_cout << reply << sync_endl;
 }
 
 /// UCI::loop() waits for a command from stdin, parses it and calls the appropriate

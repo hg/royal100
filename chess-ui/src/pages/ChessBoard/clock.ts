@@ -1,4 +1,4 @@
-import { action, AnnotationsMap, makeAutoObservable } from "mobx";
+import { action, makeAutoObservable } from "mobx";
 
 const secondsInMinute = 60;
 const secondsInHour = secondsInMinute * 60;
@@ -8,14 +8,16 @@ export class Clock {
   private interval?: ReturnType<typeof setInterval>;
 
   constructor() {
-    makeAutoObservable(this, {
-      interval: false,
-    } as AnnotationsMap<this, never>);
+    makeAutoObservable(this);
   }
 
   private updateClock = () => {
     this.set(this.secs - 1);
   };
+
+  get isActive(): boolean {
+    return !!this.interval;
+  }
 
   @action
   set = (value: number) => {

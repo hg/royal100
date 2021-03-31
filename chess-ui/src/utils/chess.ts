@@ -1,6 +1,7 @@
-import { Key } from "chessgroundx/types";
+import { Key, Letter } from "chessgroundx/types";
 import { read } from "chessgroundx/fen";
 import { enginePositionToBoard } from "./interop";
+import { ValidMoves } from "../pages/ChessBoard/engine";
 
 const reKey = /^([abcdefghij])([0-9:])$/;
 
@@ -98,4 +99,42 @@ export function parseMoves(data: string): PieceMove[] {
   }
 
   return result;
+}
+
+export function parseValidMoves(moves: string): ValidMoves {
+  const result: ValidMoves = { promotions: {}, destinations: {} };
+
+  for (const { from, to, promotion } of parseMoves(moves)) {
+    result.destinations[from] = result.destinations[from] || [];
+    result.destinations[from].push(to);
+
+    if (promotion) {
+      const fromTo = from + to;
+      result.promotions[fromTo] = result.promotions[fromTo] || [];
+      result.promotions[fromTo].push(promotion);
+    }
+  }
+
+  return result;
+}
+
+export interface BestMove {
+  from: Key;
+  to: Key;
+  promotion?: Letter;
+}
+
+const reBestMove = /\bbestmove ([a-j]\d+)([a-j]\d+)(\w?)\b/;
+
+export function parseBestMove(data: string): BestMove | null {
+  const matchMove = data.match(reBestMove);
+  if (!matchMove) {
+    return null;
+  }
+  const [, from, to, promotion] = matchMove;
+  return {
+    from: enginePositionToBoard(from),
+    to: enginePositionToBoard(to),
+    promotion: promotion as Letter,
+  };
 }

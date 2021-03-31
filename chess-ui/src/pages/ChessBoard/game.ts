@@ -83,6 +83,8 @@ export class Game {
   };
 
   constructor(element: HTMLElement) {
+    this.onMove = this.onMove.bind(this);
+
     const enginePath = getEnginePath();
     this.engine = new Engine(enginePath, this.clocks);
 
@@ -124,17 +126,17 @@ export class Game {
   }
 
   @action
-  private setLoss = (side: Color, reason: LossReason) => {
+  private setLoss(side: Color, reason: LossReason) {
     if (this.isPlaying) {
       const state =
         side === "white" ? GameState.LossWhite : GameState.LossBlack;
       this.setState(state);
       this.lossReason = reason;
     }
-  };
+  }
 
   @action
-  private setState = (state: GameState) => {
+  private setState(state: GameState) {
     this.state = state;
 
     if (!this.isPlaying) {
@@ -142,7 +144,7 @@ export class Game {
       this.clocks.black.stop();
       this.clocks.white.stop();
     }
-  };
+  }
 
   private checkEnPassant(dest: Key): Piece | undefined {
     this.assertPlayingState();
@@ -163,10 +165,10 @@ export class Game {
   }
 
   @action
-  private addMove = (move: Move) => {
+  private addMove(move: Move) {
     this.moves.push(move);
     console.log("move", move);
-  };
+  }
 
   private locatePiece(role: Role, color: Color): Key | undefined {
     const { pieces } = this.ground.state;
@@ -180,7 +182,7 @@ export class Game {
     return undefined;
   }
 
-  private onMove = async (orig: Key, dest: Key, captured?: Piece) => {
+  private async onMove(orig: Key, dest: Key, captured?: Piece) {
     if (!captured) {
       captured = this.checkEnPassant(dest);
     }
@@ -227,7 +229,7 @@ export class Game {
     }
 
     await this.makeOpponentMove();
-  };
+  }
 
   private async checkRoyaltyPromotions(captured: Piece) {
     const oppColor = opposite(this.turnColor);
@@ -373,8 +375,6 @@ export class Game {
   async newGame(config: GameConfig) {
     assert.ok(!this.isPlaying);
 
-    await this.engine.isReady();
-
     await this.engine.newGame({
       rating: config.rating,
       depth: config.depth,
@@ -415,9 +415,7 @@ export class Game {
   }
 
   private async updateValidMoves() {
-    await this.updatePosition();
-
-    this.validMoves = await this.engine.validMoves();
+    this.validMoves = await this.engine.validMoves(this.fullFen);
 
     this.ground.set({
       movable: {
@@ -436,17 +434,10 @@ export class Game {
     } ${halfMoves} ${fullMoves}`;
   }
 
-  private async updatePosition() {
-    this.assertPlayingState();
-    await this.engine.position(this.fullFen);
-  }
-
   async getHint(): Promise<BestMove | undefined> {
-    await this.updatePosition();
-
     this.isThinking = true;
     try {
-      const move = await this.engine.think();
+      const move = await this.engine.calculateMove(this.fullFen);
       if (move) {
         this.ground.selectSquare(move.from);
       }
@@ -470,11 +461,9 @@ export class Game {
       return;
     }
 
-    await this.updatePosition();
-
     this.isThinking = true;
     try {
-      const move = await this.engine.think();
+      const move = await this.engine.calculateMove(this.fullFen);
       if (move) {
         this.ground.move(move.from, move.to);
 
@@ -499,12 +488,12 @@ export class Game {
     }
   }
 
-  stop = () => {
+  stop() {
     this.setState(GameState.Paused);
     this.engine.quit();
-  };
+  }
 
-  private assertPlayingState = () => {
+  private assertPlayingState() {
     assert.ok(this.isPlaying);
-  };
+  }
 }

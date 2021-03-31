@@ -26,10 +26,10 @@ export const Depth = {
 };
 
 export const Rating = {
-  min: 1350,
+  min: 1350, // взято из исходников движка
+  max: 2850, // взято из исходников движка
   amateur: 1600,
   master: 2400,
   grandmaster: 2600,
-  max: 2850,
   default: 2000,
 };

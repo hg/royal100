@@ -73,7 +73,9 @@ export const ChessBoard = observer(({ config }: Props) => {
   useEffect(() => {
     if (game) {
       game.newGame(config);
+      return () => game.stop();
     }
+    return undefined;
   }, [game]);
 
   useEffect(() => {
