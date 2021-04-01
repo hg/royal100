@@ -58,7 +58,7 @@ export enum LossReason {
 
 export class Game {
   private engine: Engine;
-  private ground: Api;
+  private readonly ground: Api;
   private opponent = OpponentType.Computer;
   private myColor: Color = "white";
   private turnColor: Color = "white";
@@ -106,6 +106,7 @@ export class Game {
     makeAutoObservable(this, {
       engine: false,
       ground: false,
+      validMoves: false,
     } as AnnotationsMap<this, never>);
 
     reaction(
@@ -200,6 +201,35 @@ export class Game {
     }
   }
 
+  private resetCheck() {
+    this.ground.set({ check: false });
+  }
+
+  private async detectCheck(): Promise<boolean> {
+    const opponentColor = opposite(this.turnColor);
+
+    const kingLocation = this.locatePiece("k-piece", opponentColor);
+    if (!kingLocation) {
+      return false;
+    }
+
+    await this.updateValidMoves();
+
+    const moveDestinations = this.validMoves?.destinations;
+    if (!moveDestinations) {
+      return false;
+    }
+
+    for (const destinations of Object.values(moveDestinations)) {
+      if (destinations.includes(kingLocation)) {
+        this.ground.set({ check: opponentColor });
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   private async onMove(orig: Key, dest: Key, captured?: Piece) {
     if (!captured) {
       captured = this.checkEnPassant(dest);
@@ -235,10 +265,24 @@ export class Game {
     }
 
     await this.checkPawnPromotions(orig, dest);
+
+    const check = await this.detectCheck();
+
     await this.toggleColor();
 
     if (!this.isPlaying) {
       return;
+    }
+
+    // В этих шахматах игрок может сделать ход, ставящий под угрозу собственного
+    // короля. Т.к. библиотека позволяет пометить шахом только одну ячейку,
+    // проверяем, находится ли король другой стороны под шахом. Если нет,
+    // смотрим, не поставили ли под удар своего короля.
+    if (!check) {
+      const selfCheck = await this.detectCheck();
+      if (!selfCheck) {
+        this.resetCheck();
+      }
     }
 
     // Если взяли фигуру или подвинули пешку, сбрасываем полу-ходы
