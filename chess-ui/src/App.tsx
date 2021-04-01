@@ -10,7 +10,7 @@ import moment from "moment";
 import { Home } from "./pages/Home";
 import { routes } from "./pages/routes";
 import { GameConfig, OpponentType } from "./game/game";
-import { Rating } from "./utils/consts";
+import { depth } from "./utils/consts";
 
 moment.locale("ru");
 
@@ -23,7 +23,7 @@ const suspenseFallback = (
 const AppRoutes = () => {
   const [config, setConfig] = useState<GameConfig>({
     myColor: "white",
-    rating: Rating.default,
+    depth: depth.default,
     totalTime: 3600,
     opponent: OpponentType.Computer,
   });

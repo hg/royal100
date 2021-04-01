@@ -21,7 +21,6 @@ export enum OpponentType {
 
 export interface GameConfig {
   opponent: OpponentType;
-  rating: number;
   depth?: number;
   myColor: Color;
   fen?: FEN;

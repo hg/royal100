@@ -12,6 +12,7 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 import path from "path";
 import { app, BrowserWindow, shell } from "electron";
+import { isDevMode } from "./utils/system";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -39,7 +40,9 @@ async function createWindow() {
     },
   });
 
-  mainWindow.removeMenu();
+  if (!isDevMode()) {
+    mainWindow.removeMenu();
+  }
 
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 

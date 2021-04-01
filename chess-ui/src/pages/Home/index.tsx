@@ -1,14 +1,6 @@
-import {
-  Button,
-  Collapse,
-  Form,
-  Input,
-  InputNumber,
-  Slider,
-  TimePicker,
-} from "antd";
+import { Alert, Button, Collapse, Form, Input, Slider, TimePicker } from "antd";
 import React, { FC } from "react";
-import { Depth, Rating } from "../../utils/consts";
+import { appName, depth } from "../../utils/consts";
 import { IoIosPerson, MdComputer } from "react-icons/all";
 import { useHistory } from "react-router";
 import { routes } from "../routes";
@@ -24,12 +16,13 @@ interface Props {
   setConfig: (config: GameConfig) => void;
 }
 
-const ratingMarks: SliderMarks = {
-  [Rating.min]: "новичок",
-  [Rating.amateur]: "любитель",
-  [Rating.master]: "мастер",
-  [Rating.grandmaster]: "гроссмейстер",
-  [Rating.max]: "чемпион",
+const depthMarks: SliderMarks = {
+  [depth.max + 1]: "∞",
+  [depth.novice]: "новичок",
+  [depth.amateur]: "любитель",
+  [depth.master]: "мастер",
+  [depth.grandmaster]: "гроссмейстер",
+  [depth.champion]: "чемпион",
 };
 
 export const Home: FC<Props> = ({ config, setConfig }) => {
@@ -43,23 +36,47 @@ export const Home: FC<Props> = ({ config, setConfig }) => {
     }
   }
 
+  function setMinutes(minutes: number) {
+    setConfig({ ...config, totalTime: minutes * 60 });
+  }
+
   return (
     <div className={styles.wrap}>
       <div className={styles.form}>
-        <h2>Королевские шахматы</h2>
+        <header className={styles.header}>
+          <div className={styles.appIcon} />
+          {appName}
+        </header>
 
         <Form {...formLayout}>
-          <Form.Item label="Рейтинг игры компьютера">
+          <Form.Item label="Уровень игры компьютера">
             <Slider
-              value={config.rating}
-              min={Rating.min}
-              max={Rating.max}
-              onChange={(rating: number) => setConfig({ ...config, rating })}
-              marks={ratingMarks}
+              min={depth.min}
+              max={depth.max + 1}
+              value={config.depth}
+              onChange={(val: number) => {
+                setConfig({
+                  ...config,
+                  depth: val > depth.max ? undefined : val,
+                });
+              }}
+              marks={depthMarks}
             />
+
+            {config.depth === undefined && (
+              <Alert
+                type="info"
+                showIcon
+                message="Глубина поиска ходов ограничена только временем."
+                className={styles.depthAlert}
+              />
+            )}
           </Form.Item>
 
-          <Form.Item label="Общее время ходов каждого игрока">
+          <Form.Item
+            label="Общее время ходов игрока"
+            className={styles.timeControl}
+          >
             <TimePicker
               showNow={false}
               value={secondsToMoment(config.totalTime)}
@@ -68,7 +85,15 @@ export const Home: FC<Props> = ({ config, setConfig }) => {
                   setConfig({ ...config, totalTime: momentToSeconds(time) });
                 }
               }}
+              className={styles.timePicker}
             />
+            <Button.Group className={styles.timeButtons}>
+              <Button onClick={() => setMinutes(5)}>5 минут</Button>
+              <Button onClick={() => setMinutes(15)}>15 минут</Button>
+              <Button onClick={() => setMinutes(30)}>полчаса</Button>
+              <Button onClick={() => setMinutes(60)}>час</Button>
+              <Button onClick={() => setMinutes(180)}>три часа</Button>
+            </Button.Group>
           </Form.Item>
 
           <Form.Item label="Играть">
@@ -96,19 +121,6 @@ export const Home: FC<Props> = ({ config, setConfig }) => {
         <Collapse>
           <Collapse.Panel key="advanced" header="Расширенные настройки">
             <Form {...formLayout}>
-              <Form.Item label="Глубина поиска ходов">
-                <InputNumber
-                  value={config.depth}
-                  min={Depth.min}
-                  max={Depth.max}
-                  placeholder="(без ограничений)"
-                  className="full-width"
-                  onChange={(depth) =>
-                    setConfig({ ...config, depth: Number(depth) || undefined })
-                  }
-                />
-              </Form.Item>
-
               <Form.Item label="Максимальное время на один ход">
                 <TimePicker
                   showNow={false}

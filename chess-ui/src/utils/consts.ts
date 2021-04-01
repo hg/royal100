@@ -20,16 +20,16 @@ export const Fen = {
     "rnbskqtbnr/pppppppppp/55/55/55/55/55/55/PPPPPPPPPP/RNBSKQTBNR w KQkq Ss - 0 1",
 };
 
-export const Depth = {
-  min: 1,
-  max: 1000,
-};
+export const appName = "Королевские шахматы 100";
 
-export const Rating = {
-  min: 1350, // взято из исходников движка
-  max: 2850, // взято из исходников движка
-  amateur: 1600,
-  master: 2400,
-  grandmaster: 2600,
-  default: 2000,
+export const depth = {
+  min: 1,
+  max: 30,
+  default: 12,
+
+  novice: 3,
+  amateur: 6,
+  master: 12,
+  grandmaster: 16,
+  champion: 21,
 };
