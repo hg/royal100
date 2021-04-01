@@ -152,3 +152,8 @@ export function checkScore(lines: string[]): number | undefined {
   }
   return undefined;
 }
+
+// Формулы расчёта украдены из lichess.org
+export function winningChances(cp: number): number {
+  return 2 / (1 + Math.exp(-0.004 * cp)) - 1;
+}
