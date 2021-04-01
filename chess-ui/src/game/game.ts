@@ -7,7 +7,7 @@ import { action, AnnotationsMap, makeAutoObservable, reaction } from "mobx";
 import assert from "assert";
 import { sound, Track } from "./audio";
 import { opposite } from "chessgroundx/util";
-import { BestMove, getEnPassant } from "../utils/chess";
+import { BestMove, getEnPassant, winningChances } from "../utils/chess";
 import { getEnginePath, numCpus } from "../utils/system";
 import { isEmpty } from "../utils/util";
 import { boardFenToEngine } from "../utils/interop";
@@ -126,6 +126,10 @@ export class Game {
         }
       }
     );
+  }
+
+  get isPlayingWithComputer(): boolean {
+    return this.opponent === OpponentType.Computer;
   }
 
   get score(): number | undefined {
@@ -444,8 +448,7 @@ export class Game {
       moveTime: config.plyTime,
     });
 
-    const nextColor =
-      config.opponent === OpponentType.Computer ? config.myColor : "white";
+    const nextColor = this.isPlayingWithComputer ? config.myColor : "white";
 
     this.ground.set({
       turnColor: "white",
@@ -510,11 +513,45 @@ export class Game {
     }
   }
 
-  forfeit() {
+  get canAskForDraw(): boolean {
+    return Boolean(
+      this.isPlayingWithComputer &&
+        this.isPlaying &&
+        this.moves.length > 10 &&
+        this.score
+    );
+  }
+
+  askForDraw = async () => {
+    assert.deepStrictEqual(this.opponent, OpponentType.Computer);
+
+    if (!this.canAskForDraw) {
+      return false;
+    }
+    assert.ok(this.score);
+
+    this.isThinking = true;
+    try {
+      await this.engine.calculateMove(this.fullFen);
+    } finally {
+      this.isThinking = false;
+    }
+
+    const engineChances = winningChances(this.score);
+    if (engineChances >= 0.15) {
+      return false;
+    }
+
+    this.setState(GameState.Draw);
+
+    return true;
+  };
+
+  forfeit = () => {
     if (this.isPlaying) {
       this.setLoss(this.myColor, LossReason.Forfeit);
     }
-  }
+  };
 
   private async makeOpponentMove() {
     if (
@@ -545,11 +582,11 @@ export class Game {
     }
   }
 
-  async stopThinking() {
+  stopThinking = async () => {
     if (this.isThinking) {
       await this.engine.stopThinking();
     }
-  }
+  };
 
   stop() {
     this.setState(GameState.Paused);

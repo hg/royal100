@@ -1,6 +1,12 @@
 import { Game } from "../../../game/game";
-import { Button, message, notification } from "antd";
-import { BiHelpCircle, FaChess, FiFlag, GiStopSign } from "react-icons/all";
+import { Button, message, Modal, notification } from "antd";
+import {
+  BiHelpCircle,
+  FaChess,
+  FaRegHandPeace,
+  FiFlag,
+  GiStopSign,
+} from "react-icons/all";
 import React, { Fragment } from "react";
 import { observer } from "mobx-react-lite";
 import { useHistory } from "react-router";
@@ -23,18 +29,15 @@ async function getHint(game: Game) {
   }
 }
 
-const ActiveGameButtons = observer<Props>(({ game }) =>
-  game.isThinking ? (
-    <Button
-      size="large"
-      type="primary"
-      block
-      danger
-      onClick={() => game?.stopThinking()}
-    >
-      <GiStopSign className="icon" /> Остановить поиск
-    </Button>
-  ) : (
+const WaitingModeButtons = observer<Props>(({ game }) => {
+  async function askForDraw() {
+    const success = await game.askForDraw();
+    if (!success) {
+      Modal.error({ title: "Компьютер отказался принимать ничью." });
+    }
+  }
+
+  return (
     <Fragment>
       <Button
         size="large"
@@ -46,17 +49,38 @@ const ActiveGameButtons = observer<Props>(({ game }) =>
         <BiHelpCircle className="icon" /> Подсказка
       </Button>
 
-      <Button
-        size="large"
-        type="primary"
-        danger
-        block
-        onClick={() => game.forfeit()}
-        disabled={!game.isPlaying}
-      >
+      <Button size="large" type="primary" danger block onClick={game.forfeit}>
         <FiFlag className="icon" /> Сдаться
       </Button>
+
+      {game.isPlayingWithComputer && (
+        <Button
+          size="large"
+          danger
+          block
+          onClick={askForDraw}
+          disabled={!game.canAskForDraw}
+        >
+          <FaRegHandPeace className="icon" /> Предложить ничью
+        </Button>
+      )}
     </Fragment>
+  );
+});
+
+const ActiveGameButtons = observer<Props>(({ game }) =>
+  game.isThinking ? (
+    <Button
+      size="large"
+      type="primary"
+      block
+      danger
+      onClick={game.stopThinking}
+    >
+      <GiStopSign className="icon" /> Остановить поиск
+    </Button>
+  ) : (
+    <WaitingModeButtons game={game} />
   )
 );
 
