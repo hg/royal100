@@ -4,9 +4,15 @@ import { Clocks } from "./game";
 import assert from "assert";
 import { EventEmitter } from "events";
 import { sleep, withTimeout } from "../utils/async";
-import { BestMove, parseBestMove, parseValidMoves } from "../utils/chess";
+import {
+  BestMove,
+  checkScore,
+  parseBestMove,
+  parseValidMoves,
+} from "../utils/chess";
 import { isDevMode, numCpus } from "../utils/system";
 import { clamp } from "../utils/util";
+import { AnnotationsMap, makeAutoObservable } from "mobx";
 
 export interface Promotions {
   [fromTo: string]: string[];
@@ -30,10 +36,22 @@ export class Engine {
   private options?: Options;
   private readonly enginePath: string;
   private readonly clocks: Clocks;
+  private readonly lines: string[] = [];
+  private readonly linesEvent = new EventEmitter();
+
+  score?: number;
 
   constructor(path: string, clocks: Clocks) {
     this.enginePath = path;
     this.clocks = clocks;
+
+    makeAutoObservable(this, {
+      engine: false,
+      options: false,
+      enginePath: false,
+      clocks: false,
+      linesEvent: false,
+    } as AnnotationsMap<this, never>);
   }
 
   newGame = async ({ moveTime, ...options }: Options) => {
@@ -102,9 +120,6 @@ export class Engine {
     this.engine = undefined;
   };
 
-  private lines: string[] = [];
-  private linesEvent = new EventEmitter();
-
   private restartEngine = async () => {
     while (true) {
       this.engine?.kill();
@@ -118,6 +133,12 @@ export class Engine {
 
       this.engine.stdout.on("data", (rawData: string) => {
         const lines = rawData.toString().split(/\r?\n/);
+
+        const score = checkScore(lines);
+        if (score !== undefined) {
+          this.score = score;
+        }
+
         this.lines.push(...lines);
         this.linesEvent.emit("data", lines);
       });

@@ -3,7 +3,7 @@ import { Game } from "../../../game/game";
 import { Spinner } from "../../../components/Spinner";
 import React, { Fragment } from "react";
 import { TimeClock } from "../TimeClock";
-import { Button, message, notification } from "antd";
+import { Button, message, notification, Statistic } from "antd";
 import { BiHelpCircle, FaChess, FiFlag, GiStopSign } from "react-icons/all";
 import { useHistory } from "react-router";
 import { routes } from "../../routes";
@@ -44,6 +44,12 @@ export const ControlPanel = observer<Props>(({ game }) => {
       </div>
 
       <div className={styles.buttons}>
+        <Statistic
+          value={game?.score || "?"}
+          title="Перевес противника"
+          className={styles.stat}
+        />
+
         {game.isPlaying ? (
           game.isThinking ? (
             <Button

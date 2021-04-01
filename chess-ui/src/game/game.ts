@@ -127,6 +127,10 @@ export class Game {
     );
   }
 
+  get score(): number | undefined {
+    return this.engine.score;
+  }
+
   get topColor(): Color {
     return opposite(this.bottomColor);
   }

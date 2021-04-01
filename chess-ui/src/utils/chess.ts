@@ -138,3 +138,17 @@ export function parseBestMove(data: string): BestMove | null {
     promotion: promotion as Letter,
   };
 }
+
+const reScore = /\bscore cp (-?\d+)\b/;
+
+export function checkScore(lines: string[]): number | undefined {
+  for (const line of lines) {
+    if (line.includes("info")) {
+      const match = line.match(reScore);
+      if (match) {
+        return Number(match[1]);
+      }
+    }
+  }
+  return undefined;
+}

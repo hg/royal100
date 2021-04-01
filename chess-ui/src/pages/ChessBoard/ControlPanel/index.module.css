@@ -21,3 +21,8 @@
 .buttons > * {
   margin: 4px 0;
 }
+
+.stat {
+  margin-bottom: 16px !important;
+  text-align: center;
+}
