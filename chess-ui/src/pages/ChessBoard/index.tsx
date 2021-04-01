@@ -6,6 +6,7 @@ import { reaction } from "mobx";
 import { Game, GameConfig, GameState, LossReason } from "../../game/game";
 import { MoveHistory } from "./MoveHistory";
 import { ControlPanel } from "./ControlPanel";
+import { sound, Track } from "../../game/audio";
 
 function onStateChanged(game: Game, state: GameState) {
   let reason = "";
@@ -17,11 +18,15 @@ function onStateChanged(game: Game, state: GameState) {
     reason = "сдача";
   }
 
+  let playSound = false;
   let message = "";
+
   if (state === GameState.LossWhite) {
     message = `Белые проиграли: ${reason}`;
+    playSound = true;
   } else if (state === GameState.LossBlack) {
     message = `Чёрные проиграли: ${reason}`;
+    playSound = true;
   } else if (state === GameState.Draw) {
     message = "Ничья";
   }
@@ -31,6 +36,14 @@ function onStateChanged(game: Game, state: GameState) {
       title: "Партия завершена",
       content: message,
     });
+
+    if (playSound) {
+      if (game.hasWon) {
+        sound.play(Track.Win);
+      } else {
+        sound.play(Track.Lose);
+      }
+    }
   }
 }
 

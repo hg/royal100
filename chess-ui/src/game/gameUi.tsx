@@ -1,6 +1,7 @@
 import React, { Fragment } from "react";
 import { Button, Modal } from "antd";
 import { ButtonProps } from "antd/lib/button";
+import { sound, Track } from "./audio";
 
 const names = {
   q: "Ферзь",
@@ -31,6 +32,8 @@ const propsHide: ButtonProps = {
 };
 
 export function confirmPrincessPromotion(): Promise<boolean> {
+  sound.play(Track.Confirm);
+
   return new Promise((resolve) => {
     Modal.confirm({
       title: "Превращение принцессы в королеву",
@@ -47,6 +50,8 @@ export function confirmPrincessPromotion(): Promise<boolean> {
 }
 
 export async function choosePromotion(promotions: string[]) {
+  sound.play(Track.Confirm);
+
   return new Promise((resolve) => {
     function done(promotion: string) {
       modal.destroy();

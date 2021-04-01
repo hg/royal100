@@ -84,6 +84,7 @@ export class Game {
 
   constructor(element: HTMLElement) {
     this.onMove = this.onMove.bind(this);
+    this.onSelect = this.onSelect.bind(this);
 
     const enginePath = getEnginePath();
     this.engine = new Engine(enginePath, this.clocks);
@@ -98,6 +99,7 @@ export class Game {
       },
       events: {
         move: this.onMove,
+        select: this.onSelect,
       },
     });
 
@@ -184,6 +186,14 @@ export class Game {
     }
 
     return undefined;
+  }
+
+  private onSelect(_key: Key) {
+    const { state } = this.ground;
+    const piece = state.pieces[state.selected];
+    if (piece) {
+      sound.play(Track.Select);
+    }
   }
 
   private async onMove(orig: Key, dest: Key, captured?: Piece) {
@@ -381,7 +391,6 @@ export class Game {
     assert.ok(!this.isPlaying);
 
     await this.engine.newGame({
-      rating: config.rating,
       depth: config.depth,
       threads: numCpus(),
       moveTime: config.plyTime,
@@ -501,5 +510,14 @@ export class Game {
 
   private assertPlayingState() {
     assert.ok(this.isPlaying);
+  }
+
+  get hasWon(): boolean {
+    return (
+      !this.isPlaying &&
+      (this.opponent === OpponentType.Human ||
+        (this.myColor === "white" && this.state === GameState.LossBlack) ||
+        (this.myColor === "black" && this.state === GameState.LossWhite))
+    );
   }
 }

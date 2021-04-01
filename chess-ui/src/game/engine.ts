@@ -6,7 +6,6 @@ import { EventEmitter } from "events";
 import { sleep, withTimeout } from "../utils/async";
 import { BestMove, parseBestMove, parseValidMoves } from "../utils/chess";
 import { isDevMode, numCpus } from "../utils/system";
-import { Rating } from "../utils/consts";
 import { clamp } from "../utils/util";
 
 export interface Promotions {
@@ -22,7 +21,6 @@ export interface ValidMoves {
 
 interface Options {
   threads?: number;
-  rating?: number;
   depth?: number;
   moveTime?: number;
 }
@@ -144,16 +142,10 @@ export class Engine {
       setOption("Debug Log File", "/tmp/log");
     }
 
-    const { threads, rating } = this.options;
+    const { threads } = this.options;
     if (threads) {
       const value = clamp(threads, 1, numCpus() * 2);
       setOption("Threads", String(value));
-    }
-
-    if (typeof rating === "number" && rating) {
-      const value = clamp(rating, Rating.min, Rating.max);
-      setOption("UCI_LimitStrength", "true");
-      setOption("UCI_Elo", String(value));
     }
   };
 
