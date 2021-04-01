@@ -32,8 +32,8 @@
     ]
   },
   "build": {
-    "productName": "Royal100",
     "appId": "com.gitlab.zura.royal100",
+    "productName": "Royal Chess 100",
     "files": [
       "dist/",
       "assets/",
