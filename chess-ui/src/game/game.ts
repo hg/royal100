@@ -7,7 +7,13 @@ import { action, AnnotationsMap, makeAutoObservable, reaction } from "mobx";
 import assert from "assert";
 import { sound, Track } from "./audio";
 import { opposite } from "chessgroundx/util";
-import { BestMove, getEnPassant, winningChances } from "../utils/chess";
+import {
+  BestMove,
+  getEnPassant,
+  Score,
+  ScoreType,
+  winningChances,
+} from "../utils/chess";
 import { getEnginePath, numCpus } from "../utils/system";
 import { isEmpty } from "../utils/util";
 import { boardFenToEngine } from "../utils/interop";
@@ -132,7 +138,7 @@ export class Game {
     return this.opponent === OpponentType.Computer;
   }
 
-  get score(): number | undefined {
+  get score(): Score | undefined {
     return this.engine.score;
   }
 
@@ -537,7 +543,13 @@ export class Game {
       this.isThinking = false;
     }
 
-    const engineChances = winningChances(this.score);
+    if (this.score.type === ScoreType.Mate) {
+      return false;
+    }
+
+    assert.deepStrictEqual(this.score.type, ScoreType.Cp);
+
+    const engineChances = winningChances(this.score.value);
     if (engineChances >= 0.15) {
       return false;
     }

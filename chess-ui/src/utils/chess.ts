@@ -2,6 +2,7 @@ import { Key, Letter } from "chessgroundx/types";
 import { read } from "chessgroundx/fen";
 import { enginePositionToBoard } from "./interop";
 import { ValidMoves } from "../pages/ChessBoard/engine";
+import assert from "assert";
 
 const reKey = /^([abcdefghij])([0-9:])$/;
 
@@ -139,15 +140,33 @@ export function parseBestMove(data: string): BestMove | null {
   };
 }
 
-const reScore = /\bscore cp (-?\d+)\b/;
+export enum ScoreType {
+  Cp,
+  Mate,
+}
 
-export function checkScore(lines: string[]): number | undefined {
+export interface Score {
+  type: ScoreType;
+  value: number;
+}
+
+const reScore = /\bscore (cp|mate) (-?\d+)\b/;
+
+export function checkScore(lines: string[]): Score | undefined {
   for (const line of lines) {
-    if (line.includes("info")) {
-      const match = line.match(reScore);
-      if (match) {
-        return Number(match[1]);
+    if (!line.includes("info")) {
+      continue;
+    }
+    const match = line.match(reScore);
+    if (match) {
+      const [, type, score] = match;
+      if (type === "mate") {
+        return { type: ScoreType.Mate, value: Number(score) };
       }
+      if (type === "cp") {
+        return { type: ScoreType.Cp, value: Number(score) };
+      }
+      assert.fail("unexpected type " + type);
     }
   }
   return undefined;

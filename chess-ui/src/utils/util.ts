@@ -22,3 +22,13 @@ export function clamp(value: number, min: number, max: number) {
   }
   return value;
 }
+
+export function sign(val: number): string {
+  if (val === 0) {
+    return "";
+  }
+  if (val < 0) {
+    return "−";
+  }
+  return "+";
+}

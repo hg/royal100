@@ -9,6 +9,7 @@ import {
   checkScore,
   parseBestMove,
   parseValidMoves,
+  Score,
 } from "../utils/chess";
 import { isDevMode, numCpus } from "../utils/system";
 import { clamp } from "../utils/util";
@@ -39,7 +40,7 @@ export class Engine {
   private readonly lines: string[] = [];
   private readonly linesEvent = new EventEmitter();
 
-  score?: number;
+  score?: Score;
 
   constructor(path: string, clocks: Clocks) {
     this.enginePath = path;
