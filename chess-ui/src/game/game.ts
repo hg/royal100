@@ -73,9 +73,9 @@ export class Game {
   private validMoves?: ValidMoves;
   private enPassantTarget?: Key;
   private enPassant: Key[] = [];
-  private refusedPrincessPromotion = {
-    black: false,
-    white: false,
+  private canPromotePrincess = {
+    black: true,
+    white: true,
   };
 
   score?: Score;
@@ -362,6 +362,10 @@ export class Game {
       }
     }
 
+    if (captured.role === Pieces.Princess) {
+      this.canPromotePrincess[captured.color] = false;
+    }
+
     // Если срубили ферзя — пробуем поднять принцессу в ферзя
     if (captured.role === Pieces.Queen) {
       // Ферзь реального игрока (не компьютера)?
@@ -369,7 +373,7 @@ export class Game {
         this.opponent === OpponentType.Human || oppColor === this.myColor;
 
       // Игрок уже отказывался от превращения — больше не спрашиваем
-      if (capturedHumanPiece && this.refusedPrincessPromotion[oppColor]) {
+      if (capturedHumanPiece && !this.canPromotePrincess[oppColor]) {
         return;
       }
       const princessLocation = this.locatePiece(Pieces.Princess, oppColor);
@@ -378,8 +382,8 @@ export class Game {
       }
       if (capturedHumanPiece) {
         const promote = await confirmPrincessPromotion();
+        this.canPromotePrincess[oppColor] = false;
         if (!promote) {
-          this.refusedPrincessPromotion[oppColor] = true;
           return;
         }
       }
@@ -390,6 +394,7 @@ export class Game {
           promoted: true,
         },
       });
+      this.canPromotePrincess[oppColor] = false;
     }
   }
 
@@ -498,9 +503,9 @@ export class Game {
 
     this.setState(GameState.Playing);
     this.opponent = config.opponent;
-    this.refusedPrincessPromotion = {
-      white: false,
-      black: false,
+    this.canPromotePrincess = {
+      white: true,
+      black: true,
     };
     this.bottomColor = nextColor;
     this.turnColor = "white";
@@ -530,8 +535,12 @@ export class Game {
     const { ground, turnColor, halfMoves, fullMoves, enPassantTarget } = this;
     const fen = boardFenToEngine(ground.getFen());
 
+    const { white, black } = this.canPromotePrincess;
+    const whitePrincess = white ? "S" : "";
+    const blackPrincess = black ? "s" : "";
+
     // фигуры  цвет_хода  рокировка  превращение_принцессы  взятие_на_проходе  полуходы  полные_ходы
-    return `${fen} ${turnColor[0]} - - ${
+    return `${fen} ${turnColor[0]} - ${whitePrincess}${blackPrincess} ${
       enPassantTarget || "-"
     } ${halfMoves} ${fullMoves}`;
   }
