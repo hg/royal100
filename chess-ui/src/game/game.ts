@@ -296,15 +296,6 @@ export class Game {
 
     const piece = this.ground.state.pieces[dest];
 
-    this.addMove({
-      from: orig,
-      to: dest,
-      color: this.turnColor,
-      fen: this.fullFen,
-      captured,
-      piece,
-    });
-
     if (captured) {
       await this.checkRoyaltyPromotions(captured);
     }
@@ -320,6 +311,15 @@ export class Game {
     const check = await this.detectCheck();
 
     await this.toggleColor();
+
+    this.addMove({
+      from: orig,
+      to: dest,
+      color: opposite(this.turnColor),
+      fen: this.fullFen,
+      captured,
+      piece,
+    });
 
     if (!this.isPlaying) {
       return;
@@ -527,12 +527,12 @@ export class Game {
   }
 
   private get fullFen(): string {
-    const { ground, turnColor, halfMoves, fullMoves, enPassant } = this;
+    const { ground, turnColor, halfMoves, fullMoves, enPassantTarget } = this;
     const fen = boardFenToEngine(ground.getFen());
 
     // фигуры  цвет_хода  рокировка  превращение_принцессы  взятие_на_проходе  полуходы  полные_ходы
     return `${fen} ${turnColor[0]} - - ${
-      enPassant || "-"
+      enPassantTarget || "-"
     } ${halfMoves} ${fullMoves}`;
   }
 
