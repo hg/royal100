@@ -3,17 +3,15 @@ import { Key } from "chessgroundx/types";
 import { Clocks } from "./game";
 import assert from "assert";
 import { EventEmitter } from "events";
-import { sleep, withTimeout } from "../utils/async";
+import { sleep } from "../utils/async";
 import {
   BestMove,
   checkScore,
   parseBestMove,
   parseValidMoves,
-  Score,
 } from "../utils/chess";
 import { isDevMode, numCpus } from "../utils/system";
 import { clamp } from "../utils/util";
-import { AnnotationsMap, makeAutoObservable } from "mobx";
 
 export interface Promotions {
   [fromTo: string]: string[];
@@ -32,28 +30,34 @@ interface Options {
   moveTime?: number;
 }
 
+export enum EngineEvent {
+  Data = "data",
+  Ready = "ready",
+  Score = "score",
+  BestMove = "bestMove",
+  ValidMoves = "validMoves",
+  Exit = "exit",
+}
+
 export class Engine {
   private engine?: ChildProcessWithoutNullStreams;
   private options?: Options;
   private readonly enginePath: string;
   private readonly clocks: Clocks;
-  private readonly lines: string[] = [];
-  private readonly linesEvent = new EventEmitter();
-
-  score?: Score;
+  private readonly events = new EventEmitter();
 
   constructor(path: string, clocks: Clocks) {
     this.enginePath = path;
     this.clocks = clocks;
-
-    makeAutoObservable(this, {
-      engine: false,
-      options: false,
-      enginePath: false,
-      clocks: false,
-      linesEvent: false,
-    } as AnnotationsMap<this, never>);
   }
+
+  on = <T>(event: EngineEvent, handler: (data: T) => void) => {
+    this.events.on(event, handler);
+  };
+
+  off = (event: EngineEvent, handler: () => void) => {
+    this.events.off(event, handler);
+  };
 
   newGame = async ({ moveTime, ...options }: Options) => {
     this.options = {
@@ -70,42 +74,28 @@ export class Engine {
       this.position(fen);
       this.go();
 
-      while (true) {
-        this.ping();
-
-        try {
-          const receive = this.receiveUntil("bestmove", "readyok");
-          const response = await withTimeout(receive, 2000);
-          const bestMove = parseBestMove(response);
-          if (bestMove) {
-            return bestMove;
-          }
-        } catch {
-          await this.restartEngine();
-          break;
+      try {
+        const move: BestMove = await this.wait(EngineEvent.BestMove);
+        if (move) {
+          return move;
         }
-
-        // Если прочитали не то, что ожидали — добавляем паузу перед следующей
-        // итерацией, чтобы не наваливать isready один за другим.
-        await sleep(2000);
+      } catch {
+        await this.restartEngine();
       }
+
+      await sleep(1000);
     }
   };
 
   validMoves = async (fen: string): Promise<ValidMoves> => {
     assert.ok(this.engine);
 
-    const prefix = "valid_moves: ";
-
     while (true) {
       this.position(fen);
       this.engine.stdin.write("valid_moves\n");
 
       try {
-        const receive = this.receiveUntil(prefix);
-        const response = await withTimeout(receive, 2500);
-        const moves = response.substr(response.indexOf(prefix) + prefix.length);
-        return parseValidMoves(moves);
+        return await this.wait(EngineEvent.ValidMoves, 5000);
       } catch {
         await this.restartEngine();
       }
@@ -127,22 +117,14 @@ export class Engine {
 
       this.engine = spawn(this.enginePath);
       this.engine.once("exit", (code) => {
+        this.engine?.stdout.off("data", this.onDataReceived);
+        this.events.emit(EngineEvent.Exit);
         console.info(`chess engine exited with code ${code}`);
       });
       this.engine.stdout.setEncoding("utf8");
       this.engine.stderr.setEncoding("utf8");
 
-      this.engine.stdout.on("data", (rawData: string) => {
-        const lines = rawData.toString().split(/\r?\n/);
-
-        const score = checkScore(lines);
-        if (score !== undefined) {
-          this.score = score;
-        }
-
-        this.lines.push(...lines);
-        this.linesEvent.emit("data", lines);
-      });
+      this.engine.stdout.on("data", this.onDataReceived);
 
       await this.configure();
       this.engine.stdin.write("ucinewgame\n");
@@ -152,6 +134,70 @@ export class Engine {
       }
     }
   };
+
+  private onDataReceived = (data: string) => {
+    const lines = data.split(/\r?\n/);
+
+    for (const line of lines) {
+      if (line.includes("readyok")) {
+        this.events.emit(EngineEvent.Ready);
+        continue;
+      }
+
+      const validMoves = parseValidMoves(line);
+      if (validMoves) {
+        this.events.emit(EngineEvent.ValidMoves, validMoves);
+        continue;
+      }
+
+      const score = checkScore(line);
+      if (score) {
+        this.events.emit(EngineEvent.Score, score);
+        continue;
+      }
+
+      const bestMove = parseBestMove(line);
+      if (bestMove) {
+        this.events.emit(EngineEvent.BestMove, bestMove);
+        continue;
+      }
+    }
+
+    this.events.emit(EngineEvent.Data, lines);
+  };
+
+  private wait = <T>(event: EngineEvent, timeoutMs?: number) =>
+    new Promise<T>((resolve, reject) => {
+      let timeout: NodeJS.Timeout | null = null;
+
+      const unsub = () => {
+        if (timeout !== null) {
+          clearTimeout(timeout);
+        }
+        this.events.off(event, eventHandler);
+        this.events.off("exit", exitHandler);
+      };
+
+      if (timeoutMs) {
+        timeout = setTimeout(() => {
+          unsub();
+          reject(new Error("timeout reached"));
+        }, timeoutMs);
+      }
+
+      const exitHandler = () => {
+        unsub();
+        reject(new Error("engine exited"));
+      };
+
+      const eventHandler = (...data: any[]) => {
+        unsub();
+        resolve(...data);
+      };
+
+      this.events.once("exit", exitHandler);
+      this.events.once(event, eventHandler);
+    });
 
   private configure = async () => {
     assert.ok(this.options);
@@ -171,54 +217,14 @@ export class Engine {
     }
   };
 
-  private receiveUntil = (...anyOf: string[]): Promise<string> => {
-    assert.ok(this.engine);
-
-    return new Promise((resolve) => {
-      // Считаем, что строки для поиска были переданы в порядке приоритета,
-      // т.е. первая важнее второй, вторая важнее третьей, и т.д.
-      // Дробим полученный текст на отдельные строки и ищем в каждой сначала
-      // первую строку, потом, если не нашли её, вторую, и так до последнего
-      // аргумента. Возвращаем первый найдённый, всё остальное выбрасывается.
-      const search = () => {
-        for (const needle of anyOf) {
-          for (const [index, line] of this.lines.entries()) {
-            if (line.includes(needle)) {
-              this.lines.splice(index);
-              this.linesEvent.off("data", search);
-              resolve(line);
-              return true;
-            }
-          }
-        }
-        return false;
-      };
-
-      if (!search()) {
-        this.linesEvent.on("data", search);
-      }
-    });
-  };
-
-  private ping = () => {
-    assert.ok(this.engine);
-    this.engine.stdin.write("isready\n");
-  };
-
-  private isReady = (): Promise<boolean> => {
-    assert.ok(this.engine);
-
-    this.ping();
-    const receive = this.receiveUntil("readyok");
-
-    return new Promise(async (resolve) => {
-      try {
-        await withTimeout(receive, 2000);
-        resolve(true);
-      } catch {
-        resolve(false);
-      }
-    });
+  private isReady = async (): Promise<boolean> => {
+    this.engine!.stdin.write("isready\n");
+    try {
+      await this.wait(EngineEvent.Ready, 5000);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   private position = (fen: string) => {

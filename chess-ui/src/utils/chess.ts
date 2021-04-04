@@ -1,8 +1,8 @@
 import { Key, Letter } from "chessgroundx/types";
 import { read } from "chessgroundx/fen";
 import { enginePositionToBoard } from "./interop";
-import { ValidMoves } from "../pages/ChessBoard/engine";
 import assert from "assert";
+import { ValidMoves } from "../game/engine";
 
 const reKey = /^([abcdefghij])([0-9:])$/;
 
@@ -102,7 +102,14 @@ export function parseMoves(data: string): PieceMove[] {
   return result;
 }
 
-export function parseValidMoves(moves: string): ValidMoves {
+export function parseValidMoves(data: string): ValidMoves | undefined {
+  const prefix = "valid_moves: ";
+
+  if (!data.includes(prefix)) {
+    return undefined;
+  }
+
+  const moves = data.substr(data.indexOf(prefix) + prefix.length);
   const result: ValidMoves = { promotions: {}, destinations: {} };
 
   for (const { from, to, promotion } of parseMoves(moves)) {
@@ -127,10 +134,10 @@ export interface BestMove {
 
 const reBestMove = /\bbestmove ([a-j]\d+)([a-j]\d+)(\w?)\b/;
 
-export function parseBestMove(data: string): BestMove | null {
+export function parseBestMove(data: string): BestMove | undefined {
   const matchMove = data.match(reBestMove);
   if (!matchMove) {
-    return null;
+    return undefined;
   }
   const [, from, to, promotion] = matchMove;
   return {
@@ -152,22 +159,20 @@ export interface Score {
 
 const reScore = /\bscore (cp|mate) (-?\d+)\b/;
 
-export function checkScore(lines: string[]): Score | undefined {
-  for (const line of lines) {
-    if (!line.includes("info")) {
-      continue;
+export function checkScore(line: string): Score | undefined {
+  if (!line.includes("info")) {
+    return undefined;
+  }
+  const match = line.match(reScore);
+  if (match) {
+    const [, type, score] = match;
+    if (type === "mate") {
+      return { type: ScoreType.Mate, value: Number(score) };
     }
-    const match = line.match(reScore);
-    if (match) {
-      const [, type, score] = match;
-      if (type === "mate") {
-        return { type: ScoreType.Mate, value: Number(score) };
-      }
-      if (type === "cp") {
-        return { type: ScoreType.Cp, value: Number(score) };
-      }
-      assert.fail("unexpected type " + type);
+    if (type === "cp") {
+      return { type: ScoreType.Cp, value: Number(score) };
     }
+    assert.fail("unexpected type " + type);
   }
   return undefined;
 }

@@ -3,7 +3,7 @@ import { Color, FEN, Key, Piece, Role } from "chessgroundx/types";
 import { Chessground } from "chessgroundx";
 import { Clock } from "./clock";
 import { choosePromotion, confirmPrincessPromotion } from "./gameUi";
-import { action, AnnotationsMap, makeAutoObservable, reaction } from "mobx";
+import { action, computed, makeObservable, reaction } from "mobx";
 import assert from "assert";
 import { sound, Track } from "./audio";
 import { opposite } from "chessgroundx/util";
@@ -17,7 +17,7 @@ import {
 import { getEnginePath, numCpus } from "../utils/system";
 import { isEmpty } from "../utils/util";
 import { boardFenToEngine } from "../utils/interop";
-import { Engine, ValidMoves } from "./engine";
+import { Engine, EngineEvent, ValidMoves } from "./engine";
 import { Dimension, Fen, Pieces } from "../utils/consts";
 
 export enum OpponentType {
@@ -78,15 +78,16 @@ export class Game {
     white: false,
   };
 
+  score?: Score;
   lossReason = LossReason.Mate;
   state = GameState.Paused;
   moves: Move[] = [];
   isThinking = false;
+  bottomColor: Color = "black";
   clocks: Clocks = {
     white: new Clock(),
     black: new Clock(),
   };
-  bottomColor: Color = "black";
 
   constructor(element: HTMLElement) {
     this.onMove = this.onMove.bind(this);
@@ -94,6 +95,10 @@ export class Game {
 
     const enginePath = getEnginePath();
     this.engine = new Engine(enginePath, this.clocks);
+
+    this.engine.on(EngineEvent.Score, (score: Score) => {
+      this.score = score;
+    });
 
     this.ground = Chessground(element, {
       geometry: Dimension.dim10x10,
@@ -109,11 +114,16 @@ export class Game {
       },
     });
 
-    makeAutoObservable(this, {
-      engine: false,
-      ground: false,
-      validMoves: false,
-    } as AnnotationsMap<this, never>);
+    makeObservable(this, {
+      lossReason: true,
+      state: true,
+      moves: true,
+      isThinking: true,
+      bottomColor: true,
+      clocks: true,
+      hasWon: true,
+      score: true,
+    });
 
     reaction(
       () => this.clocks.white.remainingSecs,
@@ -134,16 +144,47 @@ export class Game {
     );
   }
 
+  @computed
   get isPlayingWithComputer(): boolean {
     return this.opponent === OpponentType.Computer;
   }
 
-  get score(): Score | undefined {
-    return this.engine.score;
-  }
-
+  @computed
   get topColor(): Color {
     return opposite(this.bottomColor);
+  }
+
+  @computed
+  get hasWon(): boolean {
+    return (
+      !this.isPlaying &&
+      (this.opponent === OpponentType.Human ||
+        (this.myColor === "white" && this.state === GameState.LossBlack) ||
+        (this.myColor === "black" && this.state === GameState.LossWhite))
+    );
+  }
+
+  @computed
+  get isPlaying(): boolean {
+    return this.state === GameState.Playing;
+  }
+
+  @computed
+  get isMyTurn(): boolean {
+    return (
+      this.isPlaying &&
+      (this.turnColor === this.myColor || this.opponent === OpponentType.Human)
+    );
+  }
+
+  @computed
+  get canAskForDraw(): boolean {
+    return Boolean(
+      this.isPlayingWithComputer &&
+        this.isPlaying &&
+        this.moves.length > 10 &&
+        this.score
+    );
   }
 
   @action
@@ -376,17 +417,6 @@ export class Game {
     }
   }
 
-  get isPlaying(): boolean {
-    return this.state === GameState.Playing;
-  }
-
-  get isMyTurn(): boolean {
-    return (
-      this.isPlaying &&
-      (this.turnColor === this.myColor || this.opponent === OpponentType.Human)
-    );
-  }
-
   private async toggleColor() {
     this.clocks[this.turnColor].stop();
 
@@ -519,15 +549,6 @@ export class Game {
     }
   }
 
-  get canAskForDraw(): boolean {
-    return Boolean(
-      this.isPlayingWithComputer &&
-        this.isPlaying &&
-        this.moves.length > 10 &&
-        this.score
-    );
-  }
-
   askForDraw = async () => {
     assert.deepStrictEqual(this.opponent, OpponentType.Computer);
 
@@ -607,14 +628,5 @@ export class Game {
 
   private assertPlayingState() {
     assert.ok(this.isPlaying);
-  }
-
-  get hasWon(): boolean {
-    return (
-      !this.isPlaying &&
-      (this.opponent === OpponentType.Human ||
-        (this.myColor === "white" && this.state === GameState.LossBlack) ||
-        (this.myColor === "black" && this.state === GameState.LossWhite))
-    );
   }
 }
