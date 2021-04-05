@@ -31,7 +31,7 @@ export const GameScore = observer<Props>(({ game }) => {
 
   let value: string;
   if (scoreType === ScoreType.Mate) {
-    value = `мат в ${scoreValue} ${movesString(scoreValue)}`;
+    value = `мат в ${Math.abs(scoreValue)} ${movesString(scoreValue)}`;
   } else {
     const raw = winningChances(scoreValue);
     const chances = Math.round(Math.abs(raw * 100));
