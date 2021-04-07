@@ -1,5 +1,5 @@
 import { Api } from "chessgroundx/api";
-import { Color, FEN, Key, Piece, Role } from "chessgroundx/types";
+import { Color, FEN, File, Key, Piece, Rank, Role } from "chessgroundx/types";
 import { Chessground } from "chessgroundx";
 import { Clock } from "./clock";
 import { choosePromotion, confirmPrincessPromotion } from "./gameUi";
@@ -18,7 +18,8 @@ import { getEnginePath, numCpus } from "../utils/system";
 import { isEmpty } from "../utils/util";
 import { boardFenToEngine } from "../utils/interop";
 import { Engine, EngineEvent, ValidMoves } from "./engine";
-import { Dimension, Fen, Pieces } from "../utils/consts";
+import { dimension, Fen, pieces } from "../utils/consts";
+import { intersect } from "../utils/arrays";
 
 export enum OpponentType {
   Computer,
@@ -62,6 +63,33 @@ export enum LossReason {
   Forfeit,
 }
 
+interface Castling {
+  movedKing: boolean;
+  movedRook: {
+    K: boolean;
+    Q: boolean;
+  };
+}
+
+function initialCastling(): { [side in Color]: Castling } {
+  return {
+    white: {
+      movedKing: false,
+      movedRook: {
+        K: false,
+        Q: false,
+      },
+    },
+    black: {
+      movedKing: false,
+      movedRook: {
+        K: false,
+        Q: false,
+      },
+    },
+  };
+}
+
 export class Game {
   private engine: Engine;
   private readonly ground: Api;
@@ -101,9 +129,9 @@ export class Game {
     });
 
     this.ground = Chessground(element, {
-      geometry: Dimension.dim10x10,
+      geometry: dimension.dim10x10,
       variant: "chess",
-      autoCastle: true,
+      autoCastle: false,
       movable: {
         free: false,
         showDests: true,
@@ -281,27 +309,131 @@ export class Game {
     return false;
   }
 
-  private async onMove(orig: Key, dest: Key, captured?: Piece) {
-    if (!captured) {
-      captured = this.checkEnPassant(dest);
+  private async canCastle(
+    opponentMoveFen: string,
+    side: Color,
+    dir: "K" | "Q"
+  ): Promise<boolean> {
+    const castling = this.castling[side];
+    if (castling.movedKing || castling.movedRook[dir]) {
+      return false;
     }
-    this.enPassant.splice(0);
-    this.enPassantTarget = undefined;
 
+    const boardPieces = this.ground.state.pieces;
+    const rank: Rank = side === "white" ? "1" : ":";
+    const rookFile: File = dir === "K" ? "a" : "j";
+
+    if (
+      boardPieces[`e${rank}`]?.role !== pieces.king ||
+      boardPieces[`${rookFile}${rank}`]?.role !== pieces.rook
+    ) {
+      return false;
+    }
+
+    let kingMovementPath: Key[];
+    if (dir === "K") {
+      kingMovementPath = [`e${rank}`, `d${rank}`, `c${rank}`];
+    } else {
+      kingMovementPath = [`e${rank}`, `f${rank}`, `g${rank}`, `h${rank}`];
+    }
+
+    const { destinations } = await this.engine.validMoves(opponentMoveFen);
+
+    for (const opponentMovement of Object.values(destinations)) {
+      if (intersect(kingMovementPath, opponentMovement)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private checkCastlingAvailability(orig: Key, piece: Piece) {
+    const castling = this.castling[this.turnColor];
+
+    switch (piece.role) {
+      case pieces.king:
+        castling.movedKing = true;
+        break;
+
+      case pieces.rook:
+        if (this.turnColor === "white") {
+          if (orig === "a1") {
+            castling.movedRook.K = true;
+          } else if (orig === "j1") {
+            castling.movedRook.Q = true;
+          }
+        } else {
+          if (orig === "a:") {
+            castling.movedRook.K = true;
+          } else if (orig === "j:") {
+            castling.movedRook.Q = true;
+          }
+        }
+        break;
+    }
+  }
+
+  private castle(orig: Key, dest: Key) {
+    const [file, rank] = dest;
+
+    let rookOrig: Key;
+    let rookDest: Key;
+    if (file === "c") {
+      rookOrig = `a${rank}`;
+      rookDest = `d${rank}`;
+    } else {
+      assert.deepStrictEqual(file, "h");
+      rookOrig = `j${rank}`;
+      rookDest = `g${rank}`;
+    }
+
+    this.ground.setPieces({
+      [rookOrig]: undefined,
+      [rookDest]: {
+        role: pieces.rook,
+        color: this.turnColor,
+      },
+      [orig]: undefined,
+      [dest]: {
+        role: pieces.king,
+        color: this.turnColor,
+      },
+    });
+  }
+
+  private async onMove(orig: Key, dest: Key, captured?: Piece) {
     if (captured) {
       sound.play(Track.Capture);
     } else {
       sound.play(Track.Move);
     }
 
+    if (!captured) {
+      captured = this.checkEnPassant(dest);
+    }
+    this.enPassant.splice(0);
+    this.enPassantTarget = undefined;
+
     const piece = this.ground.state.pieces[dest];
+
+    if (piece) {
+      this.checkCastlingAvailability(orig, piece);
+
+      if (piece.role === pieces.king) {
+        const [file, rank] = dest;
+        if (orig === `e${rank}` && (file === "c" || file === "h")) {
+          this.castle(orig, dest);
+        }
+      }
+    }
 
     if (captured) {
       await this.checkRoyaltyPromotions(captured);
     }
 
     // Если пешка скакнула на 2-3 ячейки, запоминаем, что её можно срубить на проходе
-    if (piece?.role === Pieces.Pawn) {
+    if (piece?.role === pieces.pawn) {
       this.enPassant = getEnPassant(orig, dest);
       this.enPassantTarget = dest;
     }
@@ -316,7 +448,7 @@ export class Game {
       from: orig,
       to: dest,
       color: opposite(this.turnColor),
-      fen: this.fullFen,
+      fen: await this.fullFen(),
       captured,
       piece,
     });
@@ -349,12 +481,12 @@ export class Game {
     assert.deepStrictEqual(captured.color, oppColor);
 
     // Если срубили короля — пробуем поднять принца до статуса короля
-    if (captured.role === Pieces.King) {
-      const princeLocation = this.locatePiece(Pieces.Prince, oppColor);
+    if (captured.role === pieces.king) {
+      const princeLocation = this.locatePiece(pieces.prince, oppColor);
       if (princeLocation) {
         this.ground.setPieces({
           [princeLocation]: {
-            role: Pieces.King,
+            role: pieces.king,
             promoted: true,
             color: oppColor,
           },
@@ -362,12 +494,12 @@ export class Game {
       }
     }
 
-    if (captured.role === Pieces.Princess) {
+    if (captured.role === pieces.princess) {
       this.canPromotePrincess[captured.color] = false;
     }
 
     // Если срубили ферзя — пробуем поднять принцессу в ферзя
-    if (captured.role === Pieces.Queen) {
+    if (captured.role === pieces.queen) {
       // Ферзь реального игрока (не компьютера)?
       const capturedHumanPiece =
         this.opponent === OpponentType.Human || oppColor === this.myColor;
@@ -376,7 +508,7 @@ export class Game {
       if (capturedHumanPiece && !this.canPromotePrincess[oppColor]) {
         return;
       }
-      const princessLocation = this.locatePiece(Pieces.Princess, oppColor);
+      const princessLocation = this.locatePiece(pieces.princess, oppColor);
       if (!princessLocation) {
         return;
       }
@@ -389,7 +521,7 @@ export class Game {
       }
       this.ground.setPieces({
         [princessLocation]: {
-          role: Pieces.Queen,
+          role: pieces.queen,
           color: oppColor,
           promoted: true,
         },
@@ -504,9 +636,10 @@ export class Game {
     this.setState(GameState.Playing);
     this.opponent = config.opponent;
     this.canPromotePrincess = {
-      white: !!this.locatePiece("s-piece", "white"),
-      black: !!this.locatePiece("s-piece", "black"),
+      white: !!this.locatePiece(pieces.princess, "white"),
+      black: !!this.locatePiece(pieces.princess, "black"),
     };
+    this.castling = initialCastling();
     this.bottomColor = nextColor;
     this.turnColor = "white";
     this.myColor = config.myColor;
@@ -522,9 +655,8 @@ export class Game {
   }
 
   private async updateValidMoves() {
-    console.log("fen", this.fullFen);
-
-    this.validMoves = await this.engine.validMoves(this.fullFen);
+    const fen = await this.fullFen();
+    this.validMoves = await this.engine.validMoves(fen);
 
     this.ground.set({
       movable: {
@@ -533,28 +665,39 @@ export class Game {
     });
   }
 
-  private get fullFen(): string {
+  private castling = initialCastling();
+
+  private async fullFen(): Promise<string> {
     const { ground, turnColor, halfMoves, fullMoves, enPassantTarget } = this;
     const fen = boardFenToEngine(ground.getFen());
 
     const { white, black } = this.canPromotePrincess;
-    const whitePrincess = white ? "S" : "";
-    const blackPrincess = black ? "s" : "";
-    const princessPromotion = whitePrincess + blackPrincess || "-";
+    const princessPromotion = (white ? "S" : "") + (black ? "s" : "");
 
-    // TODO
-    const castling = "KQkq";
+    function result(color: string, castling: string) {
+      // фигуры  цвет_хода  рокировка  превращение_принцессы  взятие_на_проходе  полуходы  полные_ходы
+      return `${fen} ${color} ${castling || "-"} ${princessPromotion || "-"} ${
+        enPassantTarget || "-"
+      } ${halfMoves} ${fullMoves}`;
+    }
 
-    // фигуры  цвет_хода  рокировка  превращение_принцессы  взятие_на_проходе  полуходы  полные_ходы
-    return `${fen} ${turnColor[0]} ${castling} ${princessPromotion} ${
-      enPassantTarget || "-"
-    } ${halfMoves} ${fullMoves}`;
+    const fenWhite = result("w", "-");
+    const fenBlack = result("b", "-");
+
+    const castling =
+      ((await this.canCastle(fenBlack, "white", "K")) ? "K" : "") +
+      ((await this.canCastle(fenBlack, "white", "Q")) ? "Q" : "") +
+      ((await this.canCastle(fenWhite, "black", "K")) ? "k" : "") +
+      ((await this.canCastle(fenWhite, "black", "Q")) ? "q" : "");
+
+    return result(turnColor[0], castling);
   }
 
   async getHint(): Promise<BestMove | undefined> {
     this.isThinking = true;
     try {
-      const move = await this.engine.calculateMove(this.fullFen);
+      const fen = await this.fullFen();
+      const move = await this.engine.calculateMove(fen);
       if (move) {
         this.ground.selectSquare(move.from);
       }
@@ -574,7 +717,8 @@ export class Game {
 
     this.isThinking = true;
     try {
-      await this.engine.calculateMove(this.fullFen);
+      const fen = await this.fullFen();
+      await this.engine.calculateMove(fen);
     } finally {
       this.isThinking = false;
     }
@@ -611,7 +755,8 @@ export class Game {
 
     this.isThinking = true;
     try {
-      const move = await this.engine.calculateMove(this.fullFen);
+      const fen = await this.fullFen();
+      const move = await this.engine.calculateMove(fen);
       if (move) {
         this.ground.move(move.from, move.to);
 
