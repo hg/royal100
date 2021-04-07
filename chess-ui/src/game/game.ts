@@ -504,8 +504,8 @@ export class Game {
     this.setState(GameState.Playing);
     this.opponent = config.opponent;
     this.canPromotePrincess = {
-      white: true,
-      black: true,
+      white: !!this.locatePiece("s-piece", "white"),
+      black: !!this.locatePiece("s-piece", "black"),
     };
     this.bottomColor = nextColor;
     this.turnColor = "white";
@@ -522,6 +522,8 @@ export class Game {
   }
 
   private async updateValidMoves() {
+    console.log("fen", this.fullFen);
+
     this.validMoves = await this.engine.validMoves(this.fullFen);
 
     this.ground.set({
@@ -538,9 +540,13 @@ export class Game {
     const { white, black } = this.canPromotePrincess;
     const whitePrincess = white ? "S" : "";
     const blackPrincess = black ? "s" : "";
+    const princessPromotion = whitePrincess + blackPrincess || "-";
+
+    // TODO
+    const castling = "KQkq";
 
     // фигуры  цвет_хода  рокировка  превращение_принцессы  взятие_на_проходе  полуходы  полные_ходы
-    return `${fen} ${turnColor[0]} - ${whitePrincess}${blackPrincess} ${
+    return `${fen} ${turnColor[0]} ${castling} ${princessPromotion} ${
       enPassantTarget || "-"
     } ${halfMoves} ${fullMoves}`;
   }

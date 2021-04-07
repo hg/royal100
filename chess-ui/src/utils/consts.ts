@@ -17,7 +17,7 @@ export const Pieces: { [key: string]: Role } = {
 
 export const Fen = {
   start:
-    "rnbskqtbnr/pppppppppp/55/55/55/55/55/55/PPPPPPPPPP/RNBSKQTBNR w KQkq Ss - 0 1",
+    "r3k4r/pppppppppp/55/55/55/55/55/55/PPPPPPPPPP/R3K4R w KQkq - - 0 1",
 };
 
 export const appName = "Королевские шахматы 100";
