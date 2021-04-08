@@ -1,14 +1,21 @@
 import { Api } from "chessgroundx/api";
-import { Color, FEN, File, Key, Piece, Rank, Role } from "chessgroundx/types";
+import { Color, FEN, Key, Piece, Role } from "chessgroundx/types";
 import { Chessground } from "chessgroundx";
 import { Clock } from "./clock";
 import { choosePromotion, confirmPrincessPromotion } from "./gameUi";
-import { action, computed, makeObservable, reaction } from "mobx";
+import {
+  action,
+  computed,
+  IReactionDisposer,
+  makeObservable,
+  observable,
+  reaction,
+} from "mobx";
 import assert from "assert";
-import { sound, Track } from "./audio";
 import { opposite } from "chessgroundx/util";
 import {
   BestMove,
+  EnPassant,
   getEnPassant,
   Score,
   ScoreType,
@@ -18,8 +25,20 @@ import { getEnginePath, numCpus } from "../utils/system";
 import { isEmpty } from "../utils/util";
 import { boardFenToEngine } from "../utils/interop";
 import { Engine, EngineEvent, ValidMoves } from "./engine";
-import { dimension, Fen, pieces } from "../utils/consts";
-import { intersect } from "../utils/arrays";
+import {
+  castle,
+  dimension,
+  drawHalfMoves,
+  drawMinMoves,
+  Fen,
+  pieces,
+} from "../utils/consts";
+import { playMoveSound, playSelectSound } from "./sounds";
+import {
+  castlingKingPathIsSafe,
+  castlingPiecesAtHome,
+  CastlingSide,
+} from "../utils/castling";
 
 export enum OpponentType {
   Computer,
@@ -91,42 +110,38 @@ function initialCastling(): { [side in Color]: Castling } {
 }
 
 export class Game {
-  private engine: Engine;
+  private readonly engine: Engine;
   private readonly ground: Api;
-  private opponent = OpponentType.Computer;
-  private myColor: Color = "white";
-  private turnColor: Color = "white";
-  private halfMoves = 0;
-  private fullMoves = 1;
-  private validMoves?: ValidMoves;
-  private enPassantTarget?: Key;
-  private enPassant: Key[] = [];
-  private canPromotePrincess = {
-    black: true,
-    white: true,
-  };
-
-  score?: Score;
-  lossReason = LossReason.Mate;
-  state = GameState.Paused;
-  moves: Move[] = [];
-  isThinking = false;
-  bottomColor: Color = "black";
-  clocks: Clocks = {
+  @observable private halfMoves = 0;
+  @observable private fullMoves = 1;
+  @observable private validMoves?: ValidMoves;
+  @observable private enPassant: EnPassant = { dests: [] };
+  @observable private canPromotePrincess = { black: true, white: true };
+  @observable private opponent = OpponentType.Computer;
+  @observable private myColor: Color = "white";
+  @observable private turnColor: Color = "white";
+  @observable score?: Score;
+  @observable lossReason = LossReason.Mate;
+  @observable state = GameState.Paused;
+  @observable moves: Move[] = [];
+  @observable isThinking = false;
+  @observable bottomColor: Color = "black";
+  @observable clocks: Clocks = {
     white: new Clock(),
     black: new Clock(),
   };
 
+  private reactionDisposers: IReactionDisposer[] = [];
+
   constructor(element: HTMLElement) {
+    makeObservable(this);
+
     this.onMove = this.onMove.bind(this);
     this.onSelect = this.onSelect.bind(this);
 
     const enginePath = getEnginePath();
     this.engine = new Engine(enginePath, this.clocks);
-
-    this.engine.on(EngineEvent.Score, (score: Score) => {
-      this.score = score;
-    });
+    this.engine.on(EngineEvent.Score, this.setScore);
 
     this.ground = Chessground(element, {
       geometry: dimension.dim10x10,
@@ -142,34 +157,38 @@ export class Game {
       },
     });
 
-    makeObservable(this, {
-      lossReason: true,
-      state: true,
-      moves: true,
-      isThinking: true,
-      bottomColor: true,
-      clocks: true,
-      hasWon: true,
-      score: true,
-    });
-
-    reaction(
-      () => this.clocks.white.remainingSecs,
-      (secs) => {
-        if (secs <= 0) {
-          this.setLoss("white", LossReason.Timeout);
+    this.reactionDisposers.push(
+      reaction(
+        () => this.clocks.white.remainingSecs,
+        (secs) => {
+          if (secs <= 0) {
+            this.setLoss("white", LossReason.Timeout);
+          }
         }
-      }
-    );
+      ),
 
-    reaction(
-      () => this.clocks.black.remainingSecs,
-      (secs) => {
-        if (secs <= 0) {
-          this.setLoss("black", LossReason.Timeout);
+      reaction(
+        () => this.clocks.black.remainingSecs,
+        (secs) => {
+          if (secs <= 0) {
+            this.setLoss("black", LossReason.Timeout);
+          }
         }
-      }
+      )
     );
+  }
+
+  dispose() {
+    for (const disposer of this.reactionDisposers) {
+      disposer();
+    }
+    this.reactionDisposers.splice(0);
+    this.engine.off(EngineEvent.Score, this.setScore);
+  }
+
+  @action.bound
+  private setScore(score: Score) {
+    this.score = score;
   }
 
   @computed
@@ -210,12 +229,12 @@ export class Game {
     return Boolean(
       this.isPlayingWithComputer &&
         this.isPlaying &&
-        this.moves.length > 10 &&
+        this.moves.length >= drawMinMoves &&
         this.score
     );
   }
 
-  @action
+  @action.bound
   private setLoss(side: Color, reason: LossReason) {
     if (this.isPlaying) {
       const state =
@@ -225,7 +244,7 @@ export class Game {
     }
   }
 
-  @action
+  @action.bound
   private setState(state: GameState) {
     this.state = state;
 
@@ -239,25 +258,24 @@ export class Game {
   private checkEnPassant(dest: Key): Piece | undefined {
     this.assertPlayingState();
 
-    const { ground, enPassant, enPassantTarget } = this;
+    const { ground, enPassant } = this;
     let captured: Piece | undefined;
 
     // Если поставили фигуру на одну из ячеек, пропущенных пешкой
     // при длинном прыжке, ищем ходившую пешку и срубаем её.
-    if (enPassant.includes(dest)) {
-      captured = ground.state.pieces[enPassantTarget];
+    if (enPassant.dests.includes(dest)) {
+      captured = ground.state.pieces[enPassant.target];
       ground.setPieces({
-        [enPassantTarget]: undefined,
+        [enPassant.target]: undefined,
       });
     }
 
     return captured;
   }
 
-  @action
+  @action.bound
   private addMove(move: Move) {
     this.moves.push(move);
-    console.log("move", move);
   }
 
   private locatePiece(role: Role, color: Color): Key | undefined {
@@ -275,9 +293,7 @@ export class Game {
   private onSelect(_key: Key) {
     const { state } = this.ground;
     const piece = state.pieces[state.selected];
-    if (piece) {
-      sound.play(Track.Select);
-    }
+    playSelectSound(piece);
   }
 
   private resetCheck() {
@@ -312,40 +328,20 @@ export class Game {
   private async canCastle(
     opponentMoveFen: string,
     side: Color,
-    dir: "K" | "Q"
+    dir: CastlingSide
   ): Promise<boolean> {
     const castling = this.castling[side];
     if (castling.movedKing || castling.movedRook[dir]) {
       return false;
     }
 
-    const boardPieces = this.ground.state.pieces;
-    const rank: Rank = side === "white" ? "1" : ":";
-    const rookFile: File = dir === "K" ? "a" : "j";
-
-    if (
-      boardPieces[`e${rank}`]?.role !== pieces.king ||
-      boardPieces[`${rookFile}${rank}`]?.role !== pieces.rook
-    ) {
+    if (!castlingPiecesAtHome(side, dir, this.ground.state.pieces)) {
       return false;
     }
 
-    let kingMovementPath: Key[];
-    if (dir === "K") {
-      kingMovementPath = [`e${rank}`, `d${rank}`, `c${rank}`];
-    } else {
-      kingMovementPath = [`e${rank}`, `f${rank}`, `g${rank}`, `h${rank}`];
-    }
+    const moves = await this.engine.validMoves(opponentMoveFen);
 
-    const { destinations } = await this.engine.validMoves(opponentMoveFen);
-
-    for (const opponentMovement of Object.values(destinations)) {
-      if (intersect(kingMovementPath, opponentMovement)) {
-        return false;
-      }
-    }
-
-    return true;
+    return castlingKingPathIsSafe(side, dir, moves.destinations);
   }
 
   private checkCastlingAvailability(orig: Key, piece: Piece) {
@@ -357,18 +353,11 @@ export class Game {
         break;
 
       case pieces.rook:
-        if (this.turnColor === "white") {
-          if (orig === "a1") {
-            castling.movedRook.K = true;
-          } else if (orig === "j1") {
-            castling.movedRook.Q = true;
-          }
-        } else {
-          if (orig === "a:") {
-            castling.movedRook.K = true;
-          } else if (orig === "j:") {
-            castling.movedRook.Q = true;
-          }
+        const cells = castle[this.turnColor].rookCells;
+        if (orig === cells.K) {
+          castling.movedRook.K = true;
+        } else if (orig === cells.Q) {
+          castling.movedRook.Q = true;
         }
         break;
     }
@@ -402,40 +391,37 @@ export class Game {
     });
   }
 
-  private async onMove(orig: Key, dest: Key, captured?: Piece) {
-    if (captured) {
-      sound.play(Track.Capture);
-    } else {
-      sound.play(Track.Move);
+  private async onMove(orig: Key, dest: Key, capturedPiece?: Piece) {
+    playMoveSound();
+
+    this.ground.setShapes([]);
+
+    if (!capturedPiece) {
+      capturedPiece = this.checkEnPassant(dest);
     }
+    this.enPassant = { dests: [] };
 
-    if (!captured) {
-      captured = this.checkEnPassant(dest);
-    }
-    this.enPassant.splice(0);
-    this.enPassantTarget = undefined;
+    const movedPiece = this.ground.state.pieces[dest];
+    if (movedPiece) {
+      this.checkCastlingAvailability(orig, movedPiece);
 
-    const piece = this.ground.state.pieces[dest];
-
-    if (piece) {
-      this.checkCastlingAvailability(orig, piece);
-
-      if (piece.role === pieces.king) {
-        const [file, rank] = dest;
-        if (orig === `e${rank}` && (file === "c" || file === "h")) {
-          this.castle(orig, dest);
-        }
+      const conf = castle[this.turnColor];
+      if (
+        movedPiece.role === pieces.king &&
+        orig === conf.kingCell &&
+        (dest === conf.destinations.K || dest === conf.destinations.Q)
+      ) {
+        this.castle(orig, dest);
       }
     }
 
-    if (captured) {
-      await this.checkRoyaltyPromotions(captured);
+    if (capturedPiece) {
+      await this.checkRoyaltyPromotions(capturedPiece);
     }
 
     // Если пешка скакнула на 2-3 ячейки, запоминаем, что её можно срубить на проходе
-    if (piece?.role === pieces.pawn) {
+    if (movedPiece?.role === pieces.pawn) {
       this.enPassant = getEnPassant(orig, dest);
-      this.enPassantTarget = dest;
     }
 
     await this.checkPawnPromotions(orig, dest);
@@ -449,8 +435,8 @@ export class Game {
       to: dest,
       color: opposite(this.turnColor),
       fen: await this.fullFen(),
-      captured,
-      piece,
+      captured: capturedPiece,
+      piece: movedPiece,
     });
 
     if (!this.isPlaying) {
@@ -469,7 +455,7 @@ export class Game {
     }
 
     // Если взяли фигуру или подвинули пешку, сбрасываем полу-ходы
-    if (captured || piece?.role === "p-piece") {
+    if (capturedPiece || movedPiece?.role === pieces.pawn) {
       this.halfMoves = 0;
     }
 
@@ -541,7 +527,7 @@ export class Game {
       const promotions = this.validMoves.promotions[orig + dest];
 
       if (promotions?.length) {
-        const promotion = await choosePromotion(promotions);
+        const promotion = await choosePromotion(this.turnColor, promotions);
 
         this.ground.setPieces({
           [dest]: {
@@ -575,19 +561,25 @@ export class Game {
 
     this.halfMoves++;
 
-    if (this.halfMoves >= 100) {
+    if (this.halfMoves >= drawHalfMoves) {
       this.setState(GameState.Draw);
+      return;
     }
 
     if (this.opponent === OpponentType.Human) {
-      this.bottomColor = this.turnColor;
-      this.ground.set({
-        orientation: this.turnColor,
-        movable: {
-          color: this.turnColor,
-        },
-      });
+      this.flipBoard();
     }
+  }
+
+  @action.bound
+  private flipBoard() {
+    this.bottomColor = this.turnColor;
+    this.ground.set({
+      orientation: this.turnColor,
+      movable: {
+        color: this.turnColor,
+      },
+    });
   }
 
   private get hasNoMoves(): boolean {
@@ -607,7 +599,7 @@ export class Game {
       if (this.hasNoMoves) {
         this.setState(GameState.Draw);
       } else {
-        this.setLoss(this.turnColor, LossReason.Mate);
+        this.setLoss(color, LossReason.Mate);
       }
     }
   }
@@ -668,7 +660,7 @@ export class Game {
   private castling = initialCastling();
 
   private async fullFen(): Promise<string> {
-    const { ground, turnColor, halfMoves, fullMoves, enPassantTarget } = this;
+    const { ground, turnColor, halfMoves, fullMoves, enPassant } = this;
     const fen = boardFenToEngine(ground.getFen());
 
     const { white, black } = this.canPromotePrincess;
@@ -677,7 +669,7 @@ export class Game {
     function result(color: string, castling: string) {
       // фигуры  цвет_хода  рокировка  превращение_принцессы  взятие_на_проходе  полуходы  полные_ходы
       return `${fen} ${color} ${castling || "-"} ${princessPromotion || "-"} ${
-        enPassantTarget || "-"
+        enPassant.target || "-"
       } ${halfMoves} ${fullMoves}`;
     }
 
@@ -693,21 +685,33 @@ export class Game {
     return result(turnColor[0], castling);
   }
 
+  @action.bound
+  private setThinking(enabled: boolean) {
+    this.isThinking = enabled;
+  }
+
   async getHint(): Promise<BestMove | undefined> {
-    this.isThinking = true;
+    this.setThinking(true);
     try {
       const fen = await this.fullFen();
       const move = await this.engine.calculateMove(fen);
       if (move) {
         this.ground.selectSquare(move.from);
+        this.ground.setShapes([
+          {
+            orig: move.from,
+            dest: move.to,
+            brush: "green",
+          },
+        ]);
       }
       return move;
     } finally {
-      this.isThinking = false;
+      this.setThinking(false);
     }
   }
 
-  askForDraw = async () => {
+  async askForDraw() {
     assert.deepStrictEqual(this.opponent, OpponentType.Computer);
 
     if (!this.canAskForDraw) {
@@ -715,12 +719,12 @@ export class Game {
     }
     assert.ok(this.score);
 
-    this.isThinking = true;
+    this.setThinking(true);
     try {
       const fen = await this.fullFen();
       await this.engine.calculateMove(fen);
     } finally {
-      this.isThinking = false;
+      this.setThinking(false);
     }
 
     if (this.score.type === ScoreType.Mate) {
@@ -737,13 +741,14 @@ export class Game {
     this.setState(GameState.Draw);
 
     return true;
-  };
+  }
 
-  forfeit = () => {
+  @action.bound
+  forfeit() {
     if (this.isPlaying) {
       this.setLoss(this.myColor, LossReason.Forfeit);
     }
-  };
+  }
 
   private async makeOpponentMove() {
     if (
@@ -752,35 +757,40 @@ export class Game {
     ) {
       return;
     }
-
-    this.isThinking = true;
+    this.setThinking(true);
     try {
       const fen = await this.fullFen();
       const move = await this.engine.calculateMove(fen);
       if (move) {
-        this.ground.move(move.from, move.to);
-
-        if (move.promotion) {
-          this.ground.setPieces({
-            [move.to]: {
-              color: this.turnColor,
-              role: `${move.promotion}-piece`,
-              promoted: true,
-            } as Piece,
-          });
-        }
+        this.doMove(move);
       }
     } finally {
-      this.isThinking = false;
+      this.setThinking(false);
     }
   }
 
-  stopThinking = async () => {
+  private doMove({ from, to, promotion }: BestMove) {
+    this.ground.move(from, to);
+
+    if (promotion) {
+      this.ground.setPieces({
+        [to]: {
+          color: this.turnColor,
+          role: `${promotion}-piece`,
+          promoted: true,
+        } as Piece,
+      });
+    }
+  }
+
+  @action.bound
+  async stopThinking() {
     if (this.isThinking) {
       await this.engine.stopThinking();
     }
-  };
+  }
 
+  @action.bound
   stop() {
     this.setState(GameState.Paused);
     this.engine.quit();

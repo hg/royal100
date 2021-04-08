@@ -12,7 +12,7 @@ interface Props {
   setConfig: (config: GameConfig) => void;
 }
 
-export const Home: FC<Props> = ({ config, setConfig }) => (
+export const StartNewGame: FC<Props> = ({ config, setConfig }) => (
   <div className={styles.wrap}>
     <div className={styles.form}>
       <header className={styles.header}>

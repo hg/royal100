@@ -1,49 +1,50 @@
-import { action, computed, makeObservable } from "mobx";
-import { AnnotationsMap } from "mobx/src/internal";
+import { action, computed, makeObservable, observable } from "mobx";
 
 const secondsInMinute = 60;
 const secondsInHour = secondsInMinute * 60;
 const updateInterval = 250;
 
 export class Clock {
+  @observable
   private msec = 0;
   private interval?: ReturnType<typeof setInterval>;
 
   constructor() {
-    makeObservable(this, {
-      msec: true,
-    } as AnnotationsMap<this, never>);
+    makeObservable(this);
   }
 
-  private updateClock = () => {
+  @action.bound
+  private updateClock() {
     this.set(this.msec - updateInterval);
-  };
+  }
 
   @computed
   get isActive(): boolean {
     return !!this.interval;
   }
 
-  @action
-  set = (ms: number) => {
+  @action.bound
+  set(ms: number) {
     if (ms <= 0) {
       this.msec = 0;
       this.stop();
     } else {
       this.msec = ms;
     }
-  };
+  }
 
-  continue = () => {
+  @action.bound
+  continue() {
     this.interval = setInterval(this.updateClock, updateInterval);
-  };
+  }
 
-  stop = () => {
+  @action.bound
+  stop() {
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = undefined;
     }
-  };
+  }
 
   @computed
   get remainingSecs(): number {

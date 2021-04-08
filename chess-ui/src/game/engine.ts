@@ -17,10 +17,12 @@ export interface Promotions {
   [fromTo: string]: string[];
 }
 
+export interface Destinations {
+  [key: string]: Key[];
+}
+
 export interface ValidMoves {
-  destinations: {
-    [key: string]: Key[];
-  };
+  destinations: Destinations;
   promotions: Promotions;
 }
 
@@ -49,25 +51,29 @@ export class Engine {
   constructor(path: string, clocks: Clocks) {
     this.enginePath = path;
     this.clocks = clocks;
+
+    this.on = this.on.bind(this);
+    this.off = this.off.bind(this);
+    this.onDataReceived = this.onDataReceived.bind(this);
   }
 
-  on = <T>(event: EngineEvent, handler: (data: T) => void) => {
+  on<T>(event: EngineEvent, handler: (data: T) => void) {
     this.events.on(event, handler);
-  };
+  }
 
-  off = (event: EngineEvent, handler: () => void) => {
+  off(event: EngineEvent, handler: (...args: any[]) => void) {
     this.events.off(event, handler);
-  };
+  }
 
-  newGame = async ({ moveTime, ...options }: Options) => {
+  async newGame({ moveTime, ...options }: Options) {
     this.options = {
       ...options,
       moveTime: moveTime ? moveTime * 1000 : undefined,
     };
     await this.restartEngine();
-  };
+  }
 
-  calculateMove = async (fen: string): Promise<BestMove> => {
+  async calculateMove(fen: string): Promise<BestMove> {
     assert.ok(this.engine);
 
     while (true) {
@@ -85,9 +91,9 @@ export class Engine {
 
       await sleep(1000);
     }
-  };
+  }
 
-  validMoves = async (fen: string): Promise<ValidMoves> => {
+  async validMoves(fen: string): Promise<ValidMoves> {
     assert.ok(this.engine);
 
     while (true) {
@@ -100,18 +106,18 @@ export class Engine {
         await this.restartEngine();
       }
     }
-  };
+  }
 
-  stopThinking = () => {
+  stopThinking() {
     this.engine?.stdin.write("stop\n");
-  };
+  }
 
-  quit = () => {
+  quit() {
     this.engine?.stdin.write("quit\n");
     this.engine = undefined;
-  };
+  }
 
-  private restartEngine = async () => {
+  private async restartEngine() {
     while (true) {
       this.engine?.kill();
 
@@ -133,9 +139,9 @@ export class Engine {
         break;
       }
     }
-  };
+  }
 
-  private onDataReceived = (data: string) => {
+  private onDataReceived(data: string) {
     const lines = data.split(/\r?\n/);
 
     for (const line of lines) {
@@ -164,10 +170,10 @@ export class Engine {
     }
 
     this.events.emit(EngineEvent.Data, lines);
-  };
+  }
 
-  private wait = <T>(event: EngineEvent, timeoutMs?: number) =>
-    new Promise<T>((resolve, reject) => {
+  private wait<T>(event: EngineEvent, timeoutMs?: number) {
+    return new Promise<T>((resolve, reject) => {
       let timeout: NodeJS.Timeout | null = null;
 
       const unsub = () => {
@@ -198,8 +204,9 @@ export class Engine {
       this.events.once("exit", exitHandler);
       this.events.once(event, eventHandler);
     });
+  }
 
-  private configure = async () => {
+  private async configure() {
     assert.ok(this.options);
     assert.ok(this.engine);
 
@@ -215,9 +222,9 @@ export class Engine {
       const value = clamp(threads, 1, numCpus() * 2);
       setOption("Threads", String(value));
     }
-  };
+  }
 
-  private isReady = async (): Promise<boolean> => {
+  private async isReady(): Promise<boolean> {
     this.engine!.stdin.write("isready\n");
     try {
       await this.wait(EngineEvent.Ready, 5000);
@@ -225,14 +232,14 @@ export class Engine {
     } catch {
       return false;
     }
-  };
+  }
 
-  private position = (fen: string) => {
+  private position(fen: string) {
     assert.ok(this.engine);
     this.engine.stdin.write(`position fen ${fen}\n`);
-  };
+  }
 
-  private go = () => {
+  private go() {
     assert.ok(this.options);
     assert.ok(this.engine);
 
@@ -246,5 +253,5 @@ export class Engine {
     const cmd = `go ${depth} ${moveTime} wtime ${wtime} btime ${btime}\n`;
 
     this.engine.stdin.write(cmd);
-  };
+  }
 }

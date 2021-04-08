@@ -35,7 +35,19 @@ export function validateFen(fen: string) {
   return false;
 }
 
-export function getEnPassant(from: Key, to: Key): Key[] {
+export interface EnPassant {
+  dests: Key[];
+  target?: Key;
+}
+
+export function getEnPassant(from: Key, to: Key): EnPassant {
+  return {
+    dests: getEnPassantTargets(from, to),
+    target: to,
+  };
+}
+
+function getEnPassantTargets(from: Key, to: Key): Key[] {
   const fromMatch = from.match(reKey);
   if (!fromMatch) {
     return [];

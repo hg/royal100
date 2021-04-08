@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { GameConfig } from "../../game/game";
-import { Collapse, Form, Input, TimePicker } from "antd";
+import { Form, Input, TimePicker } from "antd";
 import { formLayout } from "../../utils/forms";
 import { momentToSeconds, secondsToMoment } from "../../utils/time";
 import React from "react";

@@ -42,6 +42,7 @@
   border-radius: 4px;
   padding: 8px 16px;
   margin-right: 8px;
+  cursor: pointer;
 }
 
 .sideButton.active {
@@ -50,6 +51,7 @@
 }
 
 .sideIcon {
+  display: inline-block;
   width: 64px;
   height: 64px;
   background-position: center;

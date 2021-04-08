@@ -4,9 +4,11 @@ import { formLayout } from "../../utils/forms";
 import { depth } from "../../utils/consts";
 import styles from "./index.module.css";
 import { momentToSeconds, secondsToMoment } from "../../utils/time";
-import React from "react";
-import { GameConfig } from "../../game/game";
+import React, { FC, useLayoutEffect } from "react";
+import { GameConfig, OpponentType } from "../../game/game";
 import { SliderMarks } from "antd/lib/slider";
+import { IoIosPerson, MdComputer } from "react-icons/all";
+import { ToggleButton } from "./ToggleButton";
 
 interface Props {
   config: GameConfig;
@@ -22,8 +24,12 @@ const depthMarks: SliderMarks = {
   [depth.champion]: "чемпион",
 };
 
-const DepthSetting = observer<Props>(({ config, setConfig }) => (
-  <Form.Item label="Уровень игры компьютера">
+const DepthSetting: FC<Props> = ({ config, setConfig }) => (
+  <Form.Item
+    label={`Уровень ${
+      config.opponent === OpponentType.Computer ? "игры" : "подсказок"
+    } компьютера`}
+  >
     <Slider
       min={depth.min}
       max={depth.max + 1}
@@ -46,7 +52,7 @@ const DepthSetting = observer<Props>(({ config, setConfig }) => (
       />
     )}
   </Form.Item>
-));
+);
 
 const TimeSetting = observer<Props>(({ config, setConfig }) => {
   function setMinutes(minutes: number) {
@@ -76,34 +82,66 @@ const TimeSetting = observer<Props>(({ config, setConfig }) => {
   );
 });
 
-const SideSetting = observer<Props>(({ config, setConfig }) => (
-  <Form.Item label="Играть">
-    <button
-      onClick={() => setConfig({ ...config, myColor: "white" })}
-      className={`${styles.sideButton} ${
-        config.myColor === "white" && styles.active
-      }`}
-    >
-      <div className={`${styles.sideIcon} q-piece white`} />
-      Белыми
-    </button>
-
-    <button
-      onClick={() => setConfig({ ...config, myColor: "black" })}
-      className={`${styles.sideButton} ${
-        config.myColor === "black" && styles.active
-      }`}
-    >
-      <div className={`${styles.sideIcon} q-piece black`} />
-      Чёрными
-    </button>
+const OpponentSetting: FC<Props> = ({ config, setConfig }) => (
+  <Form.Item label="Противник">
+    <ToggleButton
+      config={config}
+      setConfig={setConfig}
+      configKey="opponent"
+      value={OpponentType.Computer}
+      icon={<MdComputer className={styles.sideIcon} />}
+      title="Играть против компьютера"
+    />
+    <ToggleButton
+      config={config}
+      setConfig={setConfig}
+      configKey="opponent"
+      value={OpponentType.Human}
+      icon={<IoIosPerson className={styles.sideIcon} />}
+      title="Играть против партнёра"
+    />
   </Form.Item>
-));
+);
 
-export const Settings = observer<Props>(({ config, setConfig }) => (
-  <Form {...formLayout}>
-    <DepthSetting config={config} setConfig={setConfig} />
-    <TimeSetting config={config} setConfig={setConfig} />
-    <SideSetting config={config} setConfig={setConfig} />
-  </Form>
-));
+const SideSetting: FC<Props> = ({ config, setConfig }) => (
+  <Form.Item label="Играть">
+    <ToggleButton
+      config={config}
+      setConfig={setConfig}
+      configKey="myColor"
+      value="white"
+      icon={<div className={`${styles.sideIcon} q-piece white`} />}
+      title="Белыми"
+    />
+    <ToggleButton
+      config={config}
+      setConfig={setConfig}
+      configKey="myColor"
+      value="black"
+      icon={<div className={`${styles.sideIcon} q-piece black`} />}
+      title="Чёрными"
+    />
+  </Form.Item>
+);
+
+export const Settings: FC<Props> = ({ config, setConfig }) => {
+  useLayoutEffect(() => {
+    if (config.opponent === OpponentType.Human) {
+      setConfig({ ...config, myColor: "white" });
+    }
+  }, [config.opponent]);
+
+  return (
+    <Form {...formLayout}>
+      <OpponentSetting config={config} setConfig={setConfig} />
+
+      <DepthSetting config={config} setConfig={setConfig} />
+
+      <TimeSetting config={config} setConfig={setConfig} />
+
+      {config.opponent === OpponentType.Computer && (
+        <SideSetting config={config} setConfig={setConfig} />
+      )}
+    </Form>
+  );
+};

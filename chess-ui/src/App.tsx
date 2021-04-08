@@ -7,7 +7,7 @@ import { Spinner } from "./components/Spinner";
 import { ChessBoard } from "./pages/ChessBoard";
 import "moment/locale/ru";
 import moment from "moment";
-import { Home } from "./pages/Home";
+import { StartNewGame } from "./pages/StartNewGame";
 import { routes } from "./pages/routes";
 import { GameConfig, OpponentType } from "./game/game";
 import { depth } from "./utils/consts";
@@ -26,6 +26,7 @@ const AppRoutes = () => {
     depth: depth.default,
     totalTime: 3600,
     opponent: OpponentType.Computer,
+    rotateBoard: false,
   });
 
   return (
@@ -37,7 +38,7 @@ const AppRoutes = () => {
       <Route
         exact
         path={routes.home}
-        render={() => <Home config={config} setConfig={setConfig} />}
+        render={() => <StartNewGame config={config} setConfig={setConfig} />}
       />
     </Switch>
   );

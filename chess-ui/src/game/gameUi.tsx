@@ -1,31 +1,9 @@
 import React, { Fragment } from "react";
-import { Button, Modal } from "antd";
+import { Modal } from "antd";
 import { ButtonProps } from "antd/lib/button";
 import { sound, Track } from "./audio";
-
-const names = {
-  q: "Ферзь",
-  r: "Ладья",
-  b: "Слон",
-  n: "Конь",
-};
-
-interface Props {
-  promotions: string[];
-  name: keyof typeof names;
-  onClick: (name: string) => void;
-}
-
-function Promotion({ promotions, name, onClick }: Props) {
-  if (!promotions.includes(name)) {
-    return null;
-  }
-  return (
-    <Button block onClick={() => onClick(name)}>
-      {names[name]}
-    </Button>
-  );
-}
+import { Color } from "chessgroundx/types";
+import { Promotion } from "./Promotion";
 
 const propsHide: ButtonProps = {
   style: { display: "none" },
@@ -49,7 +27,7 @@ export function confirmPrincessPromotion(): Promise<boolean> {
   });
 }
 
-export async function choosePromotion(promotions: string[]) {
+export async function choosePromotion(side: Color, promotions: string[]) {
   sound.play(Track.Confirm);
 
   return new Promise((resolve) => {
@@ -66,12 +44,32 @@ export async function choosePromotion(promotions: string[]) {
       cancelButtonProps: propsHide,
       okButtonProps: propsHide,
       content: (
-        <Fragment>
-          <Promotion promotions={promotions} name="q" onClick={done} />
-          <Promotion promotions={promotions} name="r" onClick={done} />
-          <Promotion promotions={promotions} name="b" onClick={done} />
-          <Promotion promotions={promotions} name="n" onClick={done} />
-        </Fragment>
+        <div style={{ textAlign: "center" }}>
+          <Promotion
+            promotions={promotions}
+            color={side}
+            name="q"
+            onClick={done}
+          />
+          <Promotion
+            promotions={promotions}
+            color={side}
+            name="r"
+            onClick={done}
+          />
+          <Promotion
+            promotions={promotions}
+            color={side}
+            name="b"
+            onClick={done}
+          />
+          <Promotion
+            promotions={promotions}
+            color={side}
+            name="n"
+            onClick={done}
+          />
+        </div>
       ),
     });
   });

@@ -55,29 +55,35 @@ export const ChessBoard = observer(({ config }: Props) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const [game, setGame] = useState<Game | undefined>(undefined);
 
-  async function run(elem: HTMLElement) {
+  function run(elem: HTMLElement) {
     const game = new Game(elem);
     setGame(game);
 
-    reaction(
+    const disposer = reaction(
       () => game.state,
       (state) => onStateChanged(game, state)
     );
+
+    return () => {
+      disposer();
+      game.dispose();
+    };
   }
+
+  useEffect(() => {
+    if (ref.current) {
+      return run(ref.current);
+    }
+    return undefined;
+  }, []);
 
   useEffect(() => {
     if (game) {
       game.newGame(config);
-      return () => game.stop();
+      return game.stop;
     }
     return undefined;
   }, [game]);
-
-  useEffect(() => {
-    if (ref.current) {
-      run(ref.current);
-    }
-  }, []);
 
   return (
     <div className={styles.wrap}>
