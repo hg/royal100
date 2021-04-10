@@ -85,16 +85,6 @@ export const ChessBoard = observer(({ config }: Props) => {
     return undefined;
   }, [game]);
 
-  function setMove(moveNumber: number) {
-    if (game?.canUndo(moveNumber) === true) {
-      game.setMove(moveNumber);
-    } else {
-      notification.error({
-        message: "Нельзя вернуться к выбранному ходу.",
-      });
-    }
-  }
-
   return (
     <div className={styles.wrap}>
       <div className={styles.left}>
@@ -108,7 +98,13 @@ export const ChessBoard = observer(({ config }: Props) => {
       </div>
 
       <div className={styles.right}>
-        <MoveHistory undo={game?.undo} moves={game?.moves} onRevert={setMove} />
+        {game && (
+          <MoveHistory
+            moves={game.moves}
+            canMove={game.canUndo}
+            setMove={game.undoMove}
+          />
+        )}
       </div>
     </div>
   );

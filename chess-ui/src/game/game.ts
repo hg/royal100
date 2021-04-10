@@ -10,7 +10,6 @@ import {
   makeObservable,
   observable,
   reaction,
-  toJS,
 } from "mobx";
 import assert from "assert";
 import { opposite } from "chessgroundx/util";
@@ -106,7 +105,7 @@ export class Game {
   private halfMoves = 0;
   private fullMoves = 1;
   private canPromotePrincess = { black: true, white: true };
-  private undidMove = false;
+  private undidMove?: Color;
   private previousFen = "";
   private reactionDisposers: IReactionDisposer[] = [];
   private validMoves?: ValidMoves;
@@ -131,6 +130,7 @@ export class Game {
     makeObservable(this);
 
     this.onMove = this.onMove.bind(this);
+    this.canUndo = this.canUndo.bind(this);
     this.onSelect = this.onSelect.bind(this);
 
     const enginePath = getEnginePath();
@@ -181,46 +181,66 @@ export class Game {
   }
 
   canUndo(moveNumber: number): boolean {
-    const move = this.moves[moveNumber];
-    if (!move) {
+    if (!this.isPlaying) {
       return false;
     }
-    if (!this.isPlaying) {
+    // Если играем с движком — отменять можно только во время своего хода
+    if (this.isOpponentAComputer && this.turnColor !== this.myColor) {
       return false;
     }
     if (this.undo === UndoMove.None) {
       return false;
     }
-    if (this.undo === UndoMove.Single && this.undidMove) {
+    if (moveNumber <= 1) {
       return false;
     }
-    if (!this.moves.includes(move)) {
+    const move = this.moves[moveNumber];
+    if (!move) {
       return false;
     }
-    if (this.turnColor !== this.myColor) {
+    // Отмена только своих ходов
+    if (move.color !== this.turnColor) {
       return false;
+    }
+    if (this.undo === UndoMove.Single) {
+      // Если недавно отменяли — больше нельзя
+      if (this.undidMove === this.turnColor) {
+        return false;
+      }
+      // Отмена только последнего хода
+      if (moveNumber < this.moves.length - 2) {
+        return false;
+      }
     }
     return true;
   }
 
   @action.bound
-  async setMove(moveNumber: number) {
+  async undoMove(moveNumber: number) {
+    const undoMove = this.moves[moveNumber];
     const previousMove = this.moves[moveNumber - 1];
-    if (previousMove) {
-      console.log("repeating", toJS(previousMove));
 
+    if (undoMove && previousMove) {
       // Удаляем всё, начиная с прыдущего шага
-      this.moves.splice(Math.max(0, moveNumber - 1));
-      this.ground.set({ fen: previousMove.fenBefore });
+      this.moves.splice(moveNumber - 1);
+
+      // Останавливаем все часы — если белые отменяют свой ход,
+      // это не повод зачислять лишнее время чёрным.
+      this.clocks.white.stop();
+      this.clocks.black.stop();
 
       // Повторяем последний шаг, который нужно сохранить
+      this.ground.set({
+        fen: previousMove.fenBefore,
+        turnColor: previousMove.color,
+      });
       this.previousFen = previousMove.fenBefore;
       this.turnColor = previousMove.color;
       this.halfMoves = previousMove.state.halfMoves;
       this.fullMoves = previousMove.state.fullMoves;
+      this.undidMove = undoMove.color;
       this.canPromotePrincess = { ...previousMove.state.canPromotePrincess };
       this.ground.move(previousMove.from, previousMove.to);
-      this.undidMove = true;
     }
   }
 
@@ -230,8 +250,13 @@ export class Game {
   }
 
   @computed
-  get isPlayingWithComputer(): boolean {
+  get isOpponentAComputer(): boolean {
     return this.opponent === OpponentType.Computer;
+  }
+
+  @computed
+  get isOpponentHuman(): boolean {
+    return !this.isOpponentAComputer;
   }
 
   @computed
@@ -243,7 +268,7 @@ export class Game {
   get hasWon(): boolean {
     return (
       !this.isPlaying &&
-      (this.opponent === OpponentType.Human ||
+      (this.isOpponentHuman ||
         (this.myColor === "white" && this.state === GameState.LossBlack) ||
         (this.myColor === "black" && this.state === GameState.LossWhite))
     );
@@ -258,14 +283,14 @@ export class Game {
   get isMyTurn(): boolean {
     return (
       this.isPlaying &&
-      (this.turnColor === this.myColor || this.opponent === OpponentType.Human)
+      (this.turnColor === this.myColor || this.isOpponentHuman)
     );
   }
 
   @computed
   get canAskForDraw(): boolean {
     return Boolean(
-      this.isPlayingWithComputer &&
+      this.isOpponentAComputer &&
         this.isPlaying &&
         this.moves.length >= drawMinMoves &&
         this.score
@@ -317,7 +342,7 @@ export class Game {
   ) {
     const currentFen = await this.fullFen();
 
-    const move: Move = Object.freeze({
+    this.moves.push({
       ...movePartial,
       color: this.turnColor,
       fenBefore: this.previousFen,
@@ -331,8 +356,6 @@ export class Game {
         },
       },
     });
-
-    this.moves.push(move);
     this.previousFen = currentFen;
   }
 
@@ -461,8 +484,8 @@ export class Game {
 
     playMoveSound();
 
-    if (this.isMyTurn) {
-      this.undidMove = false;
+    if (this.turnColor === this.undidMove) {
+      this.undidMove = undefined;
     }
 
     this.ground.setShapes([]);
@@ -549,7 +572,7 @@ export class Game {
     if (captured.role === pieces.queen) {
       // Ферзь реального игрока (не компьютера)?
       const capturedHumanPiece =
-        this.opponent === OpponentType.Human || oppColor === this.myColor;
+        this.isOpponentHuman || oppColor === this.myColor;
 
       // Игрок уже отказывался от превращения — больше не спрашиваем
       if (capturedHumanPiece && !this.canPromotePrincess[oppColor]) {
@@ -627,7 +650,7 @@ export class Game {
       return;
     }
 
-    if (this.opponent === OpponentType.Human) {
+    if (this.isOpponentHuman) {
       this.flipBoard();
     }
   }
@@ -674,7 +697,7 @@ export class Game {
       moveTime: config.plyTime,
     });
 
-    const nextColor = this.isPlayingWithComputer ? config.myColor : "white";
+    const nextColor = this.isOpponentAComputer ? config.myColor : "white";
 
     this.ground.set({
       turnColor: "white",

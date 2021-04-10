@@ -7,14 +7,14 @@ import {
   HiOutlineRefresh,
 } from "react-icons/all";
 import React, { FC, Fragment } from "react";
-import { Move, UndoMove } from "../../../game/game";
+import { Move } from "../../../game/game";
 import { Button, notification } from "antd";
 import { clipboard } from "electron";
 
 interface Props {
-  moves?: Move[];
-  onRevert?: (moveNumber: number) => void;
-  undo?: UndoMove;
+  moves: Move[];
+  canMove: (moveNumber: number) => boolean;
+  setMove: (moveNumber: number) => void;
 }
 
 function copyFen(num: number, fen: string) {
@@ -47,24 +47,24 @@ const TableHeader = () => (
 interface RowProps {
   move: Move;
   num: number;
-  onRevert?: (moveNumber: number) => void;
+  setMove?: (moveNumber: number) => void;
 }
 
-const TableRow: FC<RowProps> = ({ move, num, onRevert }) => (
+const TableRow: FC<RowProps> = ({ move, num, setMove }) => (
   <tr
     title="Скопировать позицию в нотации FEN"
     role="button"
     onClick={() => copyFen(num, move.fenAfter)}
   >
     <td>
-      {onRevert ? (
+      {setMove ? (
         <Button
           size="small"
           type="primary"
           title="Вернуться к ходу"
           onClick={(e) => {
             e.stopPropagation();
-            onRevert(num);
+            setMove(num);
           }}
         >
           {num + 1}
@@ -92,40 +92,25 @@ const TableRow: FC<RowProps> = ({ move, num, onRevert }) => (
   </tr>
 );
 
-export const MoveHistory = observer<Props>(({ moves, undo, onRevert }) => {
-  function calculateRevert(moveNumber: number) {
-    if (moveNumber < 1) {
-      return undefined;
-    }
-    if (undo === UndoMove.Full) {
-      return onRevert;
-    }
-    if (undo === UndoMove.Single && moves && moveNumber === moves.length - 2) {
-      return onRevert;
-    }
-    return undefined;
-  }
+export const MoveHistory = observer<Props>(({ moves, canMove, setMove }) => (
+  <Fragment>
+    <h3>История ходов</h3>
 
-  return (
-    <Fragment>
-      <h3>История ходов</h3>
+    <table className={styles.historyTable}>
+      <TableHeader />
 
-      <table className={styles.historyTable}>
-        <TableHeader />
-
-        {moves && (
-          <tbody>
-            {moves.map((move, index) => (
-              <TableRow
-                key={index}
-                move={move}
-                num={index}
-                onRevert={calculateRevert(index)}
-              />
-            ))}
-          </tbody>
-        )}
-      </table>
-    </Fragment>
-  );
-});
+      {moves && (
+        <tbody>
+          {moves.map((move, index) => (
+            <TableRow
+              key={index}
+              num={index}
+              move={move}
+              setMove={canMove(index) ? setMove : undefined}
+            />
+          ))}
+        </tbody>
+      )}
+    </table>
+  </Fragment>
+));

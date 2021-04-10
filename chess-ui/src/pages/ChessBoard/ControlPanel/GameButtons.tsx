@@ -53,7 +53,7 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
         <FiFlag className="icon" /> Сдаться
       </Button>
 
-      {game.isPlayingWithComputer && (
+      {game.isOpponentAComputer && (
         <Button
           size="large"
           danger
