@@ -1,18 +1,16 @@
-import React from "react";
+import React, { FC } from "react";
 import { useHistory } from "react-router";
 import { validateFen } from "../../utils/chess";
 import { GameConfig } from "../../game/game";
 import { routes } from "../routes";
 import { Button } from "antd";
 import { FaChessKing } from "react-icons/all";
-import { observer } from "mobx-react-lite";
 
 interface Props {
   config: GameConfig;
-  setConfig: (config: GameConfig) => void;
 }
 
-export const StartGameButtons = observer<Props>(({ config, setConfig }) => {
+export const StartGameButtons: FC<Props> = ({ config }) => {
   const history = useHistory();
   const canStart = !config.fen || validateFen(config.fen);
 
@@ -29,4 +27,4 @@ export const StartGameButtons = observer<Props>(({ config, setConfig }) => {
       </Button>
     </Button.Group>
   );
-});
+};

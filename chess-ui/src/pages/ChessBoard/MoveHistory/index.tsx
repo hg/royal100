@@ -7,12 +7,14 @@ import {
   HiOutlineRefresh,
 } from "react-icons/all";
 import React, { FC, Fragment } from "react";
-import { Game, Move } from "../../../game/game";
-import { notification } from "antd";
+import { Move, UndoMove } from "../../../game/game";
+import { Button, notification } from "antd";
 import { clipboard } from "electron";
 
 interface Props {
-  game?: Game;
+  moves?: Move[];
+  onRevert?: (moveNumber: number) => void;
+  undo?: UndoMove;
 }
 
 function copyFen(num: number, fen: string) {
@@ -45,15 +47,32 @@ const TableHeader = () => (
 interface RowProps {
   move: Move;
   num: number;
+  onRevert?: (moveNumber: number) => void;
 }
 
-const TableRow: FC<RowProps> = ({ move, num }) => (
+const TableRow: FC<RowProps> = ({ move, num, onRevert }) => (
   <tr
     title="Скопировать позицию в нотации FEN"
     role="button"
-    onClick={() => copyFen(num, move.fen)}
+    onClick={() => copyFen(num, move.fenAfter)}
   >
-    <td>{num}</td>
+    <td>
+      {onRevert ? (
+        <Button
+          size="small"
+          type="primary"
+          title="Вернуться к ходу"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRevert(num);
+          }}
+        >
+          {num + 1}
+        </Button>
+      ) : (
+        num + 1
+      )}
+    </td>
     <td>
       <div
         className={`${move.piece?.role} ${move.color} ${styles.piece} ${styles.movePiece}`}
@@ -62,27 +81,51 @@ const TableRow: FC<RowProps> = ({ move, num }) => (
     <td>{move.from}</td>
     <td>{move.to}</td>
     <td>
-      {move.captured && (
+      {move.captured ? (
         <div
           className={`${move.captured.role} ${move.captured.color} ${styles.piece}`}
         />
+      ) : (
+        "—"
       )}
     </td>
   </tr>
 );
 
-export const MoveHistory = observer<Props>(({ game }) => (
-  <Fragment>
-    <h3>История ходов</h3>
+export const MoveHistory = observer<Props>(({ moves, undo, onRevert }) => {
+  function calculateRevert(moveNumber: number) {
+    if (moveNumber < 1) {
+      return undefined;
+    }
+    if (undo === UndoMove.Full) {
+      return onRevert;
+    }
+    if (undo === UndoMove.Single && moves && moveNumber === moves.length - 2) {
+      return onRevert;
+    }
+    return undefined;
+  }
 
-    <table className={styles.historyTable}>
-      <TableHeader />
+  return (
+    <Fragment>
+      <h3>История ходов</h3>
 
-      <tbody>
-        {game?.moves.map((move, index) => (
-          <TableRow key={index} move={move} num={index + 1} />
-        ))}
-      </tbody>
-    </table>
-  </Fragment>
-));
+      <table className={styles.historyTable}>
+        <TableHeader />
+
+        {moves && (
+          <tbody>
+            {moves.map((move, index) => (
+              <TableRow
+                key={index}
+                move={move}
+                num={index}
+                onRevert={calculateRevert(index)}
+              />
+            ))}
+          </tbody>
+        )}
+      </table>
+    </Fragment>
+  );
+});

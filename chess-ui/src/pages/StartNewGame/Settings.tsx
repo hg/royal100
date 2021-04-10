@@ -1,4 +1,3 @@
-import { observer } from "mobx-react-lite";
 import { Alert, Button, Form, Slider, TimePicker } from "antd";
 import { formLayout } from "../../utils/forms";
 import { depth } from "../../utils/consts";
@@ -54,7 +53,7 @@ const DepthSetting: FC<Props> = ({ config, setConfig }) => (
   </Form.Item>
 );
 
-const TimeSetting = observer<Props>(({ config, setConfig }) => {
+const TimeSetting: FC<Props> = ({ config, setConfig }) => {
   function setMinutes(minutes: number) {
     setConfig({ ...config, totalTime: minutes * 60 });
   }
@@ -80,7 +79,7 @@ const TimeSetting = observer<Props>(({ config, setConfig }) => {
       </Button.Group>
     </Form.Item>
   );
-});
+};
 
 const OpponentSetting: FC<Props> = ({ config, setConfig }) => (
   <Form.Item label="Противник">
@@ -134,9 +133,7 @@ export const Settings: FC<Props> = ({ config, setConfig }) => {
   return (
     <Form {...formLayout}>
       <OpponentSetting config={config} setConfig={setConfig} />
-
       <DepthSetting config={config} setConfig={setConfig} />
-
       <TimeSetting config={config} setConfig={setConfig} />
 
       {config.opponent === OpponentType.Computer && (

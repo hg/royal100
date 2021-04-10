@@ -9,7 +9,7 @@ import "moment/locale/ru";
 import moment from "moment";
 import { StartNewGame } from "./pages/StartNewGame";
 import { routes } from "./pages/routes";
-import { GameConfig, OpponentType } from "./game/game";
+import { GameConfig, OpponentType, UndoMove } from "./game/game";
 import { depth } from "./utils/consts";
 
 moment.locale("ru");
@@ -26,7 +26,7 @@ const AppRoutes = () => {
     depth: depth.default,
     totalTime: 3600,
     opponent: OpponentType.Computer,
-    rotateBoard: false,
+    undo: UndoMove.Single,
   });
 
   return (

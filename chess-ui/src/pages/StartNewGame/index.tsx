@@ -28,7 +28,7 @@ export const StartNewGame: FC<Props> = ({ config, setConfig }) => (
         </Collapse.Panel>
       </Collapse>
 
-      <StartGameButtons config={config} setConfig={setConfig} />
+      <StartGameButtons config={config} />
     </div>
   </div>
 );

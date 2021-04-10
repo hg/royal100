@@ -10,6 +10,7 @@ import {
   makeObservable,
   observable,
   reaction,
+  toJS,
 } from "mobx";
 import assert from "assert";
 import { opposite } from "chessgroundx/util";
@@ -38,11 +39,18 @@ import {
   castlingKingPathIsSafe,
   castlingPiecesAtHome,
   CastlingSide,
+  initialCastling,
 } from "../utils/castling";
 
 export enum OpponentType {
   Computer,
   Human,
+}
+
+export enum UndoMove {
+  None,
+  Single,
+  Full,
 }
 
 export interface GameConfig {
@@ -52,6 +60,7 @@ export interface GameConfig {
   fen?: FEN;
   totalTime: number;
   plyTime?: number;
+  undo: UndoMove;
 }
 
 export interface Move {
@@ -60,7 +69,16 @@ export interface Move {
   to: Key;
   captured?: Piece;
   piece?: Piece;
-  fen: string;
+  fenBefore: string;
+  fenAfter: string;
+  state: {
+    halfMoves: number;
+    fullMoves: number;
+    canPromotePrincess: {
+      white: boolean;
+      black: boolean;
+    };
+  };
 }
 
 export interface Clocks {
@@ -82,56 +100,32 @@ export enum LossReason {
   Forfeit,
 }
 
-interface Castling {
-  movedKing: boolean;
-  movedRook: {
-    K: boolean;
-    Q: boolean;
-  };
-}
-
-function initialCastling(): { [side in Color]: Castling } {
-  return {
-    white: {
-      movedKing: false,
-      movedRook: {
-        K: false,
-        Q: false,
-      },
-    },
-    black: {
-      movedKing: false,
-      movedRook: {
-        K: false,
-        Q: false,
-      },
-    },
-  };
-}
-
 export class Game {
   private readonly engine: Engine;
   private readonly ground: Api;
-  @observable private halfMoves = 0;
-  @observable private fullMoves = 1;
-  @observable private validMoves?: ValidMoves;
-  @observable private enPassant: EnPassant = { dests: [] };
-  @observable private canPromotePrincess = { black: true, white: true };
+  private halfMoves = 0;
+  private fullMoves = 1;
+  private canPromotePrincess = { black: true, white: true };
+  private undidMove = false;
+  private previousFen = "";
+  private reactionDisposers: IReactionDisposer[] = [];
+  private validMoves?: ValidMoves;
+  private enPassant: EnPassant = { dests: [] };
   @observable private opponent = OpponentType.Computer;
   @observable private myColor: Color = "white";
   @observable private turnColor: Color = "white";
+
   @observable score?: Score;
   @observable lossReason = LossReason.Mate;
   @observable state = GameState.Paused;
   @observable moves: Move[] = [];
   @observable isThinking = false;
   @observable bottomColor: Color = "black";
+  @observable undo: UndoMove = UndoMove.Single;
   @observable clocks: Clocks = {
     white: new Clock(),
     black: new Clock(),
   };
-
-  private reactionDisposers: IReactionDisposer[] = [];
 
   constructor(element: HTMLElement) {
     makeObservable(this);
@@ -184,6 +178,50 @@ export class Game {
     }
     this.reactionDisposers.splice(0);
     this.engine.off(EngineEvent.Score, this.setScore);
+  }
+
+  canUndo(moveNumber: number): boolean {
+    const move = this.moves[moveNumber];
+    if (!move) {
+      return false;
+    }
+    if (!this.isPlaying) {
+      return false;
+    }
+    if (this.undo === UndoMove.None) {
+      return false;
+    }
+    if (this.undo === UndoMove.Single && this.undidMove) {
+      return false;
+    }
+    if (!this.moves.includes(move)) {
+      return false;
+    }
+    if (this.turnColor !== this.myColor) {
+      return false;
+    }
+    return true;
+  }
+
+  @action.bound
+  async setMove(moveNumber: number) {
+    const previousMove = this.moves[moveNumber - 1];
+    if (previousMove) {
+      console.log("repeating", toJS(previousMove));
+
+      // Удаляем всё, начиная с прыдущего шага
+      this.moves.splice(Math.max(0, moveNumber - 1));
+      this.ground.set({ fen: previousMove.fenBefore });
+
+      // Повторяем последний шаг, который нужно сохранить
+      this.previousFen = previousMove.fenBefore;
+      this.turnColor = previousMove.color;
+      this.halfMoves = previousMove.state.halfMoves;
+      this.fullMoves = previousMove.state.fullMoves;
+      this.canPromotePrincess = { ...previousMove.state.canPromotePrincess };
+      this.ground.move(previousMove.from, previousMove.to);
+      this.undidMove = true;
+    }
   }
 
   @action.bound
@@ -274,8 +312,28 @@ export class Game {
   }
 
   @action.bound
-  private addMove(move: Move) {
+  private async addMove(
+    movePartial: Pick<Move, "from" | "to" | "captured" | "piece">
+  ) {
+    const currentFen = await this.fullFen();
+
+    const move: Move = Object.freeze({
+      ...movePartial,
+      color: this.turnColor,
+      fenBefore: this.previousFen,
+      fenAfter: currentFen,
+      state: {
+        halfMoves: this.halfMoves,
+        fullMoves: this.fullMoves,
+        canPromotePrincess: {
+          white: this.canPromotePrincess.white,
+          black: this.canPromotePrincess.black,
+        },
+      },
+    });
+
     this.moves.push(move);
+    this.previousFen = currentFen;
   }
 
   private locatePiece(role: Role, color: Color): Key | undefined {
@@ -392,7 +450,20 @@ export class Game {
   }
 
   private async onMove(orig: Key, dest: Key, capturedPiece?: Piece) {
+    const movedPiece = this.ground.state.pieces[dest];
+
+    await this.addMove({
+      from: orig,
+      to: dest,
+      captured: capturedPiece,
+      piece: movedPiece,
+    });
+
     playMoveSound();
+
+    if (this.isMyTurn) {
+      this.undidMove = false;
+    }
 
     this.ground.setShapes([]);
 
@@ -401,7 +472,6 @@ export class Game {
     }
     this.enPassant = { dests: [] };
 
-    const movedPiece = this.ground.state.pieces[dest];
     if (movedPiece) {
       this.checkCastlingAvailability(orig, movedPiece);
 
@@ -429,15 +499,6 @@ export class Game {
     const check = await this.detectCheck();
 
     await this.toggleColor();
-
-    this.addMove({
-      from: orig,
-      to: dest,
-      color: opposite(this.turnColor),
-      fen: await this.fullFen(),
-      captured: capturedPiece,
-      piece: movedPiece,
-    });
 
     if (!this.isPlaying) {
       return;
@@ -635,6 +696,7 @@ export class Game {
     this.bottomColor = nextColor;
     this.turnColor = "white";
     this.myColor = config.myColor;
+    this.undo = config.undo;
     this.moves.splice(0);
 
     await this.updateValidMoves();
