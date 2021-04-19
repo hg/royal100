@@ -12,6 +12,7 @@ import {
 } from "../utils/chess";
 import { isDevMode, numCpus } from "../utils/system";
 import { clamp } from "../utils/util";
+import { EOL } from "os";
 
 export interface Promotions {
   [fromTo: string]: string[];
@@ -98,7 +99,7 @@ export class Engine {
 
     while (true) {
       this.position(fen);
-      this.engine.stdin.write("valid_moves\n");
+      this.engine.stdin.write(`valid_moves${EOL}`);
 
       try {
         return await this.wait(EngineEvent.ValidMoves, 5000);
@@ -109,11 +110,11 @@ export class Engine {
   }
 
   stopThinking() {
-    this.engine?.stdin.write("stop\n");
+    this.engine?.stdin.write(`stop${EOL}`);
   }
 
   quit() {
-    this.engine?.stdin.write("quit\n");
+    this.engine?.stdin.write(`quit${EOL}`);
     this.engine = undefined;
   }
 
@@ -133,7 +134,7 @@ export class Engine {
       this.engine.stdout.on("data", this.onDataReceived);
 
       await this.configure();
-      this.engine.stdin.write("ucinewgame\n");
+      this.engine.stdin.write(`ucinewgame${EOL}`);
 
       if (await this.isReady()) {
         break;
@@ -211,10 +212,10 @@ export class Engine {
     assert.ok(this.engine);
 
     const setOption = (name: string, value: string) =>
-      this.engine!.stdin.write(`setoption name ${name} value ${value}\n`);
+      this.engine!.stdin.write(`setoption name ${name} value ${value}${EOL}`);
 
     if (isDevMode()) {
-      setOption("Debug Log File", "/tmp/log");
+      setOption("Debug Log File", "engine.log");
     }
 
     const { threads } = this.options;
@@ -225,7 +226,7 @@ export class Engine {
   }
 
   private async isReady(): Promise<boolean> {
-    this.engine!.stdin.write("isready\n");
+    this.engine!.stdin.write(`isready${EOL}`);
     try {
       await this.wait(EngineEvent.Ready, 5000);
       return true;
@@ -236,7 +237,7 @@ export class Engine {
 
   private position(fen: string) {
     assert.ok(this.engine);
-    this.engine.stdin.write(`position fen ${fen}\n`);
+    this.engine.stdin.write(`position fen ${fen}${EOL}`);
   }
 
   private go() {
@@ -250,7 +251,7 @@ export class Engine {
       ? `movetime ${this.options.moveTime}`
       : "";
 
-    const cmd = `go ${depth} ${moveTime} wtime ${wtime} btime ${btime}\n`;
+    const cmd = `go ${depth} ${moveTime} wtime ${wtime} btime ${btime}${EOL}`;
 
     this.engine.stdin.write(cmd);
   }
