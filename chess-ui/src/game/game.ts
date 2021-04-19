@@ -141,6 +141,7 @@ export class Game {
       geometry: dimension.dim10x10,
       variant: "chess",
       autoCastle: false,
+      resizable: true,
       movable: {
         free: false,
         showDests: true,
@@ -170,6 +171,10 @@ export class Game {
         }
       )
     );
+  }
+
+  redraw() {
+    this.ground?.redrawAll();
   }
 
   dispose() {

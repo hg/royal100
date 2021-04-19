@@ -1,5 +1,12 @@
-.cg-wrap svg {
-  position: absolute;
+@import "./pieces.css";
+
+.cg-wrap {
+  background-size: cover;
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-image: url("/assets/images/board/10x10brown.svg");
 }
 
 cg-container {
@@ -19,14 +26,8 @@ cg-container coords.ranks coord:last-child::before {
   visibility: visible;
 }
 
-.cg-wrap {
-  background-size: cover;
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 0;
-  background-image: url("/assets/images/board/10x10brown.svg");
-  padding-bottom: 100%;
+.cg-wrap svg {
+  position: absolute;
 }
 
 cg-board {
@@ -35,9 +36,6 @@ cg-board {
   left: 0;
   width: 100%;
   height: 100%;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
   line-height: 0;
   background-size: cover;
@@ -160,8 +158,8 @@ cg-board piece.fading {
 .cg-wrap svg {
   overflow: hidden;
   position: relative;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
@@ -182,20 +180,12 @@ cg-board piece.fading {
   font-weight: bold;
 }
 
-/* hide coords */
-@media (max-width: 799px) and (orientation: portrait) {
-  .cg-wrap coords {
-    display: none;
-  }
-}
-
 .cg-wrap coords.ranks {
-  right: -15px;
+  right: -32px;
   top: 0;
   flex-flow: column-reverse;
   height: 100%;
   font-size: 14px;
-  padding-left: 2px;
   font-family: monospace;
 }
 
@@ -204,7 +194,7 @@ cg-board piece.fading {
 }
 
 .cg-wrap coords.files {
-  bottom: -16px;
+  bottom: -20px;
   left: 0;
   flex-flow: row;
   width: 100%;
@@ -219,74 +209,4 @@ cg-board piece.fading {
 
 .cg-wrap coords coord {
   flex: 1 1 auto;
-}
-
-@media (min-width: 800px) and (min-height: 500px) {
-  .cg-wrap coords.ranks coord {
-    transform: translateY(39%);
-  }
-}
-
-.p-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wP.svg");
-}
-
-.b-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wB.svg");
-}
-
-.n-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wN.svg");
-}
-
-.r-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wR.svg");
-}
-
-.q-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wQ.svg");
-}
-
-.k-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wK.svg");
-}
-
-.p-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bP.svg");
-}
-
-.b-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bB.svg");
-}
-
-.n-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bN.svg");
-}
-
-.r-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bR.svg");
-}
-
-.q-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bQ.svg");
-}
-
-.k-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bK.svg");
-}
-
-.t-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bT.svg");
-}
-
-.t-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wT.svg");
-}
-
-.s-piece.black {
-  background-image: url("/assets/images/pieces/kaneo/bS.svg");
-}
-
-.s-piece.white {
-  background-image: url("/assets/images/pieces/kaneo/wS.svg");
 }

@@ -1,0 +1,63 @@
+.p-piece.white {
+  background-image: url("/assets/images/pieces/default/wP.svg");
+}
+
+.b-piece.white {
+  background-image: url("/assets/images/pieces/default/wB.svg");
+}
+
+.n-piece.white {
+  background-image: url("/assets/images/pieces/default/wN.svg");
+}
+
+.r-piece.white {
+  background-image: url("/assets/images/pieces/default/wR.svg");
+}
+
+.q-piece.white {
+  background-image: url("/assets/images/pieces/default/wQ.svg");
+}
+
+.k-piece.white {
+  background-image: url("/assets/images/pieces/default/wK.svg");
+}
+
+.p-piece.black {
+  background-image: url("/assets/images/pieces/default/bP.svg");
+}
+
+.b-piece.black {
+  background-image: url("/assets/images/pieces/default/bB.svg");
+}
+
+.n-piece.black {
+  background-image: url("/assets/images/pieces/default/bN.svg");
+}
+
+.r-piece.black {
+  background-image: url("/assets/images/pieces/default/bR.svg");
+}
+
+.q-piece.black {
+  background-image: url("/assets/images/pieces/default/bQ.svg");
+}
+
+.k-piece.black {
+  background-image: url("/assets/images/pieces/default/bK.svg");
+}
+
+.t-piece.black {
+  background-image: url("/assets/images/pieces/default/bT.svg");
+}
+
+.t-piece.white {
+  background-image: url("/assets/images/pieces/default/wT.svg");
+}
+
+.s-piece.black {
+  background-image: url("/assets/images/pieces/default/bS.svg");
+}
+
+.s-piece.white {
+  background-image: url("/assets/images/pieces/default/wS.svg");
+}

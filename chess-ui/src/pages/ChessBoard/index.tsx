@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./index.module.css";
 import { observer } from "mobx-react-lite";
-import { Modal, notification } from "antd";
+import { Modal } from "antd";
 import { reaction } from "mobx";
 import { Game, GameConfig, GameState, LossReason } from "../../game/game";
 import { MoveHistory } from "./MoveHistory";
@@ -80,7 +80,14 @@ export const ChessBoard = observer(({ config }: Props) => {
   useEffect(() => {
     if (game) {
       game.newGame(config);
-      return game.stop;
+
+      const resizeHandler = () => game?.redraw();
+      window.addEventListener("resize", resizeHandler);
+
+      return () => {
+        window.removeEventListener("resize", resizeHandler);
+        game.stop();
+      };
     }
     return undefined;
   }, [game]);

@@ -3,9 +3,21 @@
   display: flex;
 }
 
+:root {
+  --left-width: 300px;
+  --right-width: 300px;
+  --board-margin: 80px;
+  --board-size: calc(
+    min(
+      100vh - var(--board-margin),
+      100vw - var(--left-width) - var(--right-width) - var(--board-margin)
+    )
+  );
+}
+
 .board {
-  height: 800px;
-  width: 800px;
+  height: var(--board-size);
+  width: var(--board-size);
 }
 
 .boardWrap {
@@ -26,7 +38,7 @@
   align-items: center;
   flex-direction: column;
   flex: 0 0 auto;
-  width: 320px;
+  width: var(--left-width);
   padding: 8px;
 }
 
@@ -35,5 +47,5 @@
   height: 100%;
   overflow-y: auto;
   padding: 8px;
-  width: 320px;
+  width: var(--right-width);
 }
