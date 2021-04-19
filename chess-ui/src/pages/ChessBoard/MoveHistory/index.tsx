@@ -8,7 +8,7 @@ import {
 } from "react-icons/all";
 import React, { FC, Fragment } from "react";
 import { Move } from "../../../game/game";
-import { Button, notification } from "antd";
+import { Button, Empty, notification } from "antd";
 import { clipboard } from "electron";
 
 interface Props {
@@ -92,14 +92,18 @@ const TableRow: FC<RowProps> = ({ move, num, setMove }) => (
   </tr>
 );
 
+const NoMovesPlaceholder = () => (
+  <div className={styles.noMoves}>
+    <Empty description="Ходов пока нет." />
+  </div>
+);
+
 export const MoveHistory = observer<Props>(({ moves, canMove, setMove }) => (
   <Fragment>
-    <h3>История ходов</h3>
+    {moves.length ? (
+      <table className={styles.historyTable}>
+        <TableHeader />
 
-    <table className={styles.historyTable}>
-      <TableHeader />
-
-      {moves && (
         <tbody>
           {moves.map((move, index) => (
             <TableRow
@@ -110,7 +114,9 @@ export const MoveHistory = observer<Props>(({ moves, canMove, setMove }) => (
             />
           ))}
         </tbody>
-      )}
-    </table>
+      </table>
+    ) : (
+      <NoMovesPlaceholder />
+    )}
   </Fragment>
 ));

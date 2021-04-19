@@ -59,14 +59,8 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
         <FiFlag className="icon" /> Сдаться
       </Button>
 
-      {game.isOpponentAComputer && (
-        <Button
-          size="large"
-          danger
-          block
-          onClick={askForDraw}
-          disabled={!game.canAskForDraw}
-        >
+      {game.canAskForDraw && (
+        <Button size="large" danger block onClick={askForDraw}>
           <FaRegHandPeace className="icon" /> Предложить ничью
         </Button>
       )}
