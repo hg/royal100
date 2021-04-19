@@ -12,9 +12,9 @@ build-engine:
   script:
     - mkdir engine-bin/
     - cd engine/
-    - make -j$(nproc) ARCH=x86-64-modern COMP=gcc clean build
+    - make -j$(nproc) ARCH=x86-64 COMP=gcc clean build
     - mv royal100 ../engine-bin/
-    - make -j$(nproc) ARCH=x86-64-modern COMP=mingw clean build
+    - make -j$(nproc) ARCH=x86-64 COMP=mingw clean build
     - mv royal100.exe ../engine-bin/
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
