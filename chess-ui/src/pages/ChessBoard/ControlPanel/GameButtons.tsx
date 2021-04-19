@@ -11,6 +11,7 @@ import React, { Fragment } from "react";
 import { observer } from "mobx-react-lite";
 import { useHistory } from "react-router";
 import { routes } from "../../routes";
+import { confirm } from "../../../utils/dialogs";
 
 interface Props {
   game: Game;
@@ -37,6 +38,11 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
     }
   }
 
+  async function forfeit() {
+    await confirm("Вы действительно хотите сдаться?");
+    game.forfeit();
+  }
+
   return (
     <Fragment>
       <Button
@@ -49,7 +55,7 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
         <BiHelpCircle className="icon" /> Подсказка
       </Button>
 
-      <Button size="large" type="primary" danger block onClick={game.forfeit}>
+      <Button size="large" type="primary" danger block onClick={forfeit}>
         <FiFlag className="icon" /> Сдаться
       </Button>
 
