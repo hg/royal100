@@ -6,7 +6,7 @@ import {
   FaChessKnight,
   HiOutlineRefresh,
 } from "react-icons/all";
-import React, { FC, Fragment } from "react";
+import React, { FC, Fragment, useEffect, useRef } from "react";
 import { Move } from "../../../game/game";
 import { Button, Empty, notification } from "antd";
 import { clipboard } from "electron";
@@ -47,50 +47,62 @@ const TableHeader = () => (
 interface RowProps {
   move: Move;
   num: number;
+  isLast: boolean;
   setMove?: (moveNumber: number) => void;
 }
 
-const TableRow: FC<RowProps> = ({ move, num, setMove }) => (
-  <tr
-    title="Скопировать позицию в нотации FEN"
-    role="button"
-    onClick={() => copyFen(num, move.fenAfter)}
-  >
-    <td>
-      {setMove ? (
-        <Button
-          size="small"
-          type="primary"
-          title="Вернуться к ходу"
-          onClick={(e) => {
-            e.stopPropagation();
-            setMove(num);
-          }}
-        >
-          {num + 1}
-        </Button>
-      ) : (
-        num + 1
-      )}
-    </td>
-    <td>
-      <div
-        className={`${move.piece?.role} ${move.color} ${styles.piece} ${styles.movePiece}`}
-      />
-    </td>
-    <td>{move.from}</td>
-    <td>{move.to}</td>
-    <td>
-      {move.captured ? (
+const TableRow: FC<RowProps> = ({ move, num, setMove, isLast }) => {
+  const ref = useRef<HTMLTableRowElement | null>(null);
+
+  useEffect(() => {
+    if (isLast) {
+      ref.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [isLast]);
+
+  return (
+    <tr
+      ref={ref}
+      title="Скопировать позицию в нотации FEN"
+      role="button"
+      onClick={() => copyFen(num, move.fenAfter)}
+    >
+      <td>
+        {setMove ? (
+          <Button
+            size="small"
+            type="primary"
+            title="Вернуться к ходу"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMove(num);
+            }}
+          >
+            {num + 1}
+          </Button>
+        ) : (
+          num + 1
+        )}
+      </td>
+      <td>
         <div
-          className={`${move.captured.role} ${move.captured.color} ${styles.piece}`}
+          className={`${move.piece?.role} ${move.color} ${styles.piece} ${styles.movePiece}`}
         />
-      ) : (
-        "—"
-      )}
-    </td>
-  </tr>
-);
+      </td>
+      <td>{move.from}</td>
+      <td>{move.to}</td>
+      <td>
+        {move.captured ? (
+          <div
+            className={`${move.captured.role} ${move.captured.color} ${styles.piece}`}
+          />
+        ) : (
+          "—"
+        )}
+      </td>
+    </tr>
+  );
+};
 
 const NoMovesPlaceholder = () => (
   <div className={styles.noMoves}>
@@ -110,6 +122,7 @@ export const MoveHistory = observer<Props>(({ moves, canMove, setMove }) => (
               key={index}
               num={index}
               move={move}
+              isLast={index === moves.length - 1}
               setMove={canMove(index) ? setMove : undefined}
             />
           ))}
