@@ -9,9 +9,10 @@ import { GameButtons } from "./GameButtons";
 
 interface Props {
   game?: Game;
+  onShowSettings: () => void;
 }
 
-export const ControlPanel = observer<Props>(({ game }) => {
+export const ControlPanel = observer<Props>(({ game, onShowSettings }) => {
   if (!game) {
     return <Spinner loading />;
   }
@@ -24,7 +25,7 @@ export const ControlPanel = observer<Props>(({ game }) => {
 
       <div className={styles.buttons}>
         <GameScore game={game} />
-        <GameButtons game={game} />
+        <GameButtons game={game} onShowSettings={onShowSettings} />
       </div>
 
       <div className={styles.clock}>

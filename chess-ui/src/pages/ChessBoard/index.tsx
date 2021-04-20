@@ -7,6 +7,7 @@ import { Game, GameConfig, GameState, LossReason } from "../../game/game";
 import { MoveHistory } from "./MoveHistory";
 import { ControlPanel } from "./ControlPanel";
 import { sound, Track } from "../../game/audio";
+import { defaultSettings, GameSettings } from "./GameSettings";
 
 function onStateChanged(game: Game, state: GameState) {
   let reason = "";
@@ -54,6 +55,8 @@ interface Props {
 export const ChessBoard = observer(({ config }: Props) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const [game, setGame] = useState<Game | undefined>(undefined);
+  const [settings, setSettings] = useState(defaultSettings);
+  const [showSettings, setShowSettings] = useState(false);
 
   function run(elem: HTMLElement) {
     const game = new Game(elem);
@@ -94,13 +97,24 @@ export const ChessBoard = observer(({ config }: Props) => {
 
   return (
     <div className={styles.wrap}>
+      {showSettings && (
+        <GameSettings
+          value={settings}
+          onSet={(next) => setSettings({ ...settings, ...next })}
+          onHide={() => setShowSettings(false)}
+        />
+      )}
+
       <div className={styles.left}>
-        <ControlPanel game={game} />
+        <ControlPanel
+          game={game}
+          onShowSettings={() => setShowSettings(true)}
+        />
       </div>
 
       <div className={styles.boardWrap}>
         <div className={styles.board}>
-          <div ref={ref} className="cg-wrap" />
+          <div ref={ref} className={`cg-wrap ${settings.background}`} />
         </div>
       </div>
 

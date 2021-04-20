@@ -5,6 +5,7 @@ import {
   FaChess,
   FaRegHandPeace,
   FiFlag,
+  FiSettings,
   GiStopSign,
 } from "react-icons/all";
 import React, { Fragment } from "react";
@@ -15,6 +16,10 @@ import { confirm } from "../../../utils/dialogs";
 
 interface Props {
   game: Game;
+}
+
+interface ButtonsProps extends Props {
+  onShowSettings: () => void;
 }
 
 async function getHint(game: Game) {
@@ -84,15 +89,25 @@ const ActiveGameButtons = observer<Props>(({ game }) =>
   )
 );
 
-export const GameButtons = observer<Props>(({ game }) => {
-  const history = useHistory();
-  const startNewGame = () => history.push(routes.home);
+export const GameButtons = observer<ButtonsProps>(
+  ({ game, onShowSettings }) => {
+    const history = useHistory();
+    const startNewGame = () => history.push(routes.home);
 
-  return game.isPlaying ? (
-    <ActiveGameButtons game={game} />
-  ) : (
-    <Button size="large" block onClick={startNewGame}>
-      <FaChess className="icon" /> Новая партия
-    </Button>
-  );
-});
+    return (
+      <Fragment>
+        {game.isPlaying ? (
+          <ActiveGameButtons game={game} />
+        ) : (
+          <Button size="large" block onClick={startNewGame}>
+            <FaChess className="icon" /> Новая партия
+          </Button>
+        )}
+
+        <Button size="large" block onClick={onShowSettings}>
+          <FiSettings className="icon" /> Настройки
+        </Button>
+      </Fragment>
+    );
+  }
+);
