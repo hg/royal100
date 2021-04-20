@@ -121,6 +121,7 @@ export const ChessBoard = observer(({ config }: Props) => {
       <div className={styles.right}>
         {game && (
           <MoveHistory
+            detailed={settings.history === "detailed"}
             moves={game.moves}
             canMove={game.canUndo}
             setMove={game.undoMove}

@@ -6,12 +6,15 @@ import {
   FaChessKnight,
   HiOutlineRefresh,
 } from "react-icons/all";
-import React, { FC, Fragment, useEffect, useRef } from "react";
+import React, { FC, Fragment, Ref, useEffect, useRef } from "react";
 import { Move } from "../../../game/game";
 import { Button, Empty, notification } from "antd";
 import { clipboard } from "electron";
+import { formatMove } from "./util";
+import { Color, Role } from "chessgroundx/types";
 
 interface Props {
+  detailed: boolean;
   moves: Move[];
   canMove: (moveNumber: number) => boolean;
   setMove: (moveNumber: number) => void;
@@ -48,11 +51,11 @@ interface RowProps {
   move: Move;
   num: number;
   isLast: boolean;
-  setMove?: (moveNumber: number) => void;
+  setMove?: () => void;
 }
 
-const TableRow: FC<RowProps> = ({ move, num, setMove, isLast }) => {
-  const ref = useRef<HTMLTableRowElement | null>(null);
+function useScrolling(isLast: boolean) {
+  const ref = useRef<Element | null>(null);
 
   useEffect(() => {
     if (isLast) {
@@ -60,9 +63,15 @@ const TableRow: FC<RowProps> = ({ move, num, setMove, isLast }) => {
     }
   }, [isLast]);
 
+  return ref;
+}
+
+const TableRow: FC<RowProps> = ({ move, num, setMove, isLast }) => {
+  const ref = useScrolling(isLast);
+
   return (
     <tr
-      ref={ref}
+      ref={ref as Ref<HTMLTableRowElement>}
       title="Скопировать позицию в нотации FEN"
       role="button"
       onClick={() => copyFen(num, move.fenAfter)}
@@ -75,7 +84,7 @@ const TableRow: FC<RowProps> = ({ move, num, setMove, isLast }) => {
             title="Вернуться к ходу"
             onClick={(e) => {
               e.stopPropagation();
-              setMove(num);
+              setMove();
             }}
           >
             {num + 1}
@@ -85,17 +94,13 @@ const TableRow: FC<RowProps> = ({ move, num, setMove, isLast }) => {
         )}
       </td>
       <td>
-        <div
-          className={`${move.piece?.role} ${move.color} ${styles.piece} ${styles.movePiece}`}
-        />
+        <MovePiece role={move.piece?.role} color={move.color} />
       </td>
-      <td>{move.from}</td>
-      <td>{move.to}</td>
+      <td>{formatMove(move.from)}</td>
+      <td>{formatMove(move.to)}</td>
       <td>
         {move.captured ? (
-          <div
-            className={`${move.captured.role} ${move.captured.color} ${styles.piece}`}
-          />
+          <MovePiece role={move.captured.role} color={move.captured.color} />
         ) : (
           "—"
         )}
@@ -110,26 +115,81 @@ const NoMovesPlaceholder = () => (
   </div>
 );
 
-export const MoveHistory = observer<Props>(({ moves, canMove, setMove }) => (
-  <Fragment>
-    {moves.length ? (
-      <table className={styles.historyTable}>
-        <TableHeader />
+const MovePiece: FC<{ role?: Role; color: Color }> = ({ role, color }) => (
+  <div className={`${role} ${color} ${styles.piece}`} />
+);
 
-        <tbody>
-          {moves.map((move, index) => (
-            <TableRow
-              key={index}
-              num={index}
-              move={move}
-              isLast={index === moves.length - 1}
-              setMove={canMove(index) ? setMove : undefined}
-            />
-          ))}
-        </tbody>
-      </table>
+const CompactMove: FC<{
+  move: Move;
+  isLast: boolean;
+  setMove?: () => void;
+}> = ({ move, isLast, setMove }) => {
+  const ref = useScrolling(isLast);
+
+  return (
+    <div
+      className={`${styles.compactMove} ${setMove && styles.canMove}`}
+      ref={ref as Ref<HTMLDivElement>}
+      role="button"
+      title={setMove && "Вернуться к ходу"}
+      onClick={setMove}
+    >
+      <MovePiece role={move.piece?.role} color={move.color} />
+      {formatMove(move.from)} {formatMove(move.to)}
+      {move.captured && (
+        <Fragment>
+          {" "}
+          ×
+          <MovePiece role={move.captured.role} color={move.captured.color} />
+        </Fragment>
+      )}
+    </div>
+  );
+};
+
+export const CompactMoveHistory = observer<Props>(
+  ({ moves, canMove, setMove }) => (
+    <div className={styles.compactMoves}>
+      {moves.map((move, index) => (
+        <CompactMove
+          key={index}
+          move={move}
+          isLast={index === moves.length - 1}
+          setMove={canMove(index) ? () => setMove(index) : undefined}
+        />
+      ))}
+    </div>
+  )
+);
+
+export const DetailedMoveHistory = observer<Props>(
+  ({ moves, canMove, setMove }) => (
+    <table className={styles.historyTable}>
+      <TableHeader />
+
+      <tbody>
+        {moves.map((move, index) => (
+          <TableRow
+            key={index}
+            num={index}
+            move={move}
+            isLast={index === moves.length - 1}
+            setMove={canMove(index) ? () => setMove(index) : undefined}
+          />
+        ))}
+      </tbody>
+    </table>
+  )
+);
+
+export const MoveHistory = observer<Props>((props) =>
+  props.moves.length ? (
+    props.detailed ? (
+      <DetailedMoveHistory {...props} />
     ) : (
-      <NoMovesPlaceholder />
-    )}
-  </Fragment>
-));
+      <CompactMoveHistory {...props} />
+    )
+  ) : (
+    <NoMovesPlaceholder />
+  )
+);

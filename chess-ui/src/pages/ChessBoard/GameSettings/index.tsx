@@ -9,11 +9,13 @@ interface Props {
 }
 
 export interface Settings {
+  history: "compact" | "detailed";
   background: "wood" | "marble";
 }
 
 export const defaultSettings: Settings = {
   background: "wood",
+  history: "detailed",
 };
 
 export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
@@ -26,6 +28,16 @@ export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
         >
           <Radio value="wood">Дерево</Radio>
           <Radio value="marble">Мрамор</Radio>
+        </Radio.Group>
+      </Form.Item>
+
+      <Form.Item label="История ходов">
+        <Radio.Group
+          value={value.history}
+          onChange={(e) => onSet({ history: e.target.value })}
+        >
+          <Radio value="detailed">Подробная запись</Radio>
+          <Radio value="compact">Компактная запись</Radio>
         </Radio.Group>
       </Form.Item>
     </Form>
