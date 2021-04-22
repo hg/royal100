@@ -103,7 +103,7 @@ const OpponentSetting: FC<Props> = ({ config, setConfig }) => (
 );
 
 const SideSetting: FC<Props> = ({ config, setConfig }) => (
-  <Form.Item label="Играть">
+  <Form.Item label="Играть" className="board-wrap default">
     <ToggleButton
       config={config}
       setConfig={setConfig}

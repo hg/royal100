@@ -96,7 +96,7 @@ export const ChessBoard = observer(({ config }: Props) => {
   }, [game]);
 
   return (
-    <div className={styles.wrap}>
+    <div className={`${styles.wrap} board-wrap ${settings.pieces}`}>
       {showSettings && (
         <GameSettings
           value={settings}

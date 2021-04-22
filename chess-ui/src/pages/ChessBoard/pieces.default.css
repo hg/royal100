@@ -1,63 +1,63 @@
-.p-piece.white {
+.board-wrap.default .p-piece.white {
   background-image: url("/assets/images/pieces/default/wP.svg");
 }
 
-.b-piece.white {
+.board-wrap.default .b-piece.white {
   background-image: url("/assets/images/pieces/default/wB.svg");
 }
 
-.n-piece.white {
+.board-wrap.default .n-piece.white {
   background-image: url("/assets/images/pieces/default/wN.svg");
 }
 
-.r-piece.white {
+.board-wrap.default .r-piece.white {
   background-image: url("/assets/images/pieces/default/wR.svg");
 }
 
-.q-piece.white {
+.board-wrap.default .q-piece.white {
   background-image: url("/assets/images/pieces/default/wQ.svg");
 }
 
-.k-piece.white {
+.board-wrap.default .k-piece.white {
   background-image: url("/assets/images/pieces/default/wK.svg");
 }
 
-.p-piece.black {
+.board-wrap.default .p-piece.black {
   background-image: url("/assets/images/pieces/default/bP.svg");
 }
 
-.b-piece.black {
+.board-wrap.default .b-piece.black {
   background-image: url("/assets/images/pieces/default/bB.svg");
 }
 
-.n-piece.black {
+.board-wrap.default .n-piece.black {
   background-image: url("/assets/images/pieces/default/bN.svg");
 }
 
-.r-piece.black {
+.board-wrap.default .r-piece.black {
   background-image: url("/assets/images/pieces/default/bR.svg");
 }
 
-.q-piece.black {
+.board-wrap.default .q-piece.black {
   background-image: url("/assets/images/pieces/default/bQ.svg");
 }
 
-.k-piece.black {
+.board-wrap.default .k-piece.black {
   background-image: url("/assets/images/pieces/default/bK.svg");
 }
 
-.t-piece.black {
+.board-wrap.default .t-piece.black {
   background-image: url("/assets/images/pieces/default/bT.svg");
 }
 
-.t-piece.white {
+.board-wrap.default .t-piece.white {
   background-image: url("/assets/images/pieces/default/wT.svg");
 }
 
-.s-piece.black {
+.board-wrap.default .s-piece.black {
   background-image: url("/assets/images/pieces/default/bS.svg");
 }
 
-.s-piece.white {
+.board-wrap.default .s-piece.white {
   background-image: url("/assets/images/pieces/default/wS.svg");
 }

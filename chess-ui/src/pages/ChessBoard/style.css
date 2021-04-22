@@ -1,4 +1,9 @@
-@import "./pieces.css";
+@import "./pieces.default.css";
+@import "./pieces.merida.css";
+
+.board-wrap piece {
+  transition: background-image 500ms ease-in-out;
+}
 
 .cg-wrap {
   background-size: cover;

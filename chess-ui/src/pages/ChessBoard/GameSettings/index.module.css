@@ -8,12 +8,22 @@
   color: black;
   text-align: center;
   cursor: pointer;
+  border: 1px solid #a0a0a0;
+  border-radius: 4px;
 }
 
 .title {
   color: white;
   background: rgba(0, 0, 0, 0.5);
   padding: 4px;
+}
+
+.default {
+  background-image: url("/assets/images/pieces/default/wN.svg");
+}
+
+.merida {
+  background-image: url("/assets/images/pieces/merida/wN.svg");
 }
 
 .wood {

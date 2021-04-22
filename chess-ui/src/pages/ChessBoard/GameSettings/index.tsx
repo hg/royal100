@@ -13,11 +13,13 @@ interface Props {
 export interface Settings {
   history: "compact" | "detailed";
   background: "wood" | "marble";
+  pieces: "default" | "merida";
 }
 
 const defaultSettings: Settings = {
   background: "wood",
   history: "detailed",
+  pieces: "merida",
 };
 
 export function useSettings() {
@@ -51,6 +53,21 @@ export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
         >
           <span className={styles.title}>Мрамор</span>
         </button>
+      </Form.Item>
+
+      <Form.Item label="Набор фигур">
+        <button
+          type="button"
+          onClick={() => onSet({ pieces: "default" })}
+          className={`${styles.imageBtn} ${styles.default}`}
+          title="Первый набор"
+        />
+        <button
+          type="button"
+          onClick={() => onSet({ pieces: "merida" })}
+          className={`${styles.imageBtn} ${styles.merida}`}
+          title="Второй набор"
+        />
       </Form.Item>
 
       <Form.Item label="История ходов">
