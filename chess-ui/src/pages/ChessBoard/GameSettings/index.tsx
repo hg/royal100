@@ -2,6 +2,7 @@ import React, { FC, useEffect, useState } from "react";
 import { Form, Modal, Radio } from "antd";
 import { formLayout } from "../../../utils/forms";
 import { localStore } from "../../../utils/store";
+import styles from "./index.module.css";
 
 interface Props {
   value: Settings;
@@ -36,13 +37,20 @@ export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
   <Modal visible onCancel={onHide} footer={null}>
     <Form {...formLayout}>
       <Form.Item label="Фон доски">
-        <Radio.Group
-          value={value.background}
-          onChange={(e) => onSet({ background: e.target.value })}
+        <button
+          type="button"
+          onClick={() => onSet({ background: "wood" })}
+          className={`${styles.imageBtn} ${styles.wood}`}
         >
-          <Radio value="wood">Дерево</Radio>
-          <Radio value="marble">Мрамор</Radio>
-        </Radio.Group>
+          <span className={styles.title}>Дерево</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onSet({ background: "marble" })}
+          className={`${styles.imageBtn} ${styles.marble}`}
+        >
+          <span className={styles.title}>Мрамор</span>
+        </button>
       </Form.Item>
 
       <Form.Item label="История ходов">

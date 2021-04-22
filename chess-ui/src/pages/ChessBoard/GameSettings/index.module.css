@@ -1,0 +1,25 @@
+.imageBtn {
+  all: unset;
+  height: 80px;
+  width: 80px;
+  background-position: center;
+  background-size: cover;
+  margin: 0 4px;
+  color: black;
+  text-align: center;
+  cursor: pointer;
+}
+
+.title {
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px;
+}
+
+.wood {
+  background-image: url("/assets/images/board/wood.jpg");
+}
+
+.marble {
+  background-image: url("/assets/images/board/marble.jpg");
+}
