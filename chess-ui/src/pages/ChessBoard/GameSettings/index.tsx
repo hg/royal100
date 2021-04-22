@@ -1,6 +1,7 @@
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { Form, Modal, Radio } from "antd";
 import { formLayout } from "../../../utils/forms";
+import { localStore } from "../../../utils/store";
 
 interface Props {
   value: Settings;
@@ -13,10 +14,23 @@ export interface Settings {
   background: "wood" | "marble";
 }
 
-export const defaultSettings: Settings = {
+const defaultSettings: Settings = {
   background: "wood",
   history: "detailed",
 };
+
+export function useSettings() {
+  const [settings, setSettings] = useState<Settings>(() => {
+    const stored = localStore.get<Settings>("game/settings");
+    return { ...defaultSettings, ...stored };
+  });
+
+  useEffect(() => {
+    localStore.set("game/settings", settings);
+  }, [settings]);
+
+  return [settings, setSettings];
+}
 
 export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
   <Modal visible onCancel={onHide} footer={null}>

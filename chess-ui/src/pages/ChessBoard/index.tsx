@@ -7,7 +7,7 @@ import { Game, GameConfig, GameState, LossReason } from "../../game/game";
 import { MoveHistory } from "./MoveHistory";
 import { ControlPanel } from "./ControlPanel";
 import { sound, Track } from "../../game/audio";
-import { defaultSettings, GameSettings } from "./GameSettings";
+import { GameSettings, useSettings } from "./GameSettings";
 
 function onStateChanged(game: Game, state: GameState) {
   let reason = "";
@@ -55,7 +55,7 @@ interface Props {
 export const ChessBoard = observer(({ config }: Props) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const [game, setGame] = useState<Game | undefined>(undefined);
-  const [settings, setSettings] = useState(defaultSettings);
+  const [settings, setSettings] = useSettings();
   const [showSettings, setShowSettings] = useState(false);
 
   function run(elem: HTMLElement) {
