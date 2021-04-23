@@ -23,6 +23,10 @@
 #include <sstream>
 #include <string>
 
+#ifdef ROYAL_WASM
+#include <emscripten.h>
+#endif
+
 #include "evaluate.h"
 #include "misc.h"
 #include "movegen.h"
@@ -350,3 +354,66 @@ Move UCI::to_move(const Position& pos, string& str) {
 
   return MOVE_NONE;
 }
+
+#ifdef ROYAL_WASM
+EMSCRIPTEN_KEEPALIVE extern "C" int uci_command(const char *c_cmd) {
+
+  std::string cmd(c_cmd);
+
+  static bool initialized = false;
+  static Position pos;
+  string token;
+  static StateListPtr states(new std::deque<StateInfo>(1));
+
+  if (!initialized) {
+      pos.set(StartFEN, &states->back(), Threads.main());
+      initialized = true;
+  }
+
+  for (Thread* th : Threads) {
+      if (!th->threadStarted)
+          return 1;
+  }
+
+      istringstream is(cmd);
+
+      token.clear(); // Avoid a stale if getline() returns empty or blank line
+      is >> skipws >> token;
+
+      if (    token == "quit"
+          ||  token == "stop")
+          Threads.stop = true;
+
+      // The GUI sends 'ponderhit' to tell us the user has played the expected move.
+      // So 'ponderhit' will be sent if we were told to ponder on the same move the
+      // user has played. We should continue searching but switch from pondering to
+      // normal search.
+      else if (token == "ponderhit")
+          Threads.main()->ponder = false; // Switch to normal search
+
+      else if (token == "uci")
+          sync_cout << "id name " << engine_info(true)
+                    << "\n"       << Options
+                    << "\nuciok"  << sync_endl;
+
+      else if (token == "setoption")  setoption(is);
+      else if (token == "go")         go(pos, is, states);
+      else if (token == "position")   position(pos, is, states);
+      else if (token == "ucinewgame") Search::clear();
+      else if (token == "isready")    sync_cout << "readyok" << sync_endl;
+
+      else if (token == "valid_moves") print_valid_moves(pos);
+
+      // Additional custom non-UCI commands, mainly for debugging.
+      // Do not use these commands during a search!
+      else if (token == "flip")     pos.flip();
+      else if (token == "bench")    bench(pos, is, states);
+      else if (token == "d")        sync_cout << pos << sync_endl;
+      else if (token == "eval")     sync_cout << Eval::trace(pos) << sync_endl;
+      else if (token == "compiler") sync_cout << compiler_info() << sync_endl;
+      else
+          sync_cout << "Unknown command: " << cmd << sync_endl;
+
+  return 0;
+}
+#endif

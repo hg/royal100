@@ -34,7 +34,10 @@ ThreadPool Threads; // Global object
 
 Thread::Thread(size_t n) : idx(n), stdThread(&Thread::idle_loop, this) {
 
+#ifndef ROYAL_WASM
+  // https://github.com/niklasf/stockfish.wasm/blob/8ae1790bdb509791dcbadd1c0d23e5448cf9b204/src/thread.cpp#L40
   wait_for_search_finished();
+#endif
 }
 
 
@@ -107,6 +110,7 @@ void Thread::wait_for_search_finished() {
 
 void Thread::idle_loop() {
 
+#ifndef ROYAL_WASM
   // If OS already scheduled us on a different group than 0 then don't overwrite
   // the choice, eventually we are one of many one-threaded processes running on
   // some Windows NUMA hardware, for instance in fishtest. To make it simple,
@@ -114,11 +118,17 @@ void Thread::idle_loop() {
   // NUMA machinery is not needed.
   if (Options["Threads"] > 8)
       WinProcGroup::bindThisThread(idx);
+#endif
 
   while (true)
   {
       std::unique_lock<std::mutex> lk(mutex);
       searching = false;
+
+#ifdef ROYAL_WASM
+      threadStarted = true;
+#endif
+
       cv.notify_one(); // Wake up anyone waiting for search finished
       cv.wait(lk, [&]{ return searching; });
 
@@ -187,12 +197,7 @@ void ThreadPool::start_thinking(Position& pos, StateListPtr& states,
   for (const auto& m : MoveList<LEGAL>(pos))
       if (   limits.searchmoves.empty()
           || std::count(limits.searchmoves.begin(), limits.searchmoves.end(), m))
-      {
-          //Adding moves
-          //std::cout << "<adding root move: " << from_sq(m) << "," << to_sq(m) << ">" << std::endl;
-          
           rootMoves.emplace_back(m);
-      }
 
   // After ownership transfer 'states' becomes empty, so if we stop the search
   // and call 'go' again without setting a new position states.get() == NULL.

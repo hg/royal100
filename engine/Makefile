@@ -149,6 +149,13 @@ ifeq ($(ARCH),ppc-64)
 	prefetch = yes
 endif
 
+ifeq ($(ARCH),wasm)
+	arch = any
+	popcnt = yes
+	COMP = emscripten
+	EXE = royal100.js
+endif
+
 ### ==========================================================================
 ### Section 3. Low-level Configuration
 ### ==========================================================================
@@ -235,6 +242,17 @@ ifeq ($(COMP),clang)
 	endif
 endif
 
+ifeq ($(COMP),emscripten)
+	comp=clang
+	CXX=em++
+	EMFLAGS += -s MODULARIZE=1 -s EXPORT_NAME="Royal100" -s ENVIRONMENT=web,worker,node -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=1
+	EMFLAGS += -s EXIT_RUNTIME=0 -s "EXTRA_EXPORTED_RUNTIME_METHODS=['ccall']" --pre-js pre.js
+	EMFLAGS += -s ALLOW_MEMORY_GROWTH=1 -s INITIAL_MEMORY=71303168 -s MAXIMUM_MEMORY=2147483648
+	EMFLAGS += -s FILESYSTEM=0 --closure 1
+	EMFLAGS += -s STRICT=1 -s ASSERTIONS=0
+	CXXFLAGS += $(EMFLAGS) -DROYAL_WASM
+endif
+
 ifeq ($(comp),icc)
 	profile_make = icc-profile-make
 	profile_use = icc-profile-use
@@ -248,9 +266,11 @@ else
 endif
 endif
 
+ifneq ($(COMP),emscripten)
 ifeq ($(KERNEL),Darwin)
 	CXXFLAGS += -arch $(arch) -mmacosx-version-min=10.9
 	LDFLAGS += -arch $(arch) -mmacosx-version-min=10.9
+endif
 endif
 
 ### Travis CI script uses COMPILER to overwrite CXX
@@ -298,10 +318,12 @@ ifeq ($(optimize),yes)
 		endif
 	endif
 
+	ifneq ($(COMP),emscripten)
 	ifeq ($(comp),$(filter $(comp),gcc clang icc))
 		ifeq ($(KERNEL),Darwin)
 			CXXFLAGS += -mdynamic-no-pic
 		endif
+	endif
 	endif
 endif
 
@@ -322,7 +344,9 @@ endif
 
 ### 3.6 popcnt
 ifeq ($(popcnt),yes)
-	ifeq ($(arch),ppc64)
+	ifeq ($(COMP),emscripten)
+		CXXFLAGS += -DUSE_POPCNT
+	else ifeq ($(arch),ppc64)
 		CXXFLAGS += -DUSE_POPCNT
 	else ifeq ($(comp),icc)
 		CXXFLAGS += -msse3 -DUSE_POPCNT
@@ -348,6 +372,8 @@ ifeq ($(debug), no)
 		CXXFLAGS += -flto
 		LDFLAGS += $(CXXFLAGS)
 	endif
+else ifeq ($(COMP),emscripten)
+	LDFLAGS += $(EMFLAGS)
 endif
 endif
 
@@ -389,6 +415,7 @@ help:
 	@echo "armv8                   > ARMv8 64-bit"
 	@echo "general-64              > unspecified 64-bit"
 	@echo "general-32              > unspecified 32-bit"
+	@echo "wasm                    > web assembly"
 	@echo ""
 	@echo "Supported compilers:"
 	@echo ""
@@ -445,7 +472,7 @@ clean: objclean profileclean
 
 # clean binaries and objects
 objclean:
-	@rm -f $(EXE) *.o ./syzygy/*.o
+	@rm -f $(EXE) *.o ./syzygy/*.o *.wasm *.worker.js royal100.js
 
 # clean auxiliary profiling files
 profileclean:
@@ -489,15 +516,16 @@ config-sanity:
 	@test "$(optimize)" = "yes" || test "$(optimize)" = "no"
 	@test "$(arch)" = "any" || test "$(arch)" = "x86_64" || test "$(arch)" = "i386" || \
 	 test "$(arch)" = "ppc64" || test "$(arch)" = "ppc" || \
+	 test "$(arch)" = "wasm" \
 	 test "$(arch)" = "armv7" || test "$(arch)" = "armv8-a"
 	@test "$(bits)" = "32" || test "$(bits)" = "64"
 	@test "$(prefetch)" = "yes" || test "$(prefetch)" = "no"
 	@test "$(popcnt)" = "yes" || test "$(popcnt)" = "no"
 	@test "$(sse)" = "yes" || test "$(sse)" = "no"
 	@test "$(pext)" = "yes" || test "$(pext)" = "no"
-	@test "$(comp)" = "gcc" || test "$(comp)" = "icc" || test "$(comp)" = "mingw" || test "$(comp)" = "clang"
+	@test "$(comp)" = "gcc" || test "$(comp)" = "icc" || test "$(comp)" = "mingw" || test "$(comp)" = "clang" || test "$(comp)" = "emscripten"
 
-$(EXE): $(OBJS)
+$(EXE): $(OBJS) pre.js
 	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
 
 clang-profile-make:

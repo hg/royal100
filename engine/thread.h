@@ -64,6 +64,10 @@ public:
   Color nmpColor;
   std::atomic<uint64_t> nodes, tbHits, bestMoveChanges;
 
+#ifdef ROYAL_WASM
+  std::atomic<bool> threadStarted;
+#endif
+
   Position rootPos;
   Search::RootMoves rootMoves;
   Depth rootDepth, completedDepth;

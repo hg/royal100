@@ -41,8 +41,10 @@ int main(int argc, char* argv[]) {
   Threads.set(size_t(Options["Threads"]));
   Search::clear(); // After threads are up
 
+#ifndef ROYAL_WASM
   UCI::loop(argc, argv);
-
   Threads.set(0);
+#endif
+
   return 0;
 }
