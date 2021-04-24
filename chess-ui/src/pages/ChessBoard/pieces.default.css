@@ -1,0 +1,63 @@
+.board-wrap.default .p-piece.white {
+  background-image: url(../../assets/images/pieces/default/wP.svg);
+}
+
+.board-wrap.default .b-piece.white {
+  background-image: url(../../assets/images/pieces/default/wB.svg);
+}
+
+.board-wrap.default .n-piece.white {
+  background-image: url(../../assets/images/pieces/default/wN.svg);
+}
+
+.board-wrap.default .r-piece.white {
+  background-image: url(../../assets/images/pieces/default/wR.svg);
+}
+
+.board-wrap.default .q-piece.white {
+  background-image: url(../../assets/images/pieces/default/wQ.svg);
+}
+
+.board-wrap.default .k-piece.white {
+  background-image: url(../../assets/images/pieces/default/wK.svg);
+}
+
+.board-wrap.default .p-piece.black {
+  background-image: url(../../assets/images/pieces/default/bP.svg);
+}
+
+.board-wrap.default .b-piece.black {
+  background-image: url(../../assets/images/pieces/default/bB.svg);
+}
+
+.board-wrap.default .n-piece.black {
+  background-image: url(../../assets/images/pieces/default/bN.svg);
+}
+
+.board-wrap.default .r-piece.black {
+  background-image: url(../../assets/images/pieces/default/bR.svg);
+}
+
+.board-wrap.default .q-piece.black {
+  background-image: url(../../assets/images/pieces/default/bQ.svg);
+}
+
+.board-wrap.default .k-piece.black {
+  background-image: url(../../assets/images/pieces/default/bK.svg);
+}
+
+.board-wrap.default .t-piece.black {
+  background-image: url(../../assets/images/pieces/default/bT.svg);
+}
+
+.board-wrap.default .t-piece.white {
+  background-image: url(../../assets/images/pieces/default/wT.svg);
+}
+
+.board-wrap.default .s-piece.black {
+  background-image: url(../../assets/images/pieces/default/bS.svg);
+}
+
+.board-wrap.default .s-piece.white {
+  background-image: url(../../assets/images/pieces/default/wS.svg);
+}

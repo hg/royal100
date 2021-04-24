@@ -1,0 +1,19 @@
+.clock {
+  font-size: 38px;
+  text-align: center;
+  border-radius: 2px;
+  margin: 4px 0;
+  font-family: monospace;
+}
+
+.clock.white {
+  background: #dedede;
+  color: black;
+  border: 1px solid #080808;
+}
+
+.clock.black {
+  background: black;
+  color: white;
+  border: 1px solid #aeaeae;
+}

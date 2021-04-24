@@ -1,0 +1,63 @@
+.board-wrap.merida .p-piece.white {
+  background-image: url(../../assets/images/pieces/merida/wP.svg);
+}
+
+.board-wrap.merida .b-piece.white {
+  background-image: url(../../assets/images/pieces/merida/wB.svg);
+}
+
+.board-wrap.merida .n-piece.white {
+  background-image: url(../../assets/images/pieces/merida/wN.svg);
+}
+
+.board-wrap.merida .r-piece.white {
+  background-image: url(../../assets/images/pieces/merida/wR.svg);
+}
+
+.board-wrap.merida .q-piece.white {
+  background-image: url(../../assets/images/pieces/merida/wQ.svg);
+}
+
+.board-wrap.merida .k-piece.white {
+  background-image: url(../../assets/images/pieces/merida/wK.svg);
+}
+
+.board-wrap.merida .p-piece.black {
+  background-image: url(../../assets/images/pieces/merida/bP.svg);
+}
+
+.board-wrap.merida .b-piece.black {
+  background-image: url(../../assets/images/pieces/merida/bB.svg);
+}
+
+.board-wrap.merida .n-piece.black {
+  background-image: url(../../assets/images/pieces/merida/bN.svg);
+}
+
+.board-wrap.merida .r-piece.black {
+  background-image: url(../../assets/images/pieces/merida/bR.svg);
+}
+
+.board-wrap.merida .q-piece.black {
+  background-image: url(../../assets/images/pieces/merida/bQ.svg);
+}
+
+.board-wrap.merida .k-piece.black {
+  background-image: url(../../assets/images/pieces/merida/bK.svg);
+}
+
+.board-wrap.merida .t-piece.black {
+  background-image: url(../../assets/images/pieces/merida/bT.svg);
+}
+
+.board-wrap.merida .t-piece.white {
+  background-image: url(../../assets/images/pieces/merida/wT.svg);
+}
+
+.board-wrap.merida .s-piece.black {
+  background-image: url(../../assets/images/pieces/merida/bS.svg);
+}
+
+.board-wrap.merida .s-piece.white {
+  background-image: url(../../assets/images/pieces/merida/wS.svg);
+}

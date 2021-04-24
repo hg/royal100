@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW 2020 (64-Bit) -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="50.0126mm" height="50.0126mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 5001.26 5001.26"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .str0 {stroke:#575452;stroke-width:35.28;stroke-miterlimit:22.9256}
+    .str1 {stroke:#333333;stroke-width:125;stroke-miterlimit:22.9256}
+    .fil2 {fill:none}
+    .fil0 {fill:#FEFEFE}
+    .fil1 {fill:#E6E6E6}
+   ]]>
+  </style>
+ </defs>
+ <g id="Слой_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <polygon class="fil0 str0" points="3774.57,1583.04 1224.79,1583.04 2198.91,2629.8 2749.5,2629.8 "/>
+  <polygon class="fil0 str0" points="3008.05,952.39 1941.6,952.39 2265.4,1349.41 2265.4,1583.04 2699.35,1583.04 2699.35,1374.32 "/>
+  <polygon class="fil0 str1" points="2198.91,2629.8 2749.5,2629.8 2749.5,2929.74 3904.56,4075.85 3904.56,4449.75 1073.77,4449.75 1073.77,4075.85 2198.91,2929.74 "/>
+  <polygon class="fil1" points="3524.56,3698.79 2687.32,2953.56 3100.04,3699.81 "/>
+  <line class="fil2 str1" x1="1442.93" y1="3699.81" x2="3515.41" y2= "3699.81" />
+  <line class="fil2 str1" x1="2198.91" y1="2629.8" x2="1175.51" y2= "1583.04" />
+  <line class="fil2 str1" x1="2751.17" y1="2629.8" x2="3774.57" y2= "1583.04" />
+  <line class="fil2 str1" x1="933.14" y1="1583.04" x2="4063.16" y2= "1583.04" />
+  <polyline class="fil2 str1" points="2699.35,1583.04 2699.35,1374.32 3043.48,952.39 1941.6,952.39 2285.73,1374.32 2285.73,1583.04 "/>
+  <line class="fil2 str1" x1="2224.4" y1="2065.2" x2="2763.02" y2= "2065.2" />
+  <line class="fil2 str1" x1="2493.68" y1="2334.51" x2="2493.68" y2= "1795.88" />
+ </g>
+</svg>
