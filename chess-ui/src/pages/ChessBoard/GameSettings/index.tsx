@@ -3,6 +3,7 @@ import { Form, Modal, Radio } from "antd";
 import { formLayout } from "../../../utils/forms";
 import { localStore } from "../../../utils/store";
 import styles from "./index.module.css";
+import { BackgroundButton } from "./BackgroundButton";
 
 interface Props {
   value: Settings;
@@ -12,7 +13,7 @@ interface Props {
 
 export interface Settings {
   history: "compact" | "detailed";
-  background: "wood" | "marble";
+  background: "wood" | "marble" | "metal" | "maple" | "green";
   pieces: "default" | "merida";
 }
 
@@ -39,35 +40,30 @@ export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
   <Modal visible onCancel={onHide} footer={null}>
     <Form {...formLayout}>
       <Form.Item label="Фон доски">
-        <button
-          type="button"
-          onClick={() => onSet({ background: "wood" })}
-          className={`${styles.imageBtn} ${styles.wood}`}
-        >
-          <span className={styles.title}>Дерево</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => onSet({ background: "marble" })}
-          className={`${styles.imageBtn} ${styles.marble}`}
-        >
-          <span className={styles.title}>Мрамор</span>
-        </button>
+        <div className={styles.imageBtns}>
+          <BackgroundButton onSet={onSet} type="wood" title="Дерево" />
+          <BackgroundButton onSet={onSet} type="maple" title="Клён" />
+          <BackgroundButton onSet={onSet} type="marble" title="Мрамор" />
+          <BackgroundButton onSet={onSet} type="green" title="Зелёный мрамор" />
+          <BackgroundButton onSet={onSet} type="metal" title="Металл" />
+        </div>
       </Form.Item>
 
       <Form.Item label="Набор фигур">
-        <button
-          type="button"
-          onClick={() => onSet({ pieces: "default" })}
-          className={`${styles.imageBtn} ${styles.default}`}
-          title="Первый набор"
-        />
-        <button
-          type="button"
-          onClick={() => onSet({ pieces: "merida" })}
-          className={`${styles.imageBtn} ${styles.merida}`}
-          title="Второй набор"
-        />
+        <div className={styles.imageBtns}>
+          <button
+            type="button"
+            onClick={() => onSet({ pieces: "default" })}
+            className={`${styles.imageBtn} ${styles.default}`}
+            title="Первый набор"
+          />
+          <button
+            type="button"
+            onClick={() => onSet({ pieces: "merida" })}
+            className={`${styles.imageBtn} ${styles.merida}`}
+            title="Второй набор"
+          />
+        </div>
       </Form.Item>
 
       <Form.Item label="История ходов">

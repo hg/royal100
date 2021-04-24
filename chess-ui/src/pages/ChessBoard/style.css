@@ -22,6 +22,18 @@
   background-image: url(../../assets/images/board/marble.jpg);
 }
 
+.cg-wrap.metal {
+  background-image: url(../../assets/images/board/metal.jpg);
+}
+
+.cg-wrap.maple {
+  background-image: url(../../assets/images/board/maple.jpg);
+}
+
+.cg-wrap.green {
+  background-image: url(../../assets/images/board/green.jpg);
+}
+
 cg-container {
   position: absolute;
   width: 100%;

@@ -1,21 +1,29 @@
 .imageBtn {
   all: unset;
-  height: 80px;
-  width: 80px;
+  height: 96px;
+  width: 96px;
   background-position: center;
   background-size: cover;
-  margin: 0 4px;
   color: black;
   text-align: center;
   cursor: pointer;
   border: 1px solid #a0a0a0;
   border-radius: 4px;
+  margin: 4px;
+}
+
+.imageBtns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
 }
 
 .title {
   color: white;
   background: rgba(0, 0, 0, 0.5);
   padding: 4px;
+  text-align: center;
 }
 
 .default {
@@ -27,9 +35,21 @@
 }
 
 .wood {
-  background-image: url(../../../assets/images/board/wood.jpg);
+  background-image: url(../../../assets/images/board/preview/wood.jpg);
 }
 
 .marble {
-  background-image: url(../../../assets/images/board/marble.jpg);
+  background-image: url(../../../assets/images/board/preview/marble.jpg);
+}
+
+.metal {
+  background-image: url(../../../assets/images/board/preview/metal.jpg);
+}
+
+.maple {
+  background-image: url(../../../assets/images/board/preview/maple.jpg);
+}
+
+.green {
+  background-image: url(../../../assets/images/board/preview/green.jpg);
 }
