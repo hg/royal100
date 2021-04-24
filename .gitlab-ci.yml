@@ -25,9 +25,9 @@ build-app:
   script:
     - export ELECTRON_CACHE=$PWD/cache/electron
     - export ELECTRON_BUILDER_CACHE=$PWD/cache/electron-builder
-    - mv engine-bin/* chess-ui/assets/bin/engine/
+    - mv engine-bin/* chess-ui-electron/assets/bin/engine/
     - mkdir -p release/{linux,windows}
-    - cd chess-ui/
+    - cd chess-ui-electron/
     - yarn install
     - yarn package:all
     - mv release/*.tar.gz ../release/linux/
@@ -35,7 +35,7 @@ build-app:
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
-      - chess-ui/node_modules
+      - chess-ui-electron/node_modules
       - cache/electron
       - cache/electron-builder
   artifacts:
