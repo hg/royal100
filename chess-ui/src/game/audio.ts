@@ -22,6 +22,7 @@ type Sounds = {
 
 class Sound {
   private sounds: Sounds = {};
+  private enabled = true;
 
   constructor() {
     this.addSound(Track.Move, oggMove);
@@ -37,7 +38,14 @@ class Sound {
     this.sounds[track] = new Audio(filename);
   }
 
+  toggle(enabled: boolean) {
+    this.enabled = enabled;
+  }
+
   async play(track: Track) {
+    if (!this.enabled) {
+      return;
+    }
     const audio = this.sounds[track];
     if (!audio) {
       console.error("track not found", track);

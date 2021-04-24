@@ -58,6 +58,10 @@ export const ChessBoard = observer(({ config }: Props) => {
   const [settings, setSettings] = useSettings();
   const [showSettings, setShowSettings] = useState(false);
 
+  useEffect(() => {
+    sound.toggle(settings.sound);
+  }, [settings.sound]);
+
   function run(elem: HTMLElement) {
     const game = new Game(elem);
     setGame(game);

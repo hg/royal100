@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useState } from "react";
-import { Form, Modal, Radio } from "antd";
+import { Checkbox, Form, Modal, Radio } from "antd";
 import { formLayout } from "../../../utils/forms";
 import { localStore } from "../../../utils/store";
 import styles from "./index.module.css";
@@ -15,12 +15,14 @@ export interface Settings {
   history: "compact" | "detailed";
   background: "wood" | "marble" | "metal" | "maple" | "green";
   pieces: "default" | "merida";
+  sound: boolean;
 }
 
 const defaultSettings: Settings = {
   background: "wood",
   history: "detailed",
   pieces: "merida",
+  sound: true,
 };
 
 export function useSettings(): [Settings, (value: Settings) => void] {
@@ -64,6 +66,15 @@ export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
             title="Второй набор"
           />
         </div>
+      </Form.Item>
+
+      <Form.Item label="Звук">
+        <Checkbox
+          checked={value.sound}
+          onChange={(e) => onSet({ sound: e.target.checked })}
+        >
+          Включить звук
+        </Checkbox>
       </Form.Item>
 
       <Form.Item label="История ходов">
