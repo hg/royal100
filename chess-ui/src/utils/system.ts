@@ -11,5 +11,5 @@ export function getAudioPath(filename: string): string {
 }
 
 function getAssetPath(...components: string[]): string {
-  return "public/" + components.join("/");
+  return process.env.PUBLIC_URL + "/" + components.join("/");
 }

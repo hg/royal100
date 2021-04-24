@@ -1,4 +1,10 @@
-import { getAudioPath } from "../utils/system";
+import oggMove from "../assets/sounds/move.ogg";
+import oggCapture from "../assets/sounds/capture.ogg";
+import oggSelect from "../assets/sounds/select.ogg";
+import oggConfirm from "../assets/sounds/confirm.ogg";
+import oggNotify from "../assets/sounds/notify.ogg";
+import oggWin from "../assets/sounds/win.ogg";
+import oggLose from "../assets/sounds/lose.ogg";
 
 export enum Track {
   Move,
@@ -18,17 +24,17 @@ class Sound {
   private sounds: Sounds = {};
 
   constructor() {
-    this.addSound(Track.Move, "move.ogg");
-    this.addSound(Track.Capture, "capture.ogg");
-    this.addSound(Track.Select, "select.ogg");
-    this.addSound(Track.Confirm, "confirm.ogg");
-    this.addSound(Track.Notify, "notify.ogg");
-    this.addSound(Track.Win, "win.ogg");
-    this.addSound(Track.Lose, "lose.ogg");
+    this.addSound(Track.Move, oggMove);
+    this.addSound(Track.Capture, oggCapture);
+    this.addSound(Track.Select, oggSelect);
+    this.addSound(Track.Confirm, oggConfirm);
+    this.addSound(Track.Notify, oggNotify);
+    this.addSound(Track.Win, oggWin);
+    this.addSound(Track.Lose, oggLose);
   }
 
   private addSound(track: Track, filename: string) {
-    this.sounds[track] = new Audio(getAudioPath(filename));
+    this.sounds[track] = new Audio(filename);
   }
 
   async play(track: Track) {
