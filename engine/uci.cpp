@@ -257,6 +257,7 @@ void UCI::loop(int argc, char* argv[]) {
       else if (token == "isready")    sync_cout << "readyok" << sync_endl;
 
       else if (token == "valid_moves") print_valid_moves(pos);
+      else if (token == "fen")         sync_cout << "fen: " << pos.fen() << sync_endl;
 
       // Additional custom non-UCI commands, mainly for debugging.
       // Do not use these commands during a search!
@@ -403,6 +404,7 @@ EMSCRIPTEN_KEEPALIVE extern "C" int uci_command(const char *c_cmd) {
       else if (token == "isready")    sync_cout << "readyok" << sync_endl;
 
       else if (token == "valid_moves") print_valid_moves(pos);
+      else if (token == "fen")         sync_cout << "fen: " << pos.fen() << sync_endl;
 
       // Additional custom non-UCI commands, mainly for debugging.
       // Do not use these commands during a search!
