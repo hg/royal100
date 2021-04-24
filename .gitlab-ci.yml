@@ -1,31 +1,116 @@
+variables:
+  SSH_CONFIG: >
+    Host server
+      HostName chess.8086.cf
+      User chess
+      IdentityFile ~/.ssh/key
+      StrictHostKeyChecking no
+
+  DEPLOY_PATH: /var/www/chess.8086.cf
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 stages:
   - build-engine
   - build-app
+  - deploy-app
 
-build-engine:
+build-engine-wasm:
+  stage: build-engine
+  image: emscripten/emsdk:2.0.18
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - engine-wasm
+  cache:
+    key: engine-wasm-${CI_COMMIT_REF_SLUG}
+    paths:
+      - emscripten-cache
+  script:
+    - export EM_CACHE=$PWD/emscripten-cache
+    - mkdir -p "$EM_CACHE"
+    - mkdir engine-wasm
+    - cd engine
+    - make -j$(nproc) ARCH=wasm clean build
+    - mv royal100.{js,wasm,worker.js} ../engine-wasm/
+
+build-app-browser:
+  stage: build-app
+  image: node:lts
+  needs:
+    - build-engine-wasm
+  artifacts:
+    paths:
+      - chess-ui/build
+  script:
+    - cp -a engine-wasm/* chess-ui/public/engine/
+    - cd chess-ui
+    - yarn install
+    - yarn build
+  cache:
+    key: browser-${CI_COMMIT_REF_SLUG}
+    paths:
+      - chess-ui/node_modules
+
+deploy-app-browser:
+  stage: deploy-app
+  image: instrumentisto/rsync-ssh
+  needs:
+    - build-app-browser
+  script:
+    - mkdir -p ~/.ssh
+    - echo "$SSH_DEPLOY_KEY" >~/.ssh/key
+    - chmod 400 ~/.ssh/key
+    - echo "$SSH_CONFIG" >~/.ssh/config
+    - rsync
+      --archive
+      --itemize-changes
+      --compress
+      --delete-delay
+      --delay-updates
+      --checksum
+      chess-ui/build/
+      server:"$DEPLOY_PATH"/
+
+build-engine-linux:
   stage: build-engine
   image: burningdaylight/mingw-arch
   artifacts:
     expire_in: 1 hour
     paths:
-      - engine-bin/
+      - engine-linux
   script:
-    - mkdir engine-bin/
-    - cd engine/
+    - mkdir engine-linux
+    - cd engine
     - make -j$(nproc) ARCH=x86-64 COMP=gcc clean build
-    - mv royal100 ../engine-bin/
-    - make -j$(nproc) ARCH=x86-64 COMP=mingw clean build
-    - mv royal100.exe ../engine-bin/
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - mv royal100 ../engine-linux/
 
-build-app:
+build-engine-windows:
+  stage: build-engine
+  image: burningdaylight/mingw-arch
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - engine-windows
+  script:
+    - mkdir engine-windows
+    - cd engine
+    - make -j$(nproc) ARCH=x86-64 COMP=mingw clean build
+    - mv royal100.exe ../engine-windows/
+
+build-app-electron:
   stage: build-app
   image: electronuserland/builder:wine
+  needs:
+    - build-engine-linux
+    - build-engine-windows
   script:
     - export ELECTRON_CACHE=$PWD/cache/electron
     - export ELECTRON_BUILDER_CACHE=$PWD/cache/electron-builder
-    - mv engine-bin/* chess-ui-electron/assets/bin/engine/
+    - mv engine-{linux,windows}/* chess-ui-electron/assets/bin/engine/
     - mkdir -p release/{linux,windows}
     - cd chess-ui-electron/
     - yarn install
@@ -33,14 +118,11 @@ build-app:
     - mv release/*.tar.gz ../release/linux/
     - mv release/*.zip ../release/windows/
   cache:
-    key: ${CI_COMMIT_REF_SLUG}
+    key: electron-${CI_COMMIT_REF_SLUG}
     paths:
       - chess-ui-electron/node_modules
       - cache/electron
       - cache/electron-builder
   artifacts:
     paths:
-      - release/
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
+      - release

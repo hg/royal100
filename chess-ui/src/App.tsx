@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BrowserRouter, Route, Switch } from "react-router-dom";
+import { HashRouter, Route, Switch } from "react-router-dom";
 import ruRu from "antd/lib/locale-provider/ru_RU";
 import { ConfigProvider } from "antd";
 import { FullScreenWrap } from "./components/FullScreenWrap";
@@ -52,10 +52,10 @@ function AppRoutes() {
 
 export const App = () => (
   <ConfigProvider locale={ruRu}>
-    <BrowserRouter>
+    <HashRouter>
       <React.Suspense fallback={suspenseFallback}>
         <AppRoutes />
       </React.Suspense>
-    </BrowserRouter>
+    </HashRouter>
   </ConfigProvider>
 );
