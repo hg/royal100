@@ -12,6 +12,7 @@ import { routes } from "./pages/routes";
 import { GameConfig, OpponentType, UndoMove } from "./game/game";
 import { depth } from "./utils/consts";
 import "./App.css";
+import { useWasmCheck } from "./utils/wasm";
 
 moment.locale("ru");
 
@@ -21,7 +22,7 @@ const suspenseFallback = (
   </FullScreenWrap>
 );
 
-const AppRoutes = () => {
+function AppRoutes() {
   const [config, setConfig] = useState<GameConfig>({
     myColor: "white",
     depth: depth.default,
@@ -29,6 +30,10 @@ const AppRoutes = () => {
     opponent: OpponentType.Computer,
     undo: UndoMove.Single,
   });
+
+  if (!useWasmCheck()) {
+    return null;
+  }
 
   return (
     <Switch>
@@ -43,7 +48,7 @@ const AppRoutes = () => {
       />
     </Switch>
   );
-};
+}
 
 export const App = () => (
   <ConfigProvider locale={ruRu}>
