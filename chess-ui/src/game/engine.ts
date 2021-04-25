@@ -1,4 +1,4 @@
-import { Key } from "chessgroundx/types";
+import { Color, Key } from "chessgroundx/types";
 import { Clocks } from "./game";
 import assert from "assert";
 import { EventEmitter } from "events";
@@ -7,6 +7,8 @@ import {
   BestMove,
   checkScore,
   parseBestMove,
+  parseFen,
+  parseFenResponse,
   parseValidMoves,
 } from "../utils/chess";
 import { numCpus } from "../utils/system";
@@ -25,6 +27,26 @@ export interface ValidMoves {
   promotions: Promotions;
 }
 
+interface CastlingAvailability {
+  K: boolean;
+  Q: boolean;
+}
+
+export interface Fen {
+  fen: string;
+  pieces: string;
+  color: Color;
+  castling: {
+    [key in Color]: CastlingAvailability;
+  };
+  princess: {
+    [key in Color]: boolean;
+  };
+  enPassant?: Key;
+  halfMoves: number;
+  fullMoves: number;
+}
+
 interface Options {
   threads?: number;
   depth?: number;
@@ -33,6 +55,7 @@ interface Options {
 
 export enum EngineEvent {
   Data = "data",
+  Fen = "fen",
   Ready = "ready",
   Score = "score",
   BestMove = "bestMove",
@@ -89,12 +112,32 @@ export class Engine {
     }
   }
 
+  async fen(currentFen: string, moves: string[]): Promise<Fen> {
+    assert.ok(this.engine);
+
+    while (true) {
+      this.engine.postMessage(
+        `position fen ${currentFen} moves ${moves.join(" ")}`
+      );
+      this.engine.postMessage("fen");
+
+      try {
+        const fen: string = await this.wait(EngineEvent.Fen, 5000);
+        if (fen) {
+          return parseFen(fen);
+        }
+      } catch {
+        await this.restartEngine();
+      }
+    }
+  }
+
   async validMoves(fen: string): Promise<ValidMoves> {
     assert.ok(this.engine);
 
     while (true) {
       this.position(fen);
-      this.engine.postMessage(`valid_moves`);
+      this.engine.postMessage("valid_moves");
 
       try {
         return await this.wait(EngineEvent.ValidMoves, 5000);
@@ -105,11 +148,11 @@ export class Engine {
   }
 
   stopThinking() {
-    this.engine?.postMessage(`stop`);
+    this.engine?.postMessage("stop");
   }
 
   quit() {
-    this.engine?.postMessage(`quit`);
+    this.engine?.postMessage("quit");
     this.engine = undefined;
   }
 
@@ -135,6 +178,12 @@ export class Engine {
     for (const line of lines) {
       if (line.includes("readyok")) {
         this.events.emit(EngineEvent.Ready);
+        continue;
+      }
+
+      const fen = parseFenResponse(line);
+      if (fen) {
+        this.events.emit(EngineEvent.Fen, fen);
         continue;
       }
 
@@ -208,7 +257,7 @@ export class Engine {
   }
 
   private async isReady(): Promise<boolean> {
-    this.engine?.postMessage(`isready`);
+    this.engine?.postMessage("isready");
     try {
       await this.wait(EngineEvent.Ready, 5000);
       return true;

@@ -2,9 +2,11 @@ import { Key, Letter } from "chessgroundx/types";
 import { read } from "chessgroundx/fen";
 import { enginePositionToBoard } from "./interop";
 import assert from "assert";
-import { ValidMoves } from "../game/engine";
+import { Fen, ValidMoves } from "../game/engine";
 
 const reKey = /^([abcdefghij])([0-9:])$/;
+const reWs = /\s+/;
+const reOne = /1{2,}/;
 
 export function validateFen(fen: string) {
   const field = read(fen);
@@ -112,6 +114,51 @@ export function parseMoves(data: string): PieceMove[] {
   }
 
   return result;
+}
+
+export function parseFen(fen: string): Fen {
+  const [
+    pieces,
+    color,
+    castling,
+    princess,
+    enPassant,
+    halfMoves,
+    fullMoves,
+  ] = fen.split(reWs);
+
+  return {
+    fen,
+    pieces: pieces.replaceAll(reOne, (sub) => sub.length.toString()),
+    color: color === "w" ? "white" : "black",
+    castling: {
+      white: {
+        K: castling.includes("K"),
+        Q: castling.includes("Q"),
+      },
+      black: {
+        K: castling.includes("k"),
+        Q: castling.includes("q"),
+      },
+    },
+    princess: {
+      white: princess.includes("S"),
+      black: princess.includes("s"),
+    },
+    enPassant: enPassant === "-" ? undefined : (enPassant as Key),
+    halfMoves: Number(halfMoves),
+    fullMoves: Number(fullMoves),
+  };
+}
+
+export function parseFenResponse(data: string): string | undefined {
+  const prefix = "fen: ";
+
+  if (data.startsWith(prefix)) {
+    return data.substr(prefix.length);
+  }
+
+  return undefined;
 }
 
 export function parseValidMoves(data: string): ValidMoves | undefined {
