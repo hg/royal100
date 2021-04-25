@@ -7,6 +7,7 @@ import {
   BestMove,
   checkScore,
   parseBestMove,
+  parseCheckersResponse,
   parseFen,
   parseFenResponse,
   parseValidMoves,
@@ -33,7 +34,7 @@ interface CastlingAvailability {
 }
 
 export interface Fen {
-  fen: string;
+  raw: string;
   pieces: string;
   color: Color;
   castling: {
@@ -47,6 +48,21 @@ export interface Fen {
   fullMoves: number;
 }
 
+export function fenToString(f: Fen): string {
+  return [
+    f.pieces,
+    f.color,
+    (f.castling.white.K ? "K" : "") +
+      (f.castling.white.Q ? "Q" : "") +
+      (f.castling.black.K ? "k" : "") +
+      (f.castling.black.Q ? "q" : "") || "-",
+    (f.princess.white ? "S" : "") + (f.princess.black ? "s" : "") || "-",
+    f.enPassant || "-",
+    f.halfMoves,
+    f.fullMoves,
+  ].join(" ");
+}
+
 interface Options {
   threads?: number;
   depth?: number;
@@ -56,6 +72,7 @@ interface Options {
 export enum EngineEvent {
   Data = "data",
   Fen = "fen",
+  Checkers = "checkers",
   Ready = "ready",
   Score = "score",
   BestMove = "bestMove",
@@ -112,12 +129,30 @@ export class Engine {
     }
   }
 
+  async checkers(): Promise<Key> {
+    assert.ok(this.engine);
+
+    while (true) {
+      this.engine.postMessage("checkers");
+
+      try {
+        return await this.wait(EngineEvent.Checkers, 5000);
+      } catch (e) {
+        await this.restartEngine();
+      }
+    }
+  }
+
   async fen(currentFen: string, moves: string[]): Promise<Fen> {
     assert.ok(this.engine);
 
     while (true) {
+      const moveList = moves.join(" ").replaceAll(":", "10");
+
       this.engine.postMessage(
-        `position fen ${currentFen} moves ${moves.join(" ")}`
+        `position fen ${currentFen}${
+          moveList.length ? " moves " + moveList : ""
+        }`
       );
       this.engine.postMessage("fen");
 
@@ -126,7 +161,7 @@ export class Engine {
         if (fen) {
           return parseFen(fen);
         }
-      } catch {
+      } catch (e) {
         await this.restartEngine();
       }
     }
@@ -178,6 +213,12 @@ export class Engine {
     for (const line of lines) {
       if (line.includes("readyok")) {
         this.events.emit(EngineEvent.Ready);
+        continue;
+      }
+
+      const checkers = parseCheckersResponse(line);
+      if (checkers) {
+        this.events.emit(EngineEvent.Checkers, checkers);
         continue;
       }
 

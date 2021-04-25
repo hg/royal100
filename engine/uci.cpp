@@ -197,6 +197,17 @@ namespace {
 
 } // namespace
 
+void print_checkers(const Position &pos) {
+  string reply{"checkers: "};
+
+  for (Bitboard b = pos.checkers(); b;) {
+      reply += UCI::square(pop_lsb(&b));
+      reply += " ";
+  }
+
+  sync_cout << reply << sync_endl;
+}
+
 void print_valid_moves(const Position &pos) {
     string reply{"valid_moves: "};
 
@@ -257,6 +268,7 @@ void UCI::loop(int argc, char* argv[]) {
       else if (token == "isready")    sync_cout << "readyok" << sync_endl;
 
       else if (token == "valid_moves") print_valid_moves(pos);
+      else if (token == "checkers")    print_checkers(pos);
       else if (token == "fen")         sync_cout << "fen: " << pos.fen() << sync_endl;
 
       // Additional custom non-UCI commands, mainly for debugging.
@@ -404,6 +416,7 @@ EMSCRIPTEN_KEEPALIVE extern "C" int uci_command(const char *c_cmd) {
       else if (token == "isready")    sync_cout << "readyok" << sync_endl;
 
       else if (token == "valid_moves") print_valid_moves(pos);
+      else if (token == "checkers")    print_checkers(pos);
       else if (token == "fen")         sync_cout << "fen: " << pos.fen() << sync_endl;
 
       // Additional custom non-UCI commands, mainly for debugging.

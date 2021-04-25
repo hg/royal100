@@ -2,7 +2,7 @@ import React, { Fragment } from "react";
 import { Modal } from "antd";
 import { ButtonProps } from "antd/lib/button";
 import { sound, Track } from "./audio";
-import { Color } from "chessgroundx/types";
+import { Color, Letter } from "chessgroundx/types";
 import { Promotion } from "./Promotion";
 
 const propsHide: ButtonProps = {
@@ -27,11 +27,14 @@ export function confirmPrincessPromotion(): Promise<boolean> {
   });
 }
 
-export async function choosePromotion(side: Color, promotions: string[]) {
+export async function choosePromotion(
+  side: Color,
+  promotions: string[]
+): Promise<Letter> {
   sound.play(Track.Confirm);
 
   return new Promise((resolve) => {
-    function done(promotion: string) {
+    function done(promotion: Letter) {
       modal.destroy();
       resolve(promotion);
     }
@@ -44,7 +47,7 @@ export async function choosePromotion(side: Color, promotions: string[]) {
       cancelButtonProps: propsHide,
       okButtonProps: propsHide,
       content: (
-        <div style={{ textAlign: "center" }}>
+        <div className="board-wrap default" style={{ textAlign: "center" }}>
           <Promotion
             promotions={promotions}
             color={side}

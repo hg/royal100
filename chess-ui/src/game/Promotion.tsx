@@ -6,7 +6,7 @@ interface Props {
   promotions: string[];
   color: Color;
   name: keyof typeof names;
-  onClick: (name: string) => void;
+  onClick: (name: keyof typeof names) => void;
 }
 
 const names = {

@@ -4,9 +4,8 @@ import { enginePositionToBoard } from "./interop";
 import assert from "assert";
 import { Fen, ValidMoves } from "../game/engine";
 
-const reKey = /^([abcdefghij])([0-9:])$/;
 const reWs = /\s+/;
-const reOne = /1{2,}/;
+const reOne = /1{2,9}/g;
 
 export function validateFen(fen: string) {
   const field = read(fen);
@@ -35,62 +34,6 @@ export function validateFen(fen: string) {
   }
 
   return false;
-}
-
-export interface EnPassant {
-  dests: Key[];
-  target?: Key;
-}
-
-export function getEnPassant(from: Key, to: Key): EnPassant {
-  return {
-    dests: getEnPassantTargets(from, to),
-    target: to,
-  };
-}
-
-function getEnPassantTargets(from: Key, to: Key): Key[] {
-  const fromMatch = from.match(reKey);
-  if (!fromMatch) {
-    return [];
-  }
-  const toMatch = to.match(reKey);
-  if (!toMatch) {
-    return [];
-  }
-
-  const [, col, fromRowStr] = fromMatch;
-  const [, toCol, toRowStr] = toMatch;
-
-  if (col !== toCol) {
-    return [];
-  }
-
-  const fromRow = Number(fromRowStr);
-  const toRow = Number(toRowStr);
-
-  if (fromRow === 2) {
-    // При пропуске третьей строки добавляем её в ячейки снятия в проходе
-    if (toRow === 4) {
-      return [`${col}3`] as Key[];
-    }
-    // При пропуске третьей и четвёртой добавляем обе
-    if (toRow === 5) {
-      return [`${col}3`, `${col}4`] as Key[];
-    }
-  }
-
-  if (fromRow === 9) {
-    // Здесь аналогично, но для противоположной стороны
-    if (toRow === 7) {
-      return [`${col}8`] as Key[];
-    }
-    if (toRow === 6) {
-      return [`${col}8`, `${col}7`] as Key[];
-    }
-  }
-
-  return [];
 }
 
 export interface PieceMove {
@@ -128,7 +71,7 @@ export function parseFen(fen: string): Fen {
   ] = fen.split(reWs);
 
   return {
-    fen,
+    raw: fen,
     pieces: pieces.replaceAll(reOne, (sub) => sub.length.toString()),
     color: color === "w" ? "white" : "black",
     castling: {
@@ -149,6 +92,24 @@ export function parseFen(fen: string): Fen {
     halfMoves: Number(halfMoves),
     fullMoves: Number(fullMoves),
   };
+}
+
+export function parseCheckersResponse(data: string): Key[] | undefined {
+  const prefix = "checkers: ";
+
+  if (!data.startsWith(prefix)) {
+    return undefined;
+  }
+
+  const body = data.substr(prefix.length).trim();
+  const matches = body.matchAll(/([a-j]\d+)/g);
+  const keys: Key[] = [];
+
+  for (const [, key] of matches) {
+    keys.push(key.replace("10", ":") as Key);
+  }
+
+  return keys;
 }
 
 export function parseFenResponse(data: string): string | undefined {
