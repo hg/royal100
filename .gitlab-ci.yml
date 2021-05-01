@@ -54,7 +54,8 @@ build-app-browser:
   cache:
     key: browser-${CI_COMMIT_REF_SLUG}
     paths:
-      - chess-ui/node_modules
+      - chess-ui/.yarn/cache/
+      - chess-ui/.pnp.js
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
