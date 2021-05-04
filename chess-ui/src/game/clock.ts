@@ -24,6 +24,11 @@ export class Clock {
   }
 
   @action.bound
+  add(ms: number) {
+    this.set(this.msec + ms);
+  }
+
+  @action.bound
   set(ms: number) {
     if (ms <= 0) {
       this.msec = 0;

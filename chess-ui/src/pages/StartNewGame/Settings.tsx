@@ -1,13 +1,13 @@
-import { Alert, Button, Form, Slider, TimePicker } from "antd";
+import { Alert, Form, Slider } from "antd";
 import { formLayout } from "../../utils/forms";
 import { depth } from "../../utils/consts";
 import styles from "./index.module.css";
-import { momentToSeconds, secondsToMoment } from "../../utils/time";
-import React, { FC, useLayoutEffect } from "react";
+import React, { FC, Fragment, useLayoutEffect } from "react";
 import { GameConfig, OpponentType } from "../../game/game";
 import { SliderMarks } from "antd/lib/slider";
 import { IoIosPerson, MdComputer } from "react-icons/all";
 import { ToggleButton } from "./ToggleButton";
+import { TimeControl, TimeRange } from "./TimeControl";
 
 interface Props {
   config: GameConfig;
@@ -53,33 +53,39 @@ const DepthSetting: FC<Props> = ({ config, setConfig }) => (
   </Form.Item>
 );
 
-const TimeSetting: FC<Props> = ({ config, setConfig }) => {
-  function setMinutes(minutes: number) {
-    setConfig({ ...config, totalTime: minutes * 60 });
-  }
+const totalRanges: TimeRange[] = [
+  { seconds: 5 * 60, title: "5 минут" },
+  { seconds: 15 * 60, title: "15 минут" },
+  { seconds: 30 * 60, title: "полчаса" },
+  { seconds: 60 * 60, title: "час" },
+  { seconds: 180 * 60, title: "три часа" },
+];
 
-  return (
-    <Form.Item label="Общее время ходов игрока" className={styles.timeControl}>
-      <TimePicker
-        showNow={false}
-        value={secondsToMoment(config.totalTime)}
-        onChange={(time) => {
-          if (time) {
-            setConfig({ ...config, totalTime: momentToSeconds(time) });
-          }
-        }}
-        className={styles.timePicker}
-      />
-      <Button.Group className={styles.timeButtons}>
-        <Button onClick={() => setMinutes(5)}>5 минут</Button>
-        <Button onClick={() => setMinutes(15)}>15 минут</Button>
-        <Button onClick={() => setMinutes(30)}>полчаса</Button>
-        <Button onClick={() => setMinutes(60)}>час</Button>
-        <Button onClick={() => setMinutes(180)}>три часа</Button>
-      </Button.Group>
-    </Form.Item>
-  );
-};
+const plyRanges: TimeRange[] = [
+  { seconds: 0, title: "нет" },
+  { seconds: 5, title: "5 секунд" },
+  { seconds: 10, title: "10 секунд" },
+  { seconds: 15, title: "15 секунд" },
+  { seconds: 30, title: "30 секунд" },
+  { seconds: 60, title: "минута" },
+];
+
+const TimeSetting: FC<Props> = ({ config, setConfig }) => (
+  <Fragment>
+    <TimeControl
+      title="Время ходов стороны"
+      value={config.totalTime}
+      onChange={(totalTime) => setConfig({ ...config, totalTime })}
+      ranges={totalRanges}
+    />
+    <TimeControl
+      title="Добавление времени после хода"
+      value={config.plyIncrement}
+      onChange={(plyIncrement) => setConfig({ ...config, plyIncrement })}
+      ranges={plyRanges}
+    />
+  </Fragment>
+);
 
 const OpponentSetting: FC<Props> = ({ config, setConfig }) => (
   <Form.Item label="Противник">

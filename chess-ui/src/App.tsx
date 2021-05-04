@@ -26,7 +26,8 @@ function AppRoutes() {
   const [config, setConfig] = useState<GameConfig>({
     myColor: "white",
     depth: depth.default,
-    totalTime: 3600,
+    totalTime: 600,
+    plyIncrement: 10,
     opponent: OpponentType.Computer,
     undo: UndoMove.Single,
   });

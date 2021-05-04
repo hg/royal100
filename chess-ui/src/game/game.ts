@@ -43,6 +43,7 @@ export interface GameConfig {
   myColor: Color;
   fen?: FEN;
   totalTime: number;
+  plyIncrement: number;
   plyTime?: number;
   undo: UndoMove;
 }
@@ -84,6 +85,7 @@ export class Game {
   private reactionDisposers: IReactionDisposer[] = [];
   private validMoves?: ValidMoves;
   private promotion?: Letter;
+  private plyIncrement = 0;
   @observable private opponent = OpponentType.Computer;
   @observable private myColor: Color = "white";
 
@@ -366,7 +368,9 @@ export class Game {
       await this.checkRoyaltyPromotions(capturedPiece);
     }
 
-    this.clocks[opposite(this.turnColor)].stop();
+    const prevClock = this.clocks[opposite(this.turnColor)];
+    prevClock.stop();
+    prevClock.add(this.plyIncrement);
     this.clocks[this.turnColor].continue();
 
     await this.detectEndGame();
@@ -501,6 +505,7 @@ export class Game {
     this.myColor = config.myColor;
     this.undo = config.undo;
     this.moves.splice(0);
+    this.plyIncrement = config.plyIncrement * 1000;
 
     await this.updateValidMoves(this.fen);
 
