@@ -30,6 +30,7 @@ function AppRoutes() {
     plyIncrement: 10,
     opponent: OpponentType.Computer,
     undo: UndoMove.Single,
+    showAnalysis: true,
   });
 
   if (!useWasmCheck()) {

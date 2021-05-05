@@ -46,6 +46,7 @@ export interface GameConfig {
   plyIncrement: number;
   plyTime?: number;
   undo: UndoMove;
+  showAnalysis: boolean;
 }
 
 export interface Move {
@@ -87,10 +88,11 @@ export class Game {
   private validMoves?: ValidMoves;
   private promotion?: Letter;
   private plyIncrement = 0;
+  private showAnalysis = true;
   @observable private opponent = OpponentType.Computer;
   @observable private myColor: Color = "white";
 
-  @observable score?: Score;
+  @observable private score?: Score;
   @observable lossReason = LossReason.Mate;
   @observable state = GameState.Paused;
   @observable moves: Move[] = [];
@@ -105,6 +107,14 @@ export class Game {
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   @observable fen: Fen = null!;
+
+  @computed
+  get gameScore(): Score | undefined {
+    if (this.showAnalysis) {
+      return this.score;
+    }
+    return undefined;
+  }
 
   @computed
   get turnColor(): Color {
@@ -509,6 +519,7 @@ export class Game {
     this.myColor = config.myColor;
     this.undo = config.undo;
     this.moves.splice(0);
+    this.showAnalysis = config.showAnalysis;
     this.plyIncrement = config.plyIncrement * 1000;
 
     await this.updateValidMoves(this.fen);

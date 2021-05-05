@@ -1,5 +1,5 @@
 import { GameConfig, UndoMove } from "../../game/game";
-import { Form, Input, Radio, TimePicker } from "antd";
+import { Checkbox, Form, Input, Radio, TimePicker } from "antd";
 import { formLayout } from "../../utils/forms";
 import { momentToSeconds, secondsToMoment } from "../../utils/time";
 import React, { FC } from "react";
@@ -22,10 +22,21 @@ export const AdvancedSettings: FC<Props> = ({ config, setConfig }) => (
       </Radio.Group>
     </Form.Item>
 
-    <Form.Item label="Максимальное время на один ход компьютера">
+    <Form.Item label="Перевес">
+      <Checkbox
+        checked={config.showAnalysis}
+        onChange={(e) =>
+          setConfig({ ...config, showAnalysis: e.target.checked })
+        }
+      >
+        Показывать оценку перевеса противника
+      </Checkbox>
+    </Form.Item>
+
+    <Form.Item label="Время на один ход компьютера">
       <TimePicker
         showNow={false}
-        placeholder="(не больше 80% оставшегося времени)"
+        placeholder="(не ограничено)"
         className="full-width"
         value={config.plyTime ? secondsToMoment(config.plyTime) : undefined}
         onChange={(time) => {

@@ -22,15 +22,15 @@ function movesString(moves: number): string {
 }
 
 export const GameScore = observer<Props>(({ game }) => {
-  if (!game.score) {
+  const score = game.gameScore;
+  if (!score) {
     return null;
   }
 
-  const scoreType = game.score.type;
-  const scoreValue = game.score.value;
+  const scoreValue = score.value;
 
   let value: string;
-  if (scoreType === ScoreType.Mate) {
+  if (score.type === ScoreType.Mate) {
     value = `мат в ${Math.abs(scoreValue)} ${movesString(scoreValue)}`;
   } else {
     const raw = winningChances(scoreValue);

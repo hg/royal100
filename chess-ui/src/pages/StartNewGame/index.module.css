@@ -36,6 +36,8 @@
   border: 1px solid #424242;
   border-radius: 4px;
   background: var(--bg-dark);
+  max-height: 95vh;
+  overflow-y: auto;
 }
 
 .sideButton {
