@@ -5,8 +5,8 @@ const secondsInHour = secondsInMinute * 60;
 const updateInterval = 250;
 
 export class Clock {
-  @observable
-  private msec = 0;
+  @observable private msec = 0;
+  @observable private total = 0;
   private interval?: ReturnType<typeof setInterval>;
 
   constructor() {
@@ -15,7 +15,7 @@ export class Clock {
 
   @action.bound
   private updateClock() {
-    this.set(this.msec - updateInterval);
+    this.setInternal(this.msec - updateInterval);
   }
 
   @computed
@@ -25,16 +25,24 @@ export class Clock {
 
   @action.bound
   add(ms: number) {
-    this.set(this.msec + ms);
+    this.setInternal(this.msec + ms, this.total + ms);
   }
 
   @action.bound
   set(ms: number) {
+    this.setInternal(ms, ms);
+  }
+
+  @action.bound
+  private setInternal(ms: number, total?: number) {
     if (ms <= 0) {
       this.msec = 0;
       this.stop();
     } else {
       this.msec = ms;
+    }
+    if (total) {
+      this.total = total;
     }
   }
 
@@ -62,6 +70,14 @@ export class Clock {
   }
 
   @computed
+  get remainingPct(): number {
+    if (this.total === 0) {
+      return 0;
+    }
+    return Math.round((this.msec / this.total) * 100);
+  }
+
+  @computed
   get remaining(): string {
     let secs = this.remainingSecs;
 
@@ -75,6 +91,10 @@ export class Clock {
     if (secs >= secondsInMinute) {
       mins = Math.floor(secs / secondsInMinute);
       secs -= mins * secondsInMinute;
+    }
+
+    if (secs === 60) {
+      secs = 0;
     }
 
     const hh = hhrs.toFixed(0).padStart(2, "0");
