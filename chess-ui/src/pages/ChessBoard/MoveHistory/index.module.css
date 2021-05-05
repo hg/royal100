@@ -7,7 +7,7 @@
 .historyTable td,
 .historyTable th {
   text-align: center;
-  border: 1px solid #282828;
+  border: 1px solid #383838;
   padding: 0;
 }
 
@@ -20,6 +20,10 @@
   display: inline-block;
   width: 32px;
   height: 32px;
+}
+
+.piece:global(.black) {
+  filter: drop-shadow(1px 1px 0 #606060) drop-shadow(-1px -1px 0 #606060);
 }
 
 .noMoves {

@@ -27,6 +27,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
+  background: var(--bg-lighter);
 }
 
 .form {
@@ -34,6 +35,7 @@
   padding: 16px 32px;
   border: 1px solid #424242;
   border-radius: 4px;
+  background: var(--bg-dark);
 }
 
 .sideButton {

@@ -1,6 +1,11 @@
 @import "~antd/dist/antd.dark.css";
 @import "pages/ChessBoard/style.css";
 
+:root {
+  --bg-dark: #18191a;
+  --bg-lighter: #242526;
+}
+
 #root,
 body,
 html {
@@ -17,4 +22,8 @@ html {
 
 .icon {
   margin-right: 8px;
+}
+
+body {
+  background: var(--bg-dark);
 }
