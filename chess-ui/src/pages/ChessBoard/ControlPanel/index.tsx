@@ -20,7 +20,9 @@ export const ControlPanel = observer<Props>(({ game, onShowSettings }) => {
   return (
     <div className={styles.panel}>
       <div className={styles.clock}>
-        <TimeClock color={game.topColor} clock={game.clocks[game.topColor]} />
+        {game.clocks.used && (
+          <TimeClock color={game.topColor} clock={game.clocks[game.topColor]} />
+        )}
       </div>
 
       <div className={styles.buttons}>
@@ -29,10 +31,12 @@ export const ControlPanel = observer<Props>(({ game, onShowSettings }) => {
       </div>
 
       <div className={styles.clock}>
-        <TimeClock
-          color={game.bottomColor}
-          clock={game.clocks[game.bottomColor]}
-        />
+        {game.clocks.used && (
+          <TimeClock
+            color={game.bottomColor}
+            clock={game.clocks[game.bottomColor]}
+          />
+        )}
       </div>
     </div>
   );

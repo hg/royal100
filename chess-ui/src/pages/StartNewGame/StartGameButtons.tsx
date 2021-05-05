@@ -15,7 +15,7 @@ export const StartGameButtons: FC<Props> = ({ config }) => {
   const canStart = !config.fen || validateFen(config.fen);
 
   function startGame() {
-    if (canStart && config.totalTime > 0) {
+    if (canStart) {
       history.push(routes.chess);
     }
   }

@@ -59,6 +59,7 @@ export interface Move {
 }
 
 export interface Clocks {
+  used: boolean;
   white: Clock;
   black: Clock;
 }
@@ -97,6 +98,7 @@ export class Game {
   @observable bottomColor: Color = "black";
   @observable undo: UndoMove = UndoMove.Single;
   @observable clocks: Clocks = {
+    used: true,
     white: new Clock(),
     black: new Clock(),
   };
@@ -138,7 +140,7 @@ export class Game {
       reaction(
         () => this.clocks.white.remainingSecs,
         (secs) => {
-          if (secs <= 0) {
+          if (this.clocks.used && secs <= 0) {
             this.setLoss("white", LossReason.Timeout);
           }
         }
@@ -147,7 +149,7 @@ export class Game {
       reaction(
         () => this.clocks.black.remainingSecs,
         (secs) => {
-          if (secs <= 0) {
+          if (this.clocks.used && secs <= 0) {
             this.setLoss("black", LossReason.Timeout);
           }
         }
@@ -368,10 +370,12 @@ export class Game {
       await this.checkRoyaltyPromotions(capturedPiece);
     }
 
-    const prevClock = this.clocks[opposite(this.turnColor)];
-    prevClock.stop();
-    prevClock.add(this.plyIncrement);
-    this.clocks[this.turnColor].continue();
+    if (this.clocks.used) {
+      const prevClock = this.clocks[opposite(this.turnColor)];
+      prevClock.stop();
+      prevClock.add(this.plyIncrement);
+      this.clocks[this.turnColor].continue();
+    }
 
     await this.detectEndGame();
 
@@ -509,9 +513,11 @@ export class Game {
 
     await this.updateValidMoves(this.fen);
 
-    this.clocks.white.set(config.totalTime * 1000);
-    this.clocks.white.continue();
-    this.clocks.black.set(config.totalTime * 1000);
+    this.clocks.used = config.totalTime > 0;
+    if (this.clocks.used) {
+      this.clocks.white.set(config.totalTime * 1000);
+      this.clocks.black.set(config.totalTime * 1000);
+    }
 
     await this.makeOpponentMove();
   }

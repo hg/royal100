@@ -1,4 +1,4 @@
-import { Alert, Form, Slider } from "antd";
+import { Alert, Form, Radio, Slider } from "antd";
 import { formLayout } from "../../utils/forms";
 import { depth } from "../../utils/consts";
 import styles from "./index.module.css";
@@ -70,20 +70,40 @@ const plyRanges: TimeRange[] = [
   { seconds: 60, title: "минута" },
 ];
 
+const TimeControlMode: FC<Props> = ({ config, setConfig }) => (
+  <Form.Item label="Контроль времени">
+    <Radio.Group
+      value={config.totalTime === 0}
+      onChange={(e) =>
+        setConfig({ ...config, totalTime: e.target.value ? 0 : 600 })
+      }
+    >
+      <Radio value={false}>По часам</Radio>
+      <Radio value={true}>Без ограничений</Radio>
+    </Radio.Group>
+  </Form.Item>
+);
+
 const TimeSetting: FC<Props> = ({ config, setConfig }) => (
   <Fragment>
-    <TimeControl
-      title="Время ходов стороны"
-      value={config.totalTime}
-      onChange={(totalTime) => setConfig({ ...config, totalTime })}
-      ranges={totalRanges}
-    />
-    <TimeControl
-      title="Добавление времени после хода"
-      value={config.plyIncrement}
-      onChange={(plyIncrement) => setConfig({ ...config, plyIncrement })}
-      ranges={plyRanges}
-    />
+    <TimeControlMode config={config} setConfig={setConfig} />
+
+    {config.totalTime > 0 && (
+      <Fragment>
+        <TimeControl
+          title="Время ходов стороны"
+          value={config.totalTime}
+          onChange={(totalTime) => setConfig({ ...config, totalTime })}
+          ranges={totalRanges}
+        />
+        <TimeControl
+          title="Добавление времени после хода"
+          value={config.plyIncrement}
+          onChange={(plyIncrement) => setConfig({ ...config, plyIncrement })}
+          ranges={plyRanges}
+        />
+      </Fragment>
+    )}
   </Fragment>
 );
 
@@ -95,7 +115,7 @@ const OpponentSetting: FC<Props> = ({ config, setConfig }) => (
       configKey="opponent"
       value={OpponentType.Computer}
       icon={<MdComputer className={styles.sideIcon} />}
-      title="Играть против компьютера"
+      title="Играть c компьютером"
     />
     <ToggleButton
       config={config}
@@ -103,7 +123,7 @@ const OpponentSetting: FC<Props> = ({ config, setConfig }) => (
       configKey="opponent"
       value={OpponentType.Human}
       icon={<IoIosPerson className={styles.sideIcon} />}
-      title="Играть против партнёра"
+      title="Играть с другом"
     />
   </Form.Item>
 );

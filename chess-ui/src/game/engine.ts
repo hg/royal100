@@ -316,14 +316,16 @@ export class Engine {
     assert.ok(this.options);
     assert.ok(this.engine);
 
-    const wtime = this.clocks.white.remainingMs;
-    const btime = this.clocks.black.remainingMs;
     const depth = this.options.depth ? `depth ${this.options.depth}` : "";
     const moveTime = this.options.moveTime
       ? `movetime ${this.options.moveTime}`
       : "";
 
-    const cmd = `go ${depth} ${moveTime} wtime ${wtime} btime ${btime}`;
+    const cmd =
+      `go ${depth} ${moveTime} ` +
+      (this.clocks.used
+        ? `wtime ${this.clocks.white.remainingMs} btime ${this.clocks.black.remainingMs}`
+        : "");
 
     this.engine.postMessage(cmd);
   }
