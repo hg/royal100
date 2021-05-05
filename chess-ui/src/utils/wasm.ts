@@ -1,42 +1,11 @@
-import { Modal } from "antd";
-import { Fragment, useEffect, useState } from "react";
-
-const links = {
-  firefox: (
-    <a target="_blank" rel="noreferrer" href="https://firefox.com/">
-      Firefox 79+
-    </a>
-  ),
-  chrome: (
-    <a target="_blank" rel="noreferrer" href="https://google.com/chrome/">
-      Chrome 79+
-    </a>
-  ),
-};
+import { useState } from "react";
 
 export function useWasmCheck() {
   const [supported] = useState(wasmThreadsSupported);
-
-  useEffect(() => {
-    if (!supported) {
-      Modal.error({
-        title: "Внимание",
-        content: (
-          <Fragment>
-            <p>Ваш браузер не поддерживается.</p>
-            <p>
-              Перейдите на {links.firefox} или {links.chrome}.
-            </p>
-          </Fragment>
-        ),
-      });
-    }
-  }, [supported]);
-
   return supported;
 }
 
-export function wasmThreadsSupported() {
+function wasmThreadsSupported() {
   if (typeof WebAssembly?.validate !== "function") {
     return false;
   }

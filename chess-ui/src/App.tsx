@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { Fragment, useState } from "react";
 import { HashRouter, Route, Switch } from "react-router-dom";
 import ruRu from "antd/lib/locale-provider/ru_RU";
-import { ConfigProvider } from "antd";
+import { Alert, ConfigProvider } from "antd";
 import { FullScreenWrap } from "./components/FullScreenWrap";
 import { Spinner } from "./components/Spinner";
 import { ChessBoard } from "./pages/ChessBoard";
@@ -9,8 +9,7 @@ import "moment/locale/ru";
 import moment from "moment";
 import { StartNewGame } from "./pages/StartNewGame";
 import { routes } from "./pages/routes";
-import { GameConfig, OpponentType, UndoMove } from "./game/game";
-import { depth } from "./utils/consts";
+import { defaultConfig } from "./game/game";
 import "./App.css";
 import { useWasmCheck } from "./utils/wasm";
 
@@ -22,19 +21,36 @@ const suspenseFallback = (
   </FullScreenWrap>
 );
 
+const WasmUnsupported = () => (
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "100vh",
+    }}
+  >
+    <Alert
+      showIcon
+      type="error"
+      message="Ваш браузер не поддерживается"
+      description={
+        <Fragment>
+          Перейдите на последнюю версию
+          <a href="https://firefox.com/"> Firefox </a>
+          или <a href="https://google.com/chrome/"> Chrome</a>.
+        </Fragment>
+      }
+    />
+  </div>
+);
+
 function AppRoutes() {
-  const [config, setConfig] = useState<GameConfig>({
-    myColor: "white",
-    depth: depth.default,
-    totalTime: 600,
-    plyIncrement: 10,
-    opponent: OpponentType.Computer,
-    undo: UndoMove.Single,
-    showAnalysis: true,
-  });
+  const [config, setConfig] = useState(defaultConfig);
 
   if (!useWasmCheck()) {
-    return null;
+    return <WasmUnsupported />;
   }
 
   return (

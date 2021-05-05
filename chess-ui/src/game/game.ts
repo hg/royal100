@@ -18,6 +18,7 @@ import { numCpus } from "../utils/system";
 import { isEmpty } from "../utils/util";
 import { Engine, EngineEvent, Fen, fenToString, ValidMoves } from "./engine";
 import {
+  depth,
   dimension,
   drawHalfMoves,
   drawMinMoves,
@@ -48,6 +49,16 @@ export interface GameConfig {
   undo: UndoMove;
   showAnalysis: boolean;
 }
+
+export const defaultConfig: GameConfig = {
+  myColor: "white",
+  depth: depth.default,
+  totalTime: 600,
+  plyIncrement: 10,
+  opponent: OpponentType.Computer,
+  undo: UndoMove.Single,
+  showAnalysis: true,
+};
 
 export interface Move {
   color: Color;
