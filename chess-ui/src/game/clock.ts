@@ -2,12 +2,13 @@ import { action, computed, makeObservable, observable } from "mobx";
 
 const secondsInMinute = 60;
 const secondsInHour = secondsInMinute * 60;
-const updateInterval = 250;
+const updateInterval = 500;
 
 export class Clock {
   @observable private msec = 0;
   @observable private total = 0;
   private interval?: ReturnType<typeof setInterval>;
+  private lastMs?: number;
 
   constructor() {
     makeObservable(this);
@@ -15,7 +16,10 @@ export class Clock {
 
   @action.bound
   private updateClock() {
-    this.setInternal(this.msec - updateInterval);
+    const now = performance.now();
+    const passedMs = now - (this.lastMs || 0);
+    this.lastMs = now;
+    this.setInternal(this.msec - passedMs);
   }
 
   @computed
@@ -48,6 +52,7 @@ export class Clock {
 
   @action.bound
   continue() {
+    this.lastMs = performance.now();
     this.interval = setInterval(this.updateClock, updateInterval);
   }
 
@@ -55,6 +60,7 @@ export class Clock {
   stop() {
     if (this.interval) {
       clearInterval(this.interval);
+      this.lastMs = undefined;
       this.interval = undefined;
     }
   }
