@@ -29,7 +29,7 @@ function copyFen(num: number, fen: string) {
 const TableHeader = () => (
   <thead>
     <tr>
-      <th>№</th>
+      <th title="Номер полухода">№</th>
       <th title="Фигура">
         <FaChessKnight />
       </th>

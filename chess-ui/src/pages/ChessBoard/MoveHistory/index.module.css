@@ -15,6 +15,11 @@
   cursor: pointer;
 }
 
+.historyTable tbody tr:nth-child(odd) {
+  background: #484848;
+  color: white;
+}
+
 .piece {
   background-size: cover;
   display: inline-block;
