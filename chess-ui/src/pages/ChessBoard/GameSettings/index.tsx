@@ -4,6 +4,7 @@ import { formLayout } from "../../../utils/forms";
 import { localStore } from "../../../utils/store";
 import styles from "./index.module.css";
 import { BackgroundButton } from "./BackgroundButton";
+import { sound } from "../../../game/audio";
 
 interface Props {
   value: Settings;
@@ -34,6 +35,10 @@ export function useSettings(): [Settings, (value: Settings) => void] {
   useEffect(() => {
     localStore.set("game/settings", settings);
   }, [settings]);
+
+  useEffect(() => {
+    sound.toggle(settings.sound);
+  }, [settings.sound]);
 
   return [settings, setSettings];
 }
