@@ -11,21 +11,14 @@ export function useGame(
     if (board.current) {
       const game = new Game(board.current);
       setGame(game);
-      return () => game.dispose();
+      return game.dispose;
     }
   }, [board]);
 
   useEffect(() => {
     if (game) {
       game.newGame(config);
-
-      const resizeHandler = () => game.redraw();
-      window.addEventListener("resize", resizeHandler);
-
-      return () => {
-        window.removeEventListener("resize", resizeHandler);
-        game.stop();
-      };
+      return game.stop;
     }
   }, [config, game]);
 

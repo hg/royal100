@@ -2,12 +2,13 @@ import React, { useEffect, useRef } from "react";
 import styles from "./index.module.css";
 import { observer } from "mobx-react-lite";
 import { reaction } from "mobx";
-import { GameConfig } from "../../game/game";
+import { GameConfig, GameState } from "../../game/game";
 import { MoveHistory } from "./MoveHistory";
 import { useSettings } from "./GameSettings";
 import { useGame } from "./hooks";
 import { LeftSidebar } from "./LeftSidebar";
 import { onGameStateChanged } from "./endgame";
+import { ZenButton } from "./ZenButton";
 
 interface Props {
   config: GameConfig;
@@ -17,6 +18,7 @@ export const ChessBoard = observer(({ config }: Props) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const [settings, setSettings] = useSettings();
   const game = useGame(ref, config);
+  const showSidebar = settings.showSidebar || game?.state !== GameState.Playing;
 
   useEffect(() => {
     if (game) {
@@ -29,32 +31,46 @@ export const ChessBoard = observer(({ config }: Props) => {
 
   return (
     <div className={`${styles.wrap} board-wrap ${settings.pieces}`}>
-      <div className={styles.left}>
-        {game && (
-          <LeftSidebar
-            game={game}
-            settings={settings}
-            setSettings={setSettings}
-          />
-        )}
-      </div>
+      {showSidebar || (
+        <ZenButton
+          onClick={() => setSettings({ ...settings, showSidebar: true })}
+        />
+      )}
 
-      <div className={styles.boardWrap}>
-        <div className={styles.board}>
+      {showSidebar && (
+        <aside className={styles.left}>
+          {game && (
+            <LeftSidebar
+              game={game}
+              settings={settings}
+              setSettings={setSettings}
+            />
+          )}
+        </aside>
+      )}
+
+      <main className={styles.boardWrap}>
+        <div
+          className={`${styles.board} ${
+            settings.showSidebar ? "" : styles.zen
+          }`}
+        >
           <div ref={ref} className={`cg-wrap ${settings.background}`} />
         </div>
-      </div>
+      </main>
 
-      <div className={styles.right}>
-        {game && (
-          <MoveHistory
-            detailed={settings.history === "detailed"}
-            moves={game.moves}
-            canMove={game.canUndo}
-            setMove={game.undoMove}
-          />
-        )}
-      </div>
+      {showSidebar && (
+        <aside className={styles.right}>
+          {game && (
+            <MoveHistory
+              detailed={settings.history === "detailed"}
+              moves={game.moves}
+              canMove={game.canUndo}
+              setMove={game.undoMove}
+            />
+          )}
+        </aside>
+      )}
     </div>
   );
 });

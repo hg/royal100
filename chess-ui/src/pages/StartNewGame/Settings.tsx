@@ -5,7 +5,11 @@ import styles from "./index.module.css";
 import React, { FC, Fragment, useLayoutEffect } from "react";
 import { GameConfig, OpponentType } from "../../game/game";
 import { SliderMarks } from "antd/lib/slider";
-import { IoIosPerson, MdComputer } from "react-icons/all";
+import {
+  GiPerspectiveDiceSixFacesRandom,
+  IoIosPerson,
+  MdComputer,
+} from "react-icons/all";
 import { ToggleButton } from "./ToggleButton";
 import { TimeControl, TimeRange } from "./TimeControl";
 
@@ -33,16 +37,13 @@ const DepthSetting: FC<Props> = ({ config, setConfig }) => (
       min={depth.min}
       max={depth.max + 1}
       value={config.depth}
-      onChange={(val: number) => {
-        setConfig({
-          ...config,
-          depth: val > depth.max ? undefined : val,
-        });
+      onChange={(depth: number) => {
+        setConfig({ ...config, depth });
       }}
       marks={depthMarks}
     />
 
-    {config.depth === undefined && (
+    {config.depth > depth.max && (
       <Alert
         type="info"
         showIcon
@@ -145,6 +146,14 @@ const SideSetting: FC<Props> = ({ config, setConfig }) => (
       value="black"
       icon={<div className={`${styles.sideIcon} q-piece black`} />}
       title="Чёрными"
+    />
+    <ToggleButton
+      config={config}
+      setConfig={setConfig}
+      configKey="myColor"
+      value={undefined}
+      icon={<GiPerspectiveDiceSixFacesRandom className={styles.sideIcon} />}
+      title="Случайными"
     />
   </Form.Item>
 );

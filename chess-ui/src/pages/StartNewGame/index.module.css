@@ -54,6 +54,11 @@
   background: #242424;
 }
 
+.collapseIcon {
+  font-size: 20px;
+  margin: -4px 0;
+}
+
 .sideIcon {
   display: inline-block;
   width: 64px;

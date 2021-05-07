@@ -107,7 +107,7 @@ export class Clock {
     const mm = mins.toFixed(0).padStart(2, "0");
     const ss = secs.toFixed(0).padStart(2, "0");
 
-    if (hh === "00") {
+    if (hhrs === 0) {
       return `${mm}:${ss}`;
     } else {
       return `${hh}:${mm}:${ss}`;

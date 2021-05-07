@@ -17,6 +17,7 @@ export interface Settings {
   background: "wood" | "marble" | "metal" | "maple" | "green";
   pieces: "default" | "merida";
   sound: boolean;
+  showSidebar: boolean;
 }
 
 const defaultSettings: Settings = {
@@ -24,6 +25,7 @@ const defaultSettings: Settings = {
   history: "detailed",
   pieces: "merida",
   sound: true,
+  showSidebar: true,
 };
 
 export function useSettings(): [Settings, (value: Settings) => void] {

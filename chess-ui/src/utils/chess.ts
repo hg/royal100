@@ -1,4 +1,4 @@
-import { Key, Letter } from "chessgroundx/types";
+import { Color, Key, Letter } from "chessgroundx/types";
 import { read } from "chessgroundx/fen";
 import { enginePositionToBoard } from "./interop";
 import assert from "assert";
@@ -6,6 +6,10 @@ import { Fen, ValidMoves } from "../game/engine";
 
 const reWs = /\s+/;
 const reOne = /1{2,9}/g;
+
+export function randomColor(): Color {
+  return Math.random() <= 0.5 ? "white" : "black";
+}
 
 export function validateFen(fen: string) {
   const field = read(fen);

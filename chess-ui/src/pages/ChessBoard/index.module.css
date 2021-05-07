@@ -13,11 +13,19 @@
       100vw - var(--left-width) - var(--right-width) - var(--board-margin)
     )
   );
+  --board-size-zen: calc(
+    min(100vh - var(--board-margin), 100vw - var(--board-margin))
+  );
 }
 
 .board {
   height: var(--board-size);
   width: var(--board-size);
+}
+
+.board.zen {
+  height: var(--board-size-zen);
+  width: var(--board-size-zen);
 }
 
 .boardWrap {

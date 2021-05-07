@@ -1,6 +1,7 @@
 import { Game } from "../../../game/game";
 import { Button, message, Modal, notification } from "antd";
 import {
+  AiOutlineArrowLeft,
   BiHelpCircle,
   FaChess,
   FaRegHandPeace,
@@ -13,6 +14,7 @@ import { observer } from "mobx-react-lite";
 import { useHistory } from "react-router";
 import { routes } from "../../routes";
 import { confirm } from "../../../utils/dialogs";
+import { Settings } from "../GameSettings";
 
 interface Props {
   game: Game;
@@ -20,6 +22,7 @@ interface Props {
 
 interface ButtonsProps extends Props {
   onShowSettings: () => void;
+  onSet: (settings: Partial<Settings>) => void;
 }
 
 async function getHint(game: Game) {
@@ -90,14 +93,23 @@ const ActiveGameButtons = observer<Props>(({ game }) =>
 );
 
 export const GameButtons = observer<ButtonsProps>(
-  ({ game, onShowSettings }) => {
+  ({ game, onShowSettings, onSet }) => {
     const history = useHistory();
     const startNewGame = () => history.push(routes.home);
 
     return (
       <Fragment>
         {game.isPlaying ? (
-          <ActiveGameButtons game={game} />
+          <Fragment>
+            <ActiveGameButtons game={game} />
+            <Button
+              size="large"
+              block
+              onClick={() => onSet({ showSidebar: false })}
+            >
+              <AiOutlineArrowLeft className="icon" /> Скрыть
+            </Button>
+          </Fragment>
         ) : (
           <Button size="large" block onClick={startNewGame}>
             <FaChess className="icon" /> Новая партия

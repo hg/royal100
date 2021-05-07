@@ -2,8 +2,8 @@
 @import "pages/ChessBoard/style.css";
 
 :root {
-  --bg-dark: #18191a;
-  --bg-lighter: #242526;
+  --bg-dark: #141414;
+  --bg-lighter: #242424;
 }
 
 #root,

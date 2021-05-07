@@ -154,10 +154,6 @@ cg-board square.current-premove {
   height: 10%;
 }
 
-.blindfold piece {
-  opacity: 0;
-}
-
 cg-board piece.dragging {
   cursor: move;
   z-index: 9;

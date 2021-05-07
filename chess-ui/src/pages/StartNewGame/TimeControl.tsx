@@ -1,7 +1,7 @@
 import styles from "./index.module.css";
 import { momentToSeconds, secondsToMoment } from "../../utils/time";
 import { FC, ReactNode } from "react";
-import { Button, Form, TimePicker } from "antd";
+import { Button, Form, Input, TimePicker } from "antd";
 
 export interface TimeRange {
   seconds: number;
@@ -17,22 +17,22 @@ interface Props {
 
 export const TimeControl: FC<Props> = ({ title, value, onChange, ranges }) => (
   <Form.Item label={title} className={styles.timeControl}>
-    <TimePicker
-      showNow={false}
-      value={secondsToMoment(value)}
-      onChange={(time) => {
-        if (time) {
-          onChange(momentToSeconds(time));
-        }
-      }}
-      className={styles.timePicker}
-    />
-    <Button.Group className={styles.timeButtons}>
+    <Input.Group compact>
+      <TimePicker
+        showNow={false}
+        value={secondsToMoment(value)}
+        onChange={(time) => {
+          if (time) {
+            onChange(momentToSeconds(time));
+          }
+        }}
+        className={styles.timePicker}
+      />
       {ranges.map((range) => (
         <Button key={range.seconds} onClick={() => onChange(range.seconds)}>
           {range.title}
         </Button>
       ))}
-    </Button.Group>
+    </Input.Group>
   </Form.Item>
 );

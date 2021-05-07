@@ -27,6 +27,7 @@ export const LeftSidebar = observer<Props>(
         <ControlPanel
           game={game}
           onShowSettings={() => setShowSettings(true)}
+          onSet={(next) => setSettings({ ...settings, ...next })}
         />
       </Fragment>
     );

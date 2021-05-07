@@ -6,6 +6,7 @@ import { GameConfig } from "../../game/game";
 import { Settings } from "./Settings";
 import { AdvancedSettings } from "./AdvancedSettings";
 import { StartGameButtons } from "./StartGameButtons";
+import { FiSettings } from "react-icons/all";
 
 interface Props {
   config: GameConfig;
@@ -23,12 +24,16 @@ export const StartNewGame: FC<Props> = ({ config, setConfig }) => (
       <Settings config={config} setConfig={setConfig} />
 
       <Collapse>
-        <Collapse.Panel key="advanced" header="Расширенные настройки">
+        <Collapse.Panel
+          key="advanced"
+          header="Дополнительные настройки"
+          extra={<FiSettings className={styles.collapseIcon} />}
+        >
           <AdvancedSettings config={config} setConfig={setConfig} />
         </Collapse.Panel>
       </Collapse>
 
-      <StartGameButtons config={config} />
+      <StartGameButtons config={config} setConfig={setConfig} />
     </div>
   </div>
 );

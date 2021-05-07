@@ -40,7 +40,7 @@ export enum UndoMove {
 
 export interface GameConfig {
   opponent: OpponentType;
-  depth?: number;
+  depth: number;
   myColor: Color;
   fen?: FEN;
   totalTime: number;
@@ -135,6 +135,9 @@ export class Game {
   constructor(element: HTMLElement) {
     makeObservable(this);
 
+    const resizer = new ResizeObserver(this.redraw);
+    resizer.observe(element);
+
     this.onMove = this.onMove.bind(this);
     this.canUndo = this.canUndo.bind(this);
     this.onSelect = this.onSelect.bind(this);
@@ -178,10 +181,12 @@ export class Game {
     );
   }
 
-  redraw() {
+  @action.bound
+  private redraw() {
     this.ground?.redrawAll();
   }
 
+  @action.bound
   dispose() {
     for (const disposer of this.reactionDisposers) {
       disposer();
@@ -509,7 +514,7 @@ export class Game {
     assert.ok(!this.isPlaying);
 
     await this.engine.newGame({
-      depth: config.depth,
+      depth: config.depth > depth.max ? undefined : config.depth,
       threads: numCpus(),
       moveTime: config.plyTime,
     });
