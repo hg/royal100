@@ -1,4 +1,4 @@
-import { Color, Key } from "chessgroundx/types";
+import cg, { Color, Key } from "chessgroundx/types";
 import { Clocks } from "./game";
 import assert from "assert";
 import { EventEmitter } from "events";
@@ -46,6 +46,12 @@ export interface Fen {
   enPassant?: Key;
   halfMoves: number;
   fullMoves: number;
+}
+
+export function fixBoardFen(fen: cg.FEN): cg.FEN {
+  // Движок парсит `10` как `1 0`, поэтому подменяем на две пятёрки
+  // (можно заменить на любую другую пару x + y = 10).
+  return fen.replaceAll("10", "55");
 }
 
 export function fenToString(f: Fen): string {

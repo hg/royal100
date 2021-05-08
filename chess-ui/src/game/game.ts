@@ -16,7 +16,14 @@ import { opposite } from "chessgroundx/util";
 import { BestMove, Score, ScoreType, winningChances } from "../utils/chess";
 import { numCpus } from "../utils/system";
 import { isEmpty } from "../utils/util";
-import { Engine, EngineEvent, Fen, fenToString, ValidMoves } from "./engine";
+import {
+  Engine,
+  EngineEvent,
+  Fen,
+  fenToString,
+  fixBoardFen,
+  ValidMoves,
+} from "./engine";
 import {
   depth,
   dimension,
@@ -451,7 +458,7 @@ export class Game {
           promoted: true,
         },
       });
-      this.fen.pieces = this.ground.getFen().replaceAll("10", "55");
+      this.fen.pieces = fixBoardFen(this.ground.getFen());
       this.fen.raw = fenToString(this.fen);
     }
   }
