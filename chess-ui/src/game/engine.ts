@@ -51,7 +51,7 @@ export interface Fen {
 export function fenToString(f: Fen): string {
   return [
     f.pieces,
-    f.color,
+    f.color[0],
     (f.castling.white.K ? "K" : "") +
       (f.castling.white.Q ? "Q" : "") +
       (f.castling.black.K ? "k" : "") +
@@ -193,6 +193,7 @@ export class Engine {
 
   private async restartEngine() {
     while (true) {
+      this.engine?.removeMessageListener(this.onDataReceived);
       this.engine?.terminate();
 
       this.engine = await Royal100();
