@@ -1,6 +1,7 @@
 .wrap {
   height: 100%;
   display: flex;
+  background: url("../../assets/background.jpg");
 }
 
 :root {
@@ -38,6 +39,7 @@
   border-right: 1px solid #424242;
   height: 100%;
   overflow: hidden;
+  background-image: url("../../assets/background.jpg");
 }
 
 .left {
