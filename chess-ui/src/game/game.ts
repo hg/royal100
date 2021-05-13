@@ -110,20 +110,18 @@ export class Game {
   private showAnalysis = true;
   @observable private opponent = OpponentType.Computer;
   @observable private myColor: Color = "white";
-
   @observable private score?: Score;
+  @observable private undo: UndoMove = UndoMove.Single;
   @observable lossReason = LossReason.Mate;
   @observable state = GameState.Paused;
   @observable moves: Move[] = [];
   @observable isThinking = false;
   @observable bottomColor: Color = "black";
-  @observable undo: UndoMove = UndoMove.Single;
   @observable clocks: Clocks = {
     used: true,
     white: new Clock(),
     black: new Clock(),
   };
-
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   @observable fen: Fen = null!;
 
@@ -192,7 +190,7 @@ export class Game {
   }
 
   @action.bound
-  redraw() {
+  private redraw() {
     this.ground?.redrawAll();
 
     const cg = this.element.querySelector("cg-container");
@@ -216,8 +214,9 @@ export class Game {
   }
 
   canUndo(moveNumber: number): boolean {
+    // Если игра завершена — даём возможность изучать историю
     if (!this.isPlaying) {
-      return false;
+      return true;
     }
     // Если играем с движком — отменять можно только во время своего хода
     if (this.isOpponentAComputer && this.turnColor !== this.myColor) {
@@ -254,6 +253,13 @@ export class Game {
   async undoMove(moveNumber: number) {
     const undoMove = this.moves[moveNumber];
     const previousMove = this.moves[moveNumber - 1];
+
+    // Если не играем — больше ничего делать не нужно,
+    // даём спокойно изучать историю вперёд/назад.
+    if (!this.isPlaying) {
+      await this.setFen(undoMove.fenAfter, []);
+      return;
+    }
 
     if (undoMove && previousMove) {
       // Удаляем всё, начиная с прыдущего шага
@@ -343,6 +349,9 @@ export class Game {
       this.ground.stop();
       this.clocks.black.stop();
       this.clocks.white.stop();
+      this.ground.set({
+        movable: { color: undefined },
+      });
     }
   }
 
