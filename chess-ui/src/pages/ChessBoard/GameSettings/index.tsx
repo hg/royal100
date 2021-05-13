@@ -14,7 +14,7 @@ interface Props {
 
 export interface Settings {
   history: "compact" | "detailed";
-  background: "wood" | "marble" | "metal" | "maple" | "green";
+  background: "blue" | "brown" | "metal" | "wood";
   pieces: "default" | "merida";
   sound: boolean;
   showSidebar: boolean;
@@ -50,11 +50,10 @@ export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
     <Form {...formLayout}>
       <Form.Item label="Фон доски">
         <div className={styles.imageBtns}>
-          <BackgroundButton onSet={onSet} type="wood" title="Дерево" />
-          <BackgroundButton onSet={onSet} type="maple" title="Клён" />
-          <BackgroundButton onSet={onSet} type="marble" title="Мрамор" />
-          <BackgroundButton onSet={onSet} type="green" title="Зелёный мрамор" />
+          <BackgroundButton onSet={onSet} type="blue" title="Синий" />
+          <BackgroundButton onSet={onSet} type="brown" title="Коричневый" />
           <BackgroundButton onSet={onSet} type="metal" title="Металл" />
+          <BackgroundButton onSet={onSet} type="wood" title="Дерево" />
         </div>
       </Form.Item>
 

@@ -14,24 +14,20 @@
   transition: background-image 500ms ease-in-out;
 }
 
-.cg-wrap.wood {
-  background-image: url(../../assets/images/board/wood.jpg);
+.cg-wrap.blue {
+  background-image: url(../../assets/images/board/blue.jpg);
 }
 
-.cg-wrap.marble {
-  background-image: url(../../assets/images/board/marble.jpg);
+.cg-wrap.brown {
+  background-image: url(../../assets/images/board/brown.png);
 }
 
 .cg-wrap.metal {
   background-image: url(../../assets/images/board/metal.jpg);
 }
 
-.cg-wrap.maple {
-  background-image: url(../../assets/images/board/maple.jpg);
-}
-
-.cg-wrap.green {
-  background-image: url(../../assets/images/board/green.jpg);
+.cg-wrap.wood {
+  background-image: url(../../assets/images/board/wood.jpg);
 }
 
 cg-container {

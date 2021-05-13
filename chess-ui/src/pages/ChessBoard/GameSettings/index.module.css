@@ -34,22 +34,18 @@
   background-image: url(../../../assets/images/pieces/merida/wN.svg);
 }
 
-.wood {
-  background-image: url(../../../assets/images/board/preview/wood.jpg);
+.blue {
+  background-image: url(../../../assets/images/board/preview/blue.png);
 }
 
-.marble {
-  background-image: url(../../../assets/images/board/preview/marble.jpg);
+.brown {
+  background-image: url(../../../assets/images/board/preview/brown.png);
 }
 
 .metal {
-  background-image: url(../../../assets/images/board/preview/metal.jpg);
+  background-image: url(../../../assets/images/board/preview/metal.png);
 }
 
-.maple {
-  background-image: url(../../../assets/images/board/preview/maple.jpg);
-}
-
-.green {
-  background-image: url(../../../assets/images/board/preview/green.jpg);
+.wood {
+  background-image: url(../../../assets/images/board/preview/wood.png);
 }

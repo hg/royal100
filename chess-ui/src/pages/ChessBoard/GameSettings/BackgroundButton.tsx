@@ -10,16 +10,14 @@ interface Props {
 
 function cssClass(type: Props["type"]) {
   switch (type) {
-    case "wood":
-      return styles.wood;
-    case "marble":
-      return styles.marble;
+    case "blue":
+      return styles.blue;
+    case "brown":
+      return styles.brown;
     case "metal":
       return styles.metal;
-    case "maple":
-      return styles.maple;
-    case "green":
-      return styles.green;
+    case "wood":
+      return styles.wood;
   }
 }
 
