@@ -33,6 +33,7 @@ import {
   pieces,
 } from "../utils/consts";
 import { playMoveSound, playSelectSound } from "./sounds";
+import styles from "../pages/ChessBoard/index.module.css";
 
 export enum OpponentType {
   Computer,
@@ -139,7 +140,7 @@ export class Game {
     return this.fen.color;
   }
 
-  constructor(element: HTMLElement) {
+  constructor(private element: HTMLElement) {
     makeObservable(this);
 
     const resizer = new ResizeObserver(this.redraw);
@@ -186,11 +187,23 @@ export class Game {
         }
       )
     );
+
+    this.redraw();
   }
 
   @action.bound
-  private redraw() {
+  redraw() {
     this.ground?.redrawAll();
+
+    const cg = this.element.querySelector("cg-container");
+    const ranks = cg?.querySelector("coords.ranks")?.cloneNode(true) as Element;
+    const files = cg?.querySelector("coords.files")?.cloneNode(true) as Element;
+
+    if (cg && ranks && files) {
+      ranks.classList.add(styles.ranks);
+      files.classList.add(styles.files);
+      cg.append(ranks, files);
+    }
   }
 
   @action.bound

@@ -38,6 +38,11 @@ cg-container {
   bottom: 0;
 }
 
+cg-container coords.ranks coord {
+  display: flex;
+  align-items: center;
+}
+
 cg-container coords.ranks coord:last-child {
   visibility: hidden;
 }

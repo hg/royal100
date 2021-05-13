@@ -59,3 +59,13 @@
   width: var(--right-width);
   background: var(--bg-lighter);
 }
+
+.ranks {
+  right: unset;
+  left: -24px;
+}
+
+.files {
+  bottom: unset;
+  top: -22px;
+}
