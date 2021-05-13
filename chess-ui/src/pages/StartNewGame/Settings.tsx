@@ -56,6 +56,7 @@ const DepthSetting: FC<Props> = ({ config, setConfig }) => (
 
 const totalRanges: TimeRange[] = [
   { seconds: 5 * 60, title: "5 минут" },
+  { seconds: 10 * 60, title: "10 минут" },
   { seconds: 15 * 60, title: "15 минут" },
   { seconds: 30 * 60, title: "полчаса" },
   { seconds: 60 * 60, title: "час" },
@@ -67,6 +68,7 @@ const plyRanges: TimeRange[] = [
   { seconds: 5, title: "5 секунд" },
   { seconds: 10, title: "10 секунд" },
   { seconds: 15, title: "15 секунд" },
+  { seconds: 20, title: "20 секунд" },
   { seconds: 30, title: "30 секунд" },
   { seconds: 60, title: "минута" },
 ];
