@@ -417,7 +417,9 @@ export class Game {
     }
 
     if (this.isOpponentHuman) {
-      this.flipBoard();
+      this.ground.set({
+        movable: { color: this.turnColor },
+      });
     }
 
     await this.detectCheck();
@@ -475,17 +477,6 @@ export class Game {
       }
     }
     return undefined;
-  }
-
-  @action.bound
-  private flipBoard() {
-    this.bottomColor = this.turnColor;
-    this.ground.set({
-      orientation: this.turnColor,
-      movable: {
-        color: this.turnColor,
-      },
-    });
   }
 
   private async hasMoves(color: Color): Promise<boolean> {
