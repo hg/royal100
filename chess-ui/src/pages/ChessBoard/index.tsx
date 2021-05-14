@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import styles from "./index.module.css";
 import { observer } from "mobx-react-lite";
 import { reaction } from "mobx";
-import { GameConfig } from "../../game/game";
+import { GameConfig, SerializedState } from "../../game/game";
 import { MoveHistory } from "./MoveHistory";
 import { useSettings } from "./GameSettings";
 import { useGame } from "./hooks";
@@ -12,12 +12,13 @@ import { ZenButton } from "./ZenButton";
 
 interface Props {
   config: GameConfig;
+  state?: SerializedState;
 }
 
-export const ChessBoard = observer(({ config }: Props) => {
+export const ChessBoard = observer(({ config, state }: Props) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const [settings, setSettings] = useSettings();
-  const game = useGame(ref, config);
+  const game = useGame(ref, config, state);
   const showSidebar = settings.showSidebar || !game?.isPlaying;
 
   useEffect(() => {

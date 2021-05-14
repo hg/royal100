@@ -9,7 +9,7 @@ import "moment/locale/ru";
 import moment from "moment";
 import { StartNewGame } from "./pages/StartNewGame";
 import { routes } from "./pages/routes";
-import { defaultConfig } from "./game/game";
+import { defaultConfig, SerializedState } from "./game/game";
 import "./App.css";
 import { useWasmCheck } from "./utils/wasm";
 
@@ -48,6 +48,7 @@ const WasmUnsupported = () => (
 
 function AppRoutes() {
   const [config, setConfig] = useState(defaultConfig);
+  const [state, setState] = useState<SerializedState>();
 
   if (!useWasmCheck()) {
     return <WasmUnsupported />;
@@ -57,12 +58,18 @@ function AppRoutes() {
     <Switch>
       <Route
         path={routes.chess}
-        render={() => <ChessBoard config={config} />}
+        render={() => <ChessBoard config={config} state={state} />}
       />
       <Route
         exact
         path={routes.home}
-        render={() => <StartNewGame config={config} setConfig={setConfig} />}
+        render={() => (
+          <StartNewGame
+            config={config}
+            setConfig={setConfig}
+            onLoadState={setState}
+          />
+        )}
       />
     </Switch>
   );

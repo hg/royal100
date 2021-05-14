@@ -8,7 +8,7 @@ export function onGameStateChanged(game: Game, state: GameState) {
     reason = "мат";
   } else if (game.lossReason === LossReason.Timeout) {
     reason = "закончилось время";
-  } else if (game.lossReason === LossReason.Forfeit) {
+  } else if (game.lossReason === LossReason.Resign) {
     reason = "сдача";
   }
 

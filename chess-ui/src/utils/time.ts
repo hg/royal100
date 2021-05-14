@@ -7,3 +7,7 @@ export function secondsToMoment(time: number): Moment {
 export function momentToSeconds(time: Moment): number {
   return time.hours() * 60 * 60 + time.minutes() * 60 + time.seconds();
 }
+
+export function secToMs(sec: number): number {
+  return sec * 1000;
+}

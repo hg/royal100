@@ -5,7 +5,6 @@ import assert from "assert";
 import { Fen, ValidMoves } from "../game/engine";
 
 const reWs = /\s+/;
-const reOne = /1{2,9}/g;
 
 export function randomColor(): Color {
   return Math.random() <= 0.5 ? "white" : "black";
@@ -63,6 +62,12 @@ export function parseMoves(data: string): PieceMove[] {
   return result;
 }
 
+const reOne = /1{2,9}/g;
+
+export function compressPieces(pieces: string): string {
+  return pieces.replaceAll(reOne, (sub) => sub.length.toString());
+}
+
 export function parseFen(fen: string): Fen {
   const [
     pieces,
@@ -76,7 +81,7 @@ export function parseFen(fen: string): Fen {
 
   return {
     raw: fen,
-    pieces: pieces.replaceAll(reOne, (sub) => sub.length.toString()),
+    pieces: compressPieces(pieces),
     color: color === "w" ? "white" : "black",
     castling: {
       white: {

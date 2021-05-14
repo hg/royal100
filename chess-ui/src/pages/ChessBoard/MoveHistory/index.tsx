@@ -73,7 +73,7 @@ const TableRow: FC<RowProps> = ({ move, num, setMove, isLast }) => {
       ref={ref as Ref<HTMLTableRowElement>}
       title="Скопировать позицию в нотации FEN"
       role="button"
-      onClick={() => copyFen(num, move.fenAfter)}
+      onClick={() => copyFen(num, move.fen)}
     >
       <td>
         {setMove ? (

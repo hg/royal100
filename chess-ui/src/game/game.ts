@@ -34,16 +34,17 @@ import {
 } from "../utils/consts";
 import { playMoveSound, playSelectSound } from "./sounds";
 import styles from "../pages/ChessBoard/index.module.css";
+import { secToMs } from "../utils/time";
 
 export enum OpponentType {
-  Computer,
-  Human,
+  Computer = "Computer",
+  Human = "Human",
 }
 
 export enum UndoMove {
-  None,
-  Single,
-  Full,
+  None = "None",
+  Single = "Single",
+  Full = "Full",
 }
 
 export interface GameConfig {
@@ -74,8 +75,7 @@ export interface Move {
   to: Key;
   captured?: Piece;
   piece?: Piece;
-  fenBefore: string;
-  fenAfter: string;
+  fen: string;
 }
 
 export interface Clocks {
@@ -85,20 +85,38 @@ export interface Clocks {
 }
 
 export enum GameState {
-  Paused,
-  Playing,
-  LossWhite,
-  LossBlack,
-  Draw,
+  Paused = "Paused",
+  Playing = "Playing",
+  LossWhite = "LossWhite",
+  LossBlack = "LossBlack",
+  Draw = "Draw",
 }
 
 export enum LossReason {
-  Mate,
-  Timeout,
-  Forfeit,
+  Mate = "Mate",
+  Timeout = "Timeout",
+  Resign = "Resign",
+}
+
+export type SerializedClocks = {
+  [key in Color]: {
+    total: number;
+    remaining: number;
+  };
+};
+
+export interface SerializedState {
+  version: number;
+  state: GameState;
+  lossReason: LossReason;
+  moves: Move[];
+  undo: UndoMove;
+  clocks: SerializedClocks;
+  config: GameConfig;
 }
 
 export class Game {
+  private config?: GameConfig;
   private readonly engine: Engine;
   private readonly ground: Api;
   private undidMove?: Color;
@@ -147,6 +165,7 @@ export class Game {
     this.onMove = this.onMove.bind(this);
     this.canUndo = this.canUndo.bind(this);
     this.onSelect = this.onSelect.bind(this);
+    this.serialize = this.serialize.bind(this);
 
     this.engine = new Engine(this.clocks);
     this.engine.on(EngineEvent.Score, this.setScore);
@@ -213,6 +232,29 @@ export class Game {
     this.engine.off(EngineEvent.Score, this.setScore);
   }
 
+  serialize(): SerializedState {
+    assert.ok(this.config);
+
+    return {
+      version: 0,
+      state: this.state,
+      lossReason: this.lossReason,
+      moves: this.moves,
+      undo: this.undo,
+      clocks: {
+        white: {
+          remaining: this.clocks.white.remainingMs,
+          total: this.clocks.white.totalMs,
+        },
+        black: {
+          remaining: this.clocks.black.remainingMs,
+          total: this.clocks.black.totalMs,
+        },
+      },
+      config: this.config,
+    };
+  }
+
   canUndo(moveNumber: number): boolean {
     // Если игра завершена — даём возможность изучать историю
     if (!this.isPlaying) {
@@ -225,7 +267,8 @@ export class Game {
     if (this.undo === UndoMove.None) {
       return false;
     }
-    if (moveNumber <= 1) {
+    // Нам нужна возможность вытаскивать fen из предыдущих двух ходов
+    if (moveNumber < 2) {
       return false;
     }
     const move = this.moves[moveNumber];
@@ -252,17 +295,19 @@ export class Game {
   @action.bound
   async undoMove(moveNumber: number) {
     const undoMove = this.moves[moveNumber];
-    const previousMove = this.moves[moveNumber - 1];
 
     // Если не играем — больше ничего делать не нужно,
     // даём спокойно изучать историю вперёд/назад.
     if (!this.isPlaying) {
-      await this.setFen(undoMove.fenAfter, []);
+      await this.setFen(undoMove.fen, []);
       return;
     }
 
-    if (undoMove && previousMove) {
-      // Удаляем всё, начиная с прыдущего шага
+    const prevMove = this.moves[moveNumber - 1];
+    const prevPrevMove = this.moves[moveNumber - 2];
+
+    if (undoMove && prevMove && prevPrevMove) {
+      // Удаляем всё, начиная с предыдущего шага
       this.moves.splice(moveNumber - 1);
 
       // Останавливаем все часы — если белые отменяют свой ход,
@@ -271,10 +316,10 @@ export class Game {
       this.clocks.black.stop();
 
       // Повторяем последний шаг, который нужно сохранить
-      await this.setFen(previousMove.fenBefore, []);
-      this.previousFen = previousMove.fenBefore;
+      await this.setFen(prevPrevMove.fen, []);
+      this.previousFen = prevPrevMove.fen;
       this.undidMove = undoMove.color;
-      this.ground.move(previousMove.from, previousMove.to);
+      this.ground.move(prevMove.from, prevMove.to);
     }
   }
 
@@ -415,8 +460,7 @@ export class Game {
       captured: capturedPiece,
       piece: this.ground.state.pieces[dest],
       color: opposite(this.turnColor),
-      fenBefore: this.previousFen,
-      fenAfter: this.fen.raw,
+      fen: this.fen.raw,
     });
 
     this.previousFen = this.fen.raw;
@@ -530,41 +574,71 @@ export class Game {
     this.setState(GameState.Draw);
   }
 
-  async newGame(config: GameConfig) {
+  async restoreGame(state: SerializedState) {
     assert.ok(!this.isPlaying);
 
+    await this.assignConfig(state.config);
+
+    this.lossReason = state.lossReason;
+    this.moves = state.moves;
+    this.undo = state.undo;
+    this.clocks.white.set(
+      state.clocks.white.remaining,
+      state.clocks.white.total
+    );
+    this.clocks.black.set(
+      state.clocks.black.remaining,
+      state.clocks.black.total
+    );
+
+    const lastMove = state.moves[state.moves.length - 1];
+    await this.setFen(lastMove?.fen || state.config.fen || fens.start, []);
+
+    this.setState(state.state);
+
+    if (this.isPlaying) {
+      await this.updateValidMoves(this.fen);
+      await this.makeOpponentMove();
+    }
+  }
+
+  private async assignConfig(config: GameConfig) {
     await this.engine.newGame({
       depth: config.depth > depth.max ? undefined : config.depth,
       threads: numCpus(),
       moveTime: config.plyTime,
     });
 
-    const nextColor = this.isOpponentAComputer ? config.myColor : "white";
-
-    this.ground.set({
-      orientation: nextColor,
-      movable: { color: nextColor },
-      lastMove: undefined,
-    });
-
-    await this.setFen(config.fen || fens.start, []);
-
-    this.setState(GameState.Playing);
+    this.config = config;
     this.opponent = config.opponent;
-    this.bottomColor = nextColor;
+    this.bottomColor = this.isOpponentAComputer ? config.myColor : "white";
     this.myColor = config.myColor;
     this.undo = config.undo;
-    this.moves.splice(0);
     this.showAnalysis = config.showAnalysis;
-    this.plyIncrement = config.plyIncrement * 1000;
-
-    await this.updateValidMoves(this.fen);
+    this.plyIncrement = secToMs(config.plyIncrement);
+    this.moves.splice(0);
 
     this.clocks.used = config.totalTime > 0;
     if (this.clocks.used) {
-      this.clocks.white.set(config.totalTime * 1000);
-      this.clocks.black.set(config.totalTime * 1000);
+      this.clocks.white.set(secToMs(config.totalTime));
+      this.clocks.black.set(secToMs(config.totalTime));
     }
+
+    this.ground.set({
+      orientation: this.bottomColor,
+      movable: { color: this.bottomColor },
+      lastMove: undefined,
+    });
+  }
+
+  async newGame(config: GameConfig) {
+    assert.ok(!this.isPlaying);
+
+    await this.assignConfig(config);
+    await this.setFen(config.fen || fens.start, []);
+
+    this.setState(GameState.Playing);
+    await this.updateValidMoves(this.fen);
 
     await this.makeOpponentMove();
   }
@@ -645,9 +719,9 @@ export class Game {
   }
 
   @action.bound
-  forfeit() {
+  resign() {
     if (this.isPlaying) {
-      this.setLoss(this.myColor, LossReason.Forfeit);
+      this.setLoss(this.myColor, LossReason.Resign);
     }
   }
 

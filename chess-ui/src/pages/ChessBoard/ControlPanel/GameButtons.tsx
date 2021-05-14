@@ -2,6 +2,7 @@ import { Game } from "../../../game/game";
 import { Button, message, Modal, notification } from "antd";
 import {
   AiOutlineArrowLeft,
+  AiOutlineSave,
   BiHelpCircle,
   FaChess,
   FaRegHandPeace,
@@ -15,6 +16,7 @@ import { useHistory } from "react-router";
 import { routes } from "../../routes";
 import { confirm } from "../../../utils/dialogs";
 import { Settings } from "../GameSettings";
+import { saveFile } from "../../../utils/file";
 
 interface Props {
   game: Game;
@@ -26,55 +28,57 @@ interface ButtonsProps extends Props {
 }
 
 async function getHint(game: Game) {
-  if (game) {
-    const move = await game.getHint();
-    if (!move) {
-      message.error({ content: "Хороших ходов нет" });
-    } else {
-      notification.info({
-        message: `Попробуйте ${move.from}—${move.to}`,
-      });
-    }
+  const move = await game.getHint();
+  if (!move) {
+    message.error({ content: "Хороших ходов нет" });
+  } else {
+    notification.info({
+      message: `Попробуйте ${move.from}—${move.to}`,
+    });
   }
 }
 
-const WaitingModeButtons = observer<Props>(({ game }) => {
-  async function askForDraw() {
-    const success = await game.askForDraw();
-    if (!success) {
-      Modal.error({ title: "Компьютер отказался принимать ничью." });
-    }
+async function askForDraw(game: Game) {
+  const success = await game.askForDraw();
+  if (!success) {
+    Modal.error({ title: "Компьютер отказался принимать ничью." });
   }
+}
 
-  async function forfeit() {
-    await confirm("Вы действительно хотите сдаться?");
-    game.forfeit();
-  }
+async function resign(game: Game) {
+  await confirm("Вы действительно хотите сдаться?");
+  game.resign();
+}
 
-  return (
-    <Fragment>
-      <Button
-        size="large"
-        type="primary"
-        block
-        onClick={() => getHint(game)}
-        disabled={!game.isMyTurn}
-      >
-        <BiHelpCircle className="icon" /> Подсказка
+const WaitingModeButtons = observer<Props>(({ game }) => (
+  <Fragment>
+    <Button
+      size="large"
+      type="primary"
+      block
+      onClick={() => getHint(game)}
+      disabled={!game.isMyTurn}
+    >
+      <BiHelpCircle className="icon" /> Подсказка
+    </Button>
+
+    <Button
+      size="large"
+      type="primary"
+      danger
+      block
+      onClick={() => resign(game)}
+    >
+      <FiFlag className="icon" /> Сдаться
+    </Button>
+
+    {game.canAskForDraw && (
+      <Button size="large" danger block onClick={() => askForDraw(game)}>
+        <FaRegHandPeace className="icon" /> Предложить ничью
       </Button>
-
-      <Button size="large" type="primary" danger block onClick={forfeit}>
-        <FiFlag className="icon" /> Сдаться
-      </Button>
-
-      {game.canAskForDraw && (
-        <Button size="large" danger block onClick={askForDraw}>
-          <FaRegHandPeace className="icon" /> Предложить ничью
-        </Button>
-      )}
-    </Fragment>
-  );
-});
+    )}
+  </Fragment>
+));
 
 const ActiveGameButtons = observer<Props>(({ game }) =>
   game.isThinking ? (
@@ -97,6 +101,21 @@ export const GameButtons = observer<ButtonsProps>(
     const history = useHistory();
     const startNewGame = () => history.push(routes.home);
 
+    async function save(game: Game) {
+      const state = JSON.stringify(game.serialize());
+      saveFile(state);
+
+      game.stop();
+      history.replace(routes.home);
+
+      notification.success({
+        message: "Игра сохранена",
+        description:
+          "Загрузите сохранение на главном экране, чтобы продолжить игру.",
+        duration: 10,
+      });
+    }
+
     return (
       <Fragment>
         {game.isPlaying ? (
@@ -118,6 +137,10 @@ export const GameButtons = observer<ButtonsProps>(
 
         <Button size="large" block onClick={onShowSettings}>
           <FiSettings className="icon" /> Настройки
+        </Button>
+
+        <Button size="large" block onClick={() => save(game)}>
+          <AiOutlineSave className="icon" /> Отложить игру
         </Button>
       </Fragment>
     );

@@ -33,8 +33,8 @@ export class Clock {
   }
 
   @action.bound
-  set(ms: number) {
-    this.setInternal(ms, ms);
+  set(ms: number, total?: number) {
+    this.setInternal(ms, total ?? ms);
   }
 
   @action.bound
@@ -73,6 +73,11 @@ export class Clock {
   @computed
   get remainingMs(): number {
     return this.msec;
+  }
+
+  @computed
+  get totalMs(): number {
+    return this.total;
   }
 
   @computed
