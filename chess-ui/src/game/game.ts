@@ -239,7 +239,6 @@ export class Game {
       version: 0,
       state: this.state,
       lossReason: this.lossReason,
-      moves: this.moves,
       undo: this.undo,
       clocks: {
         white: {
@@ -252,6 +251,7 @@ export class Game {
         },
       },
       config: this.config,
+      moves: this.moves,
     };
   }
 
@@ -576,6 +576,10 @@ export class Game {
 
   async restoreGame(state: SerializedState) {
     assert.ok(!this.isPlaying);
+
+    if (state.version !== 0) {
+      throw new Error("invalid state version " + state.version);
+    }
 
     await this.assignConfig(state.config);
 
