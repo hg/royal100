@@ -2,13 +2,14 @@ import React, { useEffect, useRef } from "react";
 import styles from "./index.module.css";
 import { observer } from "mobx-react-lite";
 import { reaction } from "mobx";
-import { GameConfig, SerializedState } from "../../game/game";
+import { GameConfig } from "../../game/game";
 import { MoveHistory } from "./MoveHistory";
 import { useSettings } from "./GameSettings";
 import { useGame } from "./hooks";
 import { LeftSidebar } from "./LeftSidebar";
 import { onGameStateChanged } from "./endgame";
 import { ZenButton } from "./ZenButton";
+import { SerializedState } from "../../game/state";
 
 interface Props {
   config: GameConfig;

@@ -1,14 +1,20 @@
-import { Button, Collapse, Form, notification, Tabs } from "antd";
-import React, { ChangeEvent, FC, Fragment, useState } from "react";
+import { Button, Collapse, Descriptions, Form, notification, Tabs } from "antd";
+import React, { ChangeEvent, FC, Fragment, useRef, useState } from "react";
 import { appName } from "../../utils/consts";
 import styles from "./index.module.css";
-import { GameConfig, SerializedState } from "../../game/game";
+import { GameConfig, GameState, StateType } from "../../game/game";
 import { Settings } from "./Settings";
 import { AdvancedSettings } from "./AdvancedSettings";
 import { FaChessKing, FiSettings } from "react-icons/all";
 import { StartGameButtons } from "./StartGameButtons";
 import { routes } from "../routes";
 import { useHistory } from "react-router";
+import {
+  parseState,
+  SerializedClocks,
+  SerializedState,
+} from "../../game/state";
+import { formatTime } from "../../utils/time";
 
 interface Props {
   config: GameConfig;
@@ -33,7 +39,25 @@ const NewGame: FC<Props> = ({ config, setConfig }) => (
   </Fragment>
 );
 
+function stateToString(state: GameState) {
+  switch (state.state) {
+    case StateType.Paused:
+      return "пауза";
+    case StateType.Playing:
+      return "идёт игра";
+    case StateType.Draw:
+      return "ничья";
+    case StateType.Win:
+      return `победа ${state.side === "white" ? "белых" : "чёрных"}`;
+  }
+}
+
+function formatSideTime(clock: SerializedClocks[keyof SerializedClocks]) {
+  return `${formatTime(clock.remaining)} /  ${formatTime(clock.total)}`;
+}
+
 const ContinueGame: FC<Pick<StartProps, "onLoadState">> = ({ onLoadState }) => {
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const [state, setState] = useState<SerializedState>();
   const history = useHistory();
 
@@ -43,11 +67,15 @@ const ContinueGame: FC<Pick<StartProps, "onLoadState">> = ({ onLoadState }) => {
       notification.error({ message: "Выберите файл с сохранением игры." });
       return;
     }
-    try {
-      const json = await file.text();
-      const state = JSON.parse(json);
+    const json = await file.text();
+    const state = parseState(json);
+    if (state) {
       setState(state);
-    } catch (e) {
+    } else {
+      const input = fileRef.current;
+      if (input) {
+        input.value = "";
+      }
       notification.error({ message: "Не удалось загрузить сохранённую игру." });
     }
   }
@@ -62,8 +90,35 @@ const ContinueGame: FC<Pick<StartProps, "onLoadState">> = ({ onLoadState }) => {
   return (
     <Fragment>
       <Form.Item label="Сохранённая игра">
-        <input type="file" accept=".royal100" onChange={onLoadSave} />
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".royal100"
+          onChange={onLoadSave}
+        />
       </Form.Item>
+
+      {state && (
+        <Form.Item>
+          <Descriptions bordered size="small">
+            <Descriptions.Item label="Результат" span={3}>
+              {stateToString(state.state)}
+            </Descriptions.Item>
+
+            <Descriptions.Item label="Всего полуходов">
+              {state.moves.length}
+            </Descriptions.Item>
+
+            <Descriptions.Item label="Время белых">
+              {formatSideTime(state.clocks.white)}
+            </Descriptions.Item>
+
+            <Descriptions.Item label="Время чёрных">
+              {formatSideTime(state.clocks.black)}
+            </Descriptions.Item>
+          </Descriptions>
+        </Form.Item>
+      )}
 
       <Button.Group size="large" className="footer">
         <Button type="primary" disabled={!state} onClick={loadGame}>

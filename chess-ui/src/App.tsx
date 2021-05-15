@@ -9,9 +9,10 @@ import "moment/locale/ru";
 import moment from "moment";
 import { StartNewGame } from "./pages/StartNewGame";
 import { routes } from "./pages/routes";
-import { defaultConfig, SerializedState } from "./game/game";
+import { defaultConfig } from "./game/game";
 import "./App.css";
 import { useWasmCheck } from "./utils/wasm";
+import { SerializedState } from "./game/state";
 
 moment.locale("ru");
 

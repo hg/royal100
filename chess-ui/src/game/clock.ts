@@ -1,7 +1,6 @@
 import { action, computed, makeObservable, observable } from "mobx";
+import { formatTime } from "../utils/time";
 
-const secondsInMinute = 60;
-const secondsInHour = secondsInMinute * 60;
 const updateInterval = 500;
 
 export class Clock {
@@ -90,32 +89,6 @@ export class Clock {
 
   @computed
   get remaining(): string {
-    let secs = this.remainingSecs;
-
-    let hhrs = 0;
-    if (secs >= secondsInHour) {
-      hhrs = Math.floor(secs / secondsInHour);
-      secs -= hhrs * secondsInHour;
-    }
-
-    let mins = 0;
-    if (secs >= secondsInMinute) {
-      mins = Math.floor(secs / secondsInMinute);
-      secs -= mins * secondsInMinute;
-    }
-
-    if (secs === 60) {
-      secs = 0;
-    }
-
-    const hh = hhrs.toFixed(0).padStart(2, "0");
-    const mm = mins.toFixed(0).padStart(2, "0");
-    const ss = secs.toFixed(0).padStart(2, "0");
-
-    if (hhrs === 0) {
-      return `${mm}:${ss}`;
-    } else {
-      return `${hh}:${mm}:${ss}`;
-    }
+    return formatTime(this.remainingMs);
   }
 }

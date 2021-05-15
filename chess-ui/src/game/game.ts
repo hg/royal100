@@ -35,6 +35,7 @@ import {
 import { playMoveSound, playSelectSound } from "./sounds";
 import styles from "../pages/ChessBoard/index.module.css";
 import { secToMs } from "../utils/time";
+import { SerializedState } from "./state";
 
 export enum OpponentType {
   Computer = "Computer",
@@ -101,22 +102,6 @@ export enum WinReason {
   Mate = "Mate",
   Timeout = "Timeout",
   Resign = "Resign",
-}
-
-export type SerializedClocks = {
-  [key in Color]: {
-    total: number;
-    remaining: number;
-  };
-};
-
-export interface SerializedState {
-  version: number;
-  state: GameState;
-  moves: Move[];
-  undo: UndoMove;
-  clocks: SerializedClocks;
-  config: GameConfig;
 }
 
 export class Game {

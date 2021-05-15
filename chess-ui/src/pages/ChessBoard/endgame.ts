@@ -21,10 +21,10 @@ export function onGameStateChanged(game: Game, state: GameState) {
     }
     switch (state.side) {
       case "white":
-        message = `Белые проиграли: ${reason}`;
+        message = `Белые победили: ${reason}`;
         break;
       case "black":
-        message = `Чёрные проиграли: ${reason}`;
+        message = `Чёрные победили: ${reason}`;
         break;
     }
     playSound = true;

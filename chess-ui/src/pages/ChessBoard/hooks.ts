@@ -1,8 +1,9 @@
-import { Game, GameConfig, SerializedState } from "../../game/game";
+import { Game, GameConfig } from "../../game/game";
 import { MutableRefObject, useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import { notification } from "antd";
 import { routes } from "../routes";
+import { SerializedState } from "../../game/state";
 
 export function useGame(
   board: MutableRefObject<HTMLDivElement | null>,
