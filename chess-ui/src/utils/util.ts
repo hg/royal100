@@ -1,3 +1,5 @@
+import { random } from "./random";
+
 export function isEmpty(
   data: number | Record<string, unknown> | string | undefined | null
 ): boolean {
@@ -11,6 +13,48 @@ export function isEmpty(
     return Object.keys(data).length === 0;
   }
   return false;
+}
+
+export function isEven(num: number): boolean {
+  return num % 2 === 0;
+}
+
+export function isOdd(num: number): boolean {
+  return !isEven(num);
+}
+
+export function range(fromInclusive: number, toInclusive: number): number[] {
+  const result: number[] = [];
+  for (let i = fromInclusive; i <= toInclusive; ++i) {
+    result.push(i);
+  }
+  return result;
+}
+
+export function swap<T>(data: T[], i: number, j: number): T[] {
+  const first = data[i];
+  data[i] = data[j];
+  data[j] = first;
+  return data;
+}
+
+export function pluck<T>(...arrays: T[][]): T | undefined {
+  const arrayIndex = random(0, arrays.length - 1);
+  const array = arrays[arrayIndex];
+  if (!array) {
+    return undefined;
+  }
+  const index = random(0, array.length - 1);
+  return array.splice(index)[0];
+}
+
+export function remove<T>(data: T[], item: T): number | undefined {
+  const index = data.indexOf(item);
+  if (index !== -1) {
+    data.splice(index, 1);
+    return index;
+  }
+  return undefined;
 }
 
 export function clamp(value: number, min: number, max: number) {

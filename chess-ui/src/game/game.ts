@@ -128,7 +128,6 @@ export class Game {
     white: new Clock(),
     black: new Clock(),
   };
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   @observable fen: Fen = null!;
 
   @computed

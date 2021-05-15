@@ -49,6 +49,7 @@
     "rules": {
       "prettier/prettier": "error",
       "unused-imports/no-unused-imports-ts": "error",
+      "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "no-constant-condition": "off",
       "no-var": "error",
