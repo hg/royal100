@@ -84,15 +84,20 @@ export interface Clocks {
   black: Clock;
 }
 
-export enum GameState {
+export enum StateType {
   Paused = "Paused",
   Playing = "Playing",
-  LossWhite = "LossWhite",
-  LossBlack = "LossBlack",
+  Win = "Win",
   Draw = "Draw",
 }
 
-export enum LossReason {
+export type GameState =
+  | { state: StateType.Paused }
+  | { state: StateType.Playing }
+  | { state: StateType.Draw }
+  | { state: StateType.Win; side: Color; reason: WinReason };
+
+export enum WinReason {
   Mate = "Mate",
   Timeout = "Timeout",
   Resign = "Resign",
@@ -108,7 +113,6 @@ export type SerializedClocks = {
 export interface SerializedState {
   version: number;
   state: GameState;
-  lossReason: LossReason;
   moves: Move[];
   undo: UndoMove;
   clocks: SerializedClocks;
@@ -130,8 +134,7 @@ export class Game {
   @observable private myColor: Color = "white";
   @observable private score?: Score;
   @observable private undo: UndoMove = UndoMove.Single;
-  @observable lossReason = LossReason.Mate;
-  @observable state = GameState.Paused;
+  @observable state: GameState = { state: StateType.Paused };
   @observable moves: Move[] = [];
   @observable isThinking = false;
   @observable bottomColor: Color = "black";
@@ -190,7 +193,11 @@ export class Game {
         () => this.clocks.white.remainingSecs,
         (secs) => {
           if (this.clocks.used && secs <= 0) {
-            this.setLoss("white", LossReason.Timeout);
+            this.setState({
+              state: StateType.Win,
+              side: "black",
+              reason: WinReason.Timeout,
+            });
           }
         }
       ),
@@ -199,7 +206,11 @@ export class Game {
         () => this.clocks.black.remainingSecs,
         (secs) => {
           if (this.clocks.used && secs <= 0) {
-            this.setLoss("black", LossReason.Timeout);
+            this.setState({
+              state: StateType.Win,
+              side: "white",
+              reason: WinReason.Timeout,
+            });
           }
         }
       )
@@ -236,9 +247,8 @@ export class Game {
     assert.ok(this.config);
 
     return {
-      version: 0,
+      version: 1,
       state: this.state,
-      lossReason: this.lossReason,
       undo: this.undo,
       clocks: {
         white: {
@@ -348,14 +358,14 @@ export class Game {
     return (
       !this.isPlaying &&
       (this.isOpponentHuman ||
-        (this.myColor === "white" && this.state === GameState.LossBlack) ||
-        (this.myColor === "black" && this.state === GameState.LossWhite))
+        (this.state.state === StateType.Win &&
+          this.state.side === this.myColor))
     );
   }
 
   @computed
   get isPlaying(): boolean {
-    return this.state === GameState.Playing;
+    return this.state.state === StateType.Playing;
   }
 
   @computed
@@ -374,16 +384,6 @@ export class Game {
         this.moves.length >= drawMinMoves &&
         this.score
     );
-  }
-
-  @action.bound
-  private setLoss(side: Color, reason: LossReason) {
-    if (this.isPlaying) {
-      const state =
-        side === "white" ? GameState.LossWhite : GameState.LossBlack;
-      this.setState(state);
-      this.lossReason = reason;
-    }
   }
 
   @action.bound
@@ -555,7 +555,7 @@ export class Game {
 
     // 50 полуходов — ничья
     if (this.fen.halfMoves >= drawHalfMoves) {
-      this.setState(GameState.Draw);
+      this.setState({ state: StateType.Draw });
       return;
     }
 
@@ -564,26 +564,31 @@ export class Game {
       return;
     }
 
+    const opponent = opposite(this.turnColor);
+
     // У противника есть ходы — мы проиграли
-    if (await this.hasMoves(opposite(this.turnColor))) {
-      this.setLoss(this.turnColor, LossReason.Mate);
+    if (await this.hasMoves(opponent)) {
+      this.setState({
+        state: StateType.Win,
+        side: opponent,
+        reason: WinReason.Mate,
+      });
       return;
     }
 
     // У противника тоже нет ходов — ничья
-    this.setState(GameState.Draw);
+    this.setState({ state: StateType.Draw });
   }
 
   async restoreGame(state: SerializedState) {
     assert.ok(!this.isPlaying);
 
-    if (state.version !== 0) {
+    if (state.version !== 1) {
       throw new Error("invalid state version " + state.version);
     }
 
     await this.assignConfig(state.config);
 
-    this.lossReason = state.lossReason;
     this.moves = state.moves;
     this.undo = state.undo;
     this.clocks.white.set(
@@ -641,7 +646,7 @@ export class Game {
     await this.assignConfig(config);
     await this.setFen(config.fen || fens.start, []);
 
-    this.setState(GameState.Playing);
+    this.setState({ state: StateType.Playing });
     await this.updateValidMoves(this.fen);
 
     await this.makeOpponentMove();
@@ -717,7 +722,7 @@ export class Game {
       return false;
     }
 
-    this.setState(GameState.Draw);
+    this.setState({ state: StateType.Draw });
 
     return true;
   }
@@ -725,7 +730,11 @@ export class Game {
   @action.bound
   resign() {
     if (this.isPlaying) {
-      this.setLoss(this.myColor, LossReason.Resign);
+      this.setState({
+        state: StateType.Win,
+        side: opposite(this.myColor),
+        reason: WinReason.Resign,
+      });
     }
   }
 
@@ -754,7 +763,7 @@ export class Game {
 
   @action.bound
   stop() {
-    this.setState(GameState.Paused);
+    this.setState({ state: StateType.Paused });
     this.engine.quit();
   }
 

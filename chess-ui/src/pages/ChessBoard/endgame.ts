@@ -1,27 +1,34 @@
-import { Game, GameState, LossReason } from "../../game/game";
+import { Game, GameState, StateType, WinReason } from "../../game/game";
 import { sound, Track } from "../../game/audio";
 import { Modal } from "antd";
 
 export function onGameStateChanged(game: Game, state: GameState) {
   let reason = "";
-  if (game.lossReason === LossReason.Mate) {
-    reason = "мат";
-  } else if (game.lossReason === LossReason.Timeout) {
-    reason = "закончилось время";
-  } else if (game.lossReason === LossReason.Resign) {
-    reason = "сдача";
-  }
-
   let playSound = false;
   let message = "";
 
-  if (state === GameState.LossWhite) {
-    message = `Белые проиграли: ${reason}`;
+  if (state.state === StateType.Win) {
+    switch (state.reason) {
+      case WinReason.Mate:
+        reason = "мат";
+        break;
+      case WinReason.Timeout:
+        reason = "закончилось время";
+        break;
+      case WinReason.Resign:
+        reason = "сдача";
+        break;
+    }
+    switch (state.side) {
+      case "white":
+        message = `Белые проиграли: ${reason}`;
+        break;
+      case "black":
+        message = `Чёрные проиграли: ${reason}`;
+        break;
+    }
     playSound = true;
-  } else if (state === GameState.LossBlack) {
-    message = `Чёрные проиграли: ${reason}`;
-    playSound = true;
-  } else if (state === GameState.Draw) {
+  } else if (state.state === StateType.Draw) {
     message = "Ничья";
   }
 
