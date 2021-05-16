@@ -1,5 +1,5 @@
 import { Game } from "../../../game/game";
-import { Button, message, Modal, notification } from "antd";
+import { Button, message, Modal, notification, Popconfirm } from "antd";
 import {
   AiOutlineArrowLeft,
   AiOutlineSave,
@@ -10,11 +10,10 @@ import {
   FiSettings,
   GiStopSign,
 } from "react-icons/all";
-import React, { Fragment } from "react";
+import React, { FC, Fragment } from "react";
 import { observer } from "mobx-react-lite";
 import { useHistory } from "react-router";
 import { routes } from "../../routes";
-import { confirm } from "../../../utils/dialogs";
 import { Settings } from "../GameSettings";
 import { saveFile } from "../../../utils/file";
 
@@ -45,10 +44,18 @@ async function askForDraw(game: Game) {
   }
 }
 
-async function resign(game: Game) {
-  await confirm("Вы действительно хотите сдаться?");
-  game.resign();
-}
+const Resign: FC<Props> = ({ game }) => {
+  return (
+    <Popconfirm
+      title="Вы действительно хотите сдаться?"
+      onConfirm={game.resign}
+    >
+      <Button size="large" type="primary" danger block>
+        <FiFlag className="icon" /> Сдаться
+      </Button>
+    </Popconfirm>
+  );
+};
 
 const WaitingModeButtons = observer<Props>(({ game }) => (
   <Fragment>
@@ -62,15 +69,7 @@ const WaitingModeButtons = observer<Props>(({ game }) => (
       <BiHelpCircle className="icon" /> Подсказка
     </Button>
 
-    <Button
-      size="large"
-      type="primary"
-      danger
-      block
-      onClick={() => resign(game)}
-    >
-      <FiFlag className="icon" /> Сдаться
-    </Button>
+    <Resign game={game} />
 
     {game.canAskForDraw && (
       <Button size="large" danger block onClick={() => askForDraw(game)}>
