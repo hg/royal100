@@ -12,7 +12,12 @@ import styles from "./index.module.css";
 import { GameConfig, GameState, StateType } from "../../game/game";
 import { Settings } from "./Settings";
 import { AdvancedSettings } from "./AdvancedSettings";
-import { FaChessKing, FiSettings } from "react-icons/all";
+import {
+  AiOutlineCloudUpload,
+  AiOutlinePlusSquare,
+  FaChessKing,
+  FiSettings,
+} from "react-icons/all";
 import { StartGameButtons } from "./StartGameButtons";
 import { routes } from "../routes";
 import { useHistory } from "react-router";
@@ -158,12 +163,27 @@ export const StartNewGame: FC<StartProps> = ({
           {appName}
         </header>
 
-        <Tabs centered>
-          <Tabs.TabPane key="new" tab="Новая игра">
+        <Tabs centered type="card">
+          <Tabs.TabPane
+            key="new"
+            tab={
+              <>
+                <AiOutlinePlusSquare className="icon" /> Новая игра
+              </>
+            }
+          >
             <NewGame config={config} setConfig={setConfig} />
           </Tabs.TabPane>
 
-          <Tabs.TabPane key="continue" tab="Продолжить игру">
+          <Tabs.TabPane
+            key="continue"
+            tab={
+              <>
+                <AiOutlineCloudUpload className="icon" />
+                Продолжить игру
+              </>
+            }
+          >
             <ContinueGame onLoadState={onLoadState} />
           </Tabs.TabPane>
         </Tabs>

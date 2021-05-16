@@ -41,14 +41,19 @@
 .sideButton {
   background: transparent;
   border: 1px solid #323232;
-  border-radius: 4px;
-  padding: 8px 16px;
+  border-radius: 2px;
   margin-right: 8px;
   cursor: pointer;
+  padding: 0;
+}
+
+.sideButtonContent {
+  display: flex;
+  align-items: center;
+  padding: 8px;
 }
 
 .sideButton.active {
-  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.23);
   background: #242424;
 }
 
@@ -58,11 +63,11 @@
 }
 
 .sideIcon {
-  display: inline-block;
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
+  margin-right: 8px;
+  background-size: cover;
   background-position: center;
-  background-size: contain;
 }
 
 .timeControl {

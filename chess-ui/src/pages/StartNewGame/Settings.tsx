@@ -6,9 +6,9 @@ import React, { FC, Fragment, useLayoutEffect } from "react";
 import { GameConfig, OpponentType } from "../../game/game";
 import { SliderMarks } from "antd/lib/slider";
 import {
+  BiBot,
   GiPerspectiveDiceSixFacesRandom,
   IoIosPerson,
-  MdComputer,
 } from "react-icons/all";
 import { ToggleButton } from "./ToggleButton";
 import { TimeControl, TimeRange } from "./TimeControl";
@@ -118,7 +118,7 @@ const OpponentSetting: FC<Props> = ({ config, setConfig }) => (
       setConfig={setConfig}
       configKey="opponent"
       value={OpponentType.Computer}
-      icon={<MdComputer className={styles.sideIcon} />}
+      icon={<BiBot className={styles.sideIcon} />}
       title="Играть c компьютером"
     />
     <ToggleButton

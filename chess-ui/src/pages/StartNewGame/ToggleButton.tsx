@@ -26,7 +26,8 @@ export const ToggleButton = ({
       config[configKey] === value && styles.active
     }`}
   >
-    <div>{icon}</div>
-    {title}
+    <div className={styles.sideButtonContent}>
+      {icon} {title}
+    </div>
   </button>
 );

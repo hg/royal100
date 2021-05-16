@@ -15,6 +15,10 @@ export function isEmpty(
   return false;
 }
 
+export function intersect<T>(first: T[], second: T[]): boolean {
+  return first.some((value) => second.includes(value));
+}
+
 export function isEven(num: number): boolean {
   return num % 2 === 0;
 }
