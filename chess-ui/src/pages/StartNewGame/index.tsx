@@ -1,5 +1,12 @@
 import { Button, Collapse, Descriptions, Form, notification, Tabs } from "antd";
-import React, { ChangeEvent, FC, Fragment, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  FC,
+  Fragment,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { appName } from "../../utils/consts";
 import styles from "./index.module.css";
 import { GameConfig, GameState, StateType } from "../../game/game";
@@ -131,30 +138,36 @@ const ContinueGame: FC<Pick<StartProps, "onLoadState">> = ({ onLoadState }) => {
 };
 
 interface StartProps extends Props {
-  onLoadState: (state: SerializedState) => void;
+  onLoadState: (state?: SerializedState) => void;
 }
 
 export const StartNewGame: FC<StartProps> = ({
   config,
   setConfig,
   onLoadState,
-}) => (
-  <div className={styles.wrap}>
-    <div className={styles.form}>
-      <header className={styles.header}>
-        <div className={styles.appIcon} />
-        {appName}
-      </header>
+}) => {
+  useLayoutEffect(() => {
+    onLoadState(undefined);
+  }, [onLoadState]);
 
-      <Tabs centered>
-        <Tabs.TabPane key="new" tab="Новая игра">
-          <NewGame config={config} setConfig={setConfig} />
-        </Tabs.TabPane>
+  return (
+    <div className={styles.wrap}>
+      <div className={styles.form}>
+        <header className={styles.header}>
+          <div className={styles.appIcon} />
+          {appName}
+        </header>
 
-        <Tabs.TabPane key="continue" tab="Продолжить игру">
-          <ContinueGame onLoadState={onLoadState} />
-        </Tabs.TabPane>
-      </Tabs>
+        <Tabs centered>
+          <Tabs.TabPane key="new" tab="Новая игра">
+            <NewGame config={config} setConfig={setConfig} />
+          </Tabs.TabPane>
+
+          <Tabs.TabPane key="continue" tab="Продолжить игру">
+            <ContinueGame onLoadState={onLoadState} />
+          </Tabs.TabPane>
+        </Tabs>
+      </div>
     </div>
-  </div>
-);
+  );
+};
