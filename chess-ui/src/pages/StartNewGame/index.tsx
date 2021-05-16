@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { appName } from "../../utils/consts";
 import styles from "./index.module.css";
-import { GameConfig, GameState, StateType } from "../../game/game";
+import { GameConfig, GameState } from "../../game/game";
 import { Settings } from "./Settings";
 import { AdvancedSettings } from "./AdvancedSettings";
 import {
@@ -28,6 +28,7 @@ import {
 } from "../../game/state";
 import { formatTime } from "../../utils/time";
 import { StateSetter } from "../../types";
+import { formatGameResult } from "../ChessBoard/endgame";
 
 interface Props {
   config: GameConfig;
@@ -53,16 +54,8 @@ const NewGame: FC<Props> = ({ config, setConfig }) => (
 );
 
 function stateToString(state: GameState) {
-  switch (state.state) {
-    case StateType.Paused:
-      return "пауза";
-    case StateType.Playing:
-      return "идёт игра";
-    case StateType.Draw:
-      return "ничья";
-    case StateType.Win:
-      return `победа ${state.side === "white" ? "белых" : "чёрных"}`;
-  }
+  const { message, reason } = formatGameResult(state, false);
+  return `${message}: ${reason}`;
 }
 
 function formatSideTime(clock: SerializedClocks[keyof SerializedClocks]) {

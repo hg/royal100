@@ -1,49 +1,61 @@
-import { Game, GameState, StateType, WinReason } from "../../game/game";
+import {
+  DrawReason,
+  Game,
+  GameState,
+  StateType,
+  WinReason,
+} from "../../game/game";
 import { sound, Track } from "../../game/audio";
 import { Modal } from "antd";
 
-export function onGameStateChanged(game: Game, state: GameState) {
+export function formatGameResult(
+  state: GameState,
+  hasWon: boolean
+): { message: string; reason: string; track?: Track } {
   let reason = "";
-  let playSound = false;
   let message = "";
+  let track: Track | undefined = undefined;
 
   if (state.state === StateType.Win) {
-    switch (state.reason) {
-      case WinReason.Mate:
-        reason = "мат";
-        break;
-      case WinReason.Timeout:
-        reason = "закончилось время";
-        break;
-      case WinReason.Resign:
-        reason = "сдача";
-        break;
+    if (state.side === "white") {
+      message = "Белые победили";
+    } else {
+      message = "Чёрные победили";
     }
-    switch (state.side) {
-      case "white":
-        message = `Белые победили: ${reason}`;
-        break;
-      case "black":
-        message = `Чёрные победили: ${reason}`;
-        break;
+    if (state.reason === WinReason.Mate) {
+      reason = "мат";
+    } else if (state.reason === WinReason.Timeout) {
+      reason = "закончилось время";
+    } else if (state.reason === WinReason.Resign) {
+      reason = "сдача";
     }
-    playSound = true;
-  } else if (state.state === StateType.Draw) {
-    message = "Ничья";
+    track = hasWon ? Track.Win : Track.Lose;
   }
 
+  if (state.state === StateType.Draw) {
+    message = "Ничья";
+    if (state.reason === DrawReason.Agreement) {
+      reason = "по соглашению игроков";
+    } else if (state.reason === DrawReason.Stalemate) {
+      reason = "пат";
+    } else if (state.reason === DrawReason.HalfMoves) {
+      reason = "50 полуходов";
+    }
+  }
+
+  return { message, reason, track };
+}
+
+export function onGameStateChanged(game: Game) {
+  const { message, reason, track } = formatGameResult(game.state, game.hasWon);
+
+  if (track) {
+    sound.play(track);
+  }
   if (message) {
     Modal.info({
       title: "Партия завершена",
-      content: message,
+      content: `${message}: ${reason}`,
     });
-
-    if (playSound) {
-      if (game.hasWon) {
-        sound.play(Track.Win);
-      } else {
-        sound.play(Track.Lose);
-      }
-    }
   }
 }

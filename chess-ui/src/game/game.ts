@@ -95,13 +95,19 @@ export enum StateType {
 export type GameState =
   | { state: StateType.Paused }
   | { state: StateType.Playing }
-  | { state: StateType.Draw }
+  | { state: StateType.Draw; reason: DrawReason }
   | { state: StateType.Win; side: Color; reason: WinReason };
 
 export enum WinReason {
   Mate = "Mate",
   Timeout = "Timeout",
   Resign = "Resign",
+}
+
+export enum DrawReason {
+  Agreement = "Agreement",
+  Stalemate = "Stalemate",
+  HalfMoves = "HalfMoves",
 }
 
 export class Game {
@@ -404,18 +410,21 @@ export class Game {
     }
   }
 
-  private async detectCheck() {
+  private async detectCheck(): Promise<Color | undefined> {
     const { pieces } = this.ground.state;
 
     for (const key of await this.engine.checkers()) {
       const piece = pieces[key];
       if (piece) {
-        this.ground.set({ check: opposite(piece.color) });
-        return;
+        const check = opposite(piece.color);
+        this.ground.set({ check });
+        return check;
       }
     }
 
     this.ground.set({ check: false });
+
+    return undefined;
   }
 
   private async onMove(orig: Key, dest: Key, capturedPiece?: Piece) {
@@ -460,7 +469,8 @@ export class Game {
       this.clocks[this.turnColor].continue();
     }
 
-    await this.detectEndGame();
+    const check = await this.detectCheck();
+    await this.detectEndGame(check);
 
     if (!this.isPlaying) {
       return;
@@ -471,8 +481,6 @@ export class Game {
         movable: { color: this.turnColor },
       });
     }
-
-    await this.detectCheck();
 
     await this.makeOpponentMove();
   }
@@ -534,12 +542,12 @@ export class Game {
     return !(this.validMoves && isEmpty(this.validMoves.destinations));
   }
 
-  private async detectEndGame() {
+  private async detectEndGame(check?: Color) {
     this.assertPlayingState();
 
     // 50 полуходов — ничья
     if (this.fen.halfMoves >= drawHalfMoves) {
-      this.setState({ state: StateType.Draw });
+      this.setState({ state: StateType.Draw, reason: DrawReason.HalfMoves });
       return;
     }
 
@@ -550,18 +558,23 @@ export class Game {
 
     const opponent = opposite(this.turnColor);
 
-    // У противника есть ходы — мы проиграли
+    // Если у противника есть ходы — смотрим, находится ли король под шахом
     if (await this.hasMoves(opponent)) {
-      this.setState({
-        state: StateType.Win,
-        side: opponent,
-        reason: WinReason.Mate,
-      });
-      return;
+      if (check) {
+        // Король под шахом, мы проиграли
+        this.setState({
+          state: StateType.Win,
+          side: opponent,
+          reason: WinReason.Mate,
+        });
+      } else {
+        // Шаха нет, ничья
+        this.setState({ state: StateType.Draw, reason: DrawReason.Stalemate });
+      }
+    } else {
+      // У противника тоже нет ходов — ничья
+      this.setState({ state: StateType.Draw, reason: DrawReason.Stalemate });
     }
-
-    // У противника тоже нет ходов — ничья
-    this.setState({ state: StateType.Draw });
   }
 
   async restoreGame(state: SerializedState) {
@@ -706,7 +719,7 @@ export class Game {
       return false;
     }
 
-    this.setState({ state: StateType.Draw });
+    this.setState({ state: StateType.Draw, reason: DrawReason.Agreement });
 
     return true;
   }

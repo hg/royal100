@@ -26,7 +26,7 @@ export const ChessBoard = observer(({ config, state }: Props) => {
     if (game) {
       return reaction(
         () => game.state,
-        (state) => onGameStateChanged(game, state)
+        () => onGameStateChanged(game)
       );
     }
   }, [game]);
