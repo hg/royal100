@@ -3,10 +3,11 @@ import { Checkbox, Form, Input, Radio, TimePicker } from "antd";
 import { formLayout } from "../../utils/forms";
 import { momentToSeconds, secondsToMoment } from "../../utils/time";
 import React, { FC } from "react";
+import { StateSetter } from "../../types";
 
 interface Props {
   config: GameConfig;
-  setConfig: (config: GameConfig) => void;
+  setConfig: StateSetter<GameConfig>;
 }
 
 export const AdvancedSettings: FC<Props> = ({ config, setConfig }) => (

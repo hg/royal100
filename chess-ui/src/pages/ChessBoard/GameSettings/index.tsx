@@ -5,6 +5,7 @@ import { localStore } from "../../../utils/store";
 import styles from "./index.module.css";
 import { BackgroundButton } from "./BackgroundButton";
 import { sound } from "../../../game/audio";
+import { StateSetter } from "../../../types";
 
 interface Props {
   value: Settings;
@@ -28,7 +29,7 @@ const defaultSettings: Settings = {
   showSidebar: true,
 };
 
-export function useSettings(): [Settings, (value: Settings) => void] {
+export function useSettings(): [Settings, StateSetter<Settings>] {
   const [settings, setSettings] = useState<Settings>(() => {
     const stored = localStore.get<Settings>("game/settings");
     return { ...defaultSettings, ...stored };

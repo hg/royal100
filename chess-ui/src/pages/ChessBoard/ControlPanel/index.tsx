@@ -6,11 +6,12 @@ import styles from "./index.module.css";
 import { GameScore } from "./GameScore";
 import { GameButtons } from "./GameButtons";
 import { Settings } from "../GameSettings";
+import { StateSetter } from "../../../types";
 
 interface Props {
   game: Game;
   onShowSettings: () => void;
-  onSet: (settings: Partial<Settings>) => void;
+  onSet: StateSetter<Partial<Settings>>;
 }
 
 export const ControlPanel = observer<Props>(

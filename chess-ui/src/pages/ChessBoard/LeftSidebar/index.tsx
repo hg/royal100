@@ -3,11 +3,12 @@ import { ControlPanel } from "../ControlPanel";
 import { Game } from "../../../game/game";
 import { observer } from "mobx-react-lite";
 import React, { Fragment, useState } from "react";
+import { StateSetter } from "../../../types";
 
 interface Props {
   game: Game;
   settings: Settings;
-  setSettings: (settings: Settings) => void;
+  setSettings: StateSetter<Settings>;
 }
 
 export const LeftSidebar = observer<Props>(

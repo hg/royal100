@@ -15,10 +15,11 @@ import {
   SerializedState,
 } from "../../game/state";
 import { formatTime } from "../../utils/time";
+import { StateSetter } from "../../types";
 
 interface Props {
   config: GameConfig;
-  setConfig: (config: GameConfig) => void;
+  setConfig: StateSetter<GameConfig>;
 }
 
 const NewGame: FC<Props> = ({ config, setConfig }) => (

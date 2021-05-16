@@ -12,10 +12,11 @@ import {
 } from "react-icons/all";
 import { ToggleButton } from "./ToggleButton";
 import { TimeControl, TimeRange } from "./TimeControl";
+import { StateSetter } from "../../types";
 
 interface Props {
   config: GameConfig;
-  setConfig: (config: GameConfig) => void;
+  setConfig: StateSetter<GameConfig>;
 }
 
 const depthMarks: SliderMarks = {
@@ -162,11 +163,14 @@ const SideSetting: FC<Props> = ({ config, setConfig }) => (
 
 export const Settings: FC<Props> = ({ config, setConfig }) => {
   useLayoutEffect(() => {
+    setConfig((prev) => ({ ...prev, fen: undefined }));
+  }, [setConfig]);
+
+  useLayoutEffect(() => {
     if (config.opponent === OpponentType.Human) {
-      setConfig({ ...config, myColor: "white" });
+      setConfig((prev) => ({ ...prev, myColor: "white" }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.opponent]);
+  }, [config.opponent, setConfig]);
 
   return (
     <Form {...formLayout}>

@@ -1,10 +1,11 @@
 import React, { ReactElement } from "react";
 import { GameConfig } from "../../game/game";
 import styles from "./index.module.css";
+import { StateSetter } from "../../types";
 
 interface Props {
   config: GameConfig;
-  setConfig: (config: GameConfig) => void;
+  setConfig: StateSetter<GameConfig>;
   configKey: keyof GameConfig;
   value: GameConfig[keyof GameConfig];
   icon: ReactElement;
