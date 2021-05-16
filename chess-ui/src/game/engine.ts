@@ -76,13 +76,14 @@ interface Options {
 }
 
 export enum EngineEvent {
-  Data = "data",
-  Fen = "fen",
-  Checkers = "checkers",
-  Ready = "ready",
-  Score = "score",
-  BestMove = "bestMove",
-  ValidMoves = "validMoves",
+  Data = "Data",
+  Fen = "Fen",
+  Checkers = "Checkers",
+  Ready = "Ready",
+  Score = "Score",
+  BestMove = "BestMove",
+  ValidMoves = "ValidMoves",
+  Exit = "Exit",
 }
 
 export class Engine {
@@ -264,8 +265,8 @@ export class Engine {
         if (timeout !== null) {
           clearTimeout(timeout);
         }
-        this.events.off(event, eventHandler);
-        this.events.off("exit", exitHandler);
+        this.off(event, eventHandler);
+        this.off(EngineEvent.Exit, exitHandler);
       };
 
       if (timeoutMs) {
@@ -285,7 +286,7 @@ export class Engine {
         resolve(data[0]);
       };
 
-      this.events.once("exit", exitHandler);
+      this.events.once(EngineEvent.Exit, exitHandler);
       this.events.once(event, eventHandler);
     });
   }

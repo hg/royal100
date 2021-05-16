@@ -93,7 +93,7 @@ const TableRow: FC<RowProps> = ({ move, num, setMove, isLast }) => {
         )}
       </td>
       <td>
-        <MovePiece role={move.piece?.role} color={move.color} />
+        <MovePiece role={move.piece.role} color={move.color} />
       </td>
       <td>{formatMove(move.from)}</td>
       <td>{formatMove(move.to)}</td>
@@ -133,7 +133,7 @@ const CompactMove: FC<{
       title={setMove && "Вернуться к ходу"}
       onClick={setMove}
     >
-      <MovePiece role={move.piece?.role} color={move.color} />
+      <MovePiece role={move.piece.role} color={move.color} />
       {formatMove(move.from)} {formatMove(move.to)}
       {move.captured && (
         <Fragment>

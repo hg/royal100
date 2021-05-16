@@ -75,7 +75,7 @@ export interface Move {
   from: Key;
   to: Key;
   captured?: Piece;
-  piece?: Piece;
+  piece: Piece;
   fen: string;
 }
 
@@ -442,7 +442,7 @@ export class Game {
       from: orig,
       to: dest,
       captured: capturedPiece,
-      piece: this.ground.state.pieces[dest],
+      piece: this.ground.state.pieces[dest]!,
       color: opposite(this.turnColor),
       fen: this.fen.raw,
     });
