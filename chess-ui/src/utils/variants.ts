@@ -1,5 +1,6 @@
-import { random, shuffle } from "./random";
-import { isEven, isOdd, range, remove } from "./util";
+import { random } from "./random";
+import { isEven, isOdd, pluck, range, remove } from "./util";
+import { Predicate } from "../types";
 
 const min = 0;
 const max = 9;
@@ -7,33 +8,31 @@ const max = 9;
 function side960(): string {
   while (true) {
     const cells: string[] = [];
-    const odd = range(min, max).filter(isOdd);
-    const even = range(min, max).filter(isEven);
-
-    const rm = (index: number) => {
-      remove(odd, index);
-      remove(even, index);
-    };
 
     // Короля располагаем так, чтобы слева и справа от него обязательно
     // осталась хотя бы одна ячейка — он должен оказаться между ладьями.
     const king = random(min + 1, max - 1);
     cells[king] = "k";
-    rm(king);
 
     // Ладьи по обеим сторонам от короля
     const leftRook = random(min, king - 1);
     cells[leftRook] = "r";
-    rm(leftRook);
 
     const rightRook = random(king + 1, max);
     cells[rightRook] = "r";
-    rm(rightRook);
+
+    const remaining = (filter: Predicate<number>) => {
+      const values = range(min, max).filter(filter);
+      return remove(values, king, leftRook, rightRook);
+    };
+
+    const odd = remaining(isOdd);
+    const even = remaining(isEven);
 
     // Добавляем слонов в две любые свободные ячейки таким образом, чтобы
     // они оказались на разных цветах (чётный и нечётный столбец).
-    cells[even.shift()!] = "b";
-    cells[odd.shift()!] = "b";
+    cells[pluck(even)!] = "b";
+    cells[pluck(odd)!] = "b";
 
     // Принцесса и ферзь должны оказаться на своём цвете — для обеих
     // сторон это только нечётные столбцы.
@@ -41,15 +40,13 @@ function side960(): string {
       // Не хватило клеток своего цвета — придётся пробовать опять
       continue;
     }
-    cells[odd.shift()!] = "s";
-    cells[odd.shift()!] = "q";
-
-    const free = shuffle([...odd, ...even]);
+    cells[pluck(odd)!] = "s";
+    cells[pluck(odd)!] = "q";
 
     // Раскидываем оставшиеся фигуры
-    cells[free.shift()!] = "n";
-    cells[free.shift()!] = "t";
-    cells[free.shift()!] = "n";
+    cells[pluck(odd, even)!] = "n";
+    cells[pluck(odd, even)!] = "t";
+    cells[pluck(odd, even)!] = "n";
 
     return cells.join("");
   }

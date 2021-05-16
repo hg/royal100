@@ -39,22 +39,24 @@ export function swap<T>(data: T[], i: number, j: number): T[] {
 }
 
 export function pluck<T>(...arrays: T[][]): T | undefined {
-  const arrayIndex = random(0, arrays.length - 1);
-  const array = arrays[arrayIndex];
+  const nonEmpty = arrays.filter((arr) => arr.length);
+  const arrayIndex = nonEmpty.length > 1 ? random(0, nonEmpty.length - 1) : 0;
+  const array = nonEmpty[arrayIndex];
   if (!array) {
     return undefined;
   }
   const index = random(0, array.length - 1);
-  return array.splice(index)[0];
+  return array.splice(index, 1)[0];
 }
 
-export function remove<T>(data: T[], item: T): number | undefined {
-  const index = data.indexOf(item);
-  if (index !== -1) {
-    data.splice(index, 1);
-    return index;
+export function remove<T>(data: T[], ...items: T[]): T[] {
+  for (const item of items) {
+    const index = data.indexOf(item);
+    if (index !== -1) {
+      data.splice(index, 1);
+    }
   }
-  return undefined;
+  return data;
 }
 
 export function clamp(value: number, min: number, max: number) {
