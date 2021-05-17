@@ -2,6 +2,7 @@ import { Game } from "../../../game/game";
 import { Button, message, Modal, notification, Popconfirm } from "antd";
 import {
   AiOutlineArrowLeft,
+  AiOutlineRollback,
   AiOutlineSave,
   BiHelpCircle,
   FaChess,
@@ -10,12 +11,14 @@ import {
   FiSettings,
   GiStopSign,
 } from "react-icons/all";
-import React, { FC, Fragment } from "react";
+import React, { FC, Fragment, useCallback } from "react";
 import { observer } from "mobx-react-lite";
 import { useHistory } from "react-router";
 import { routes } from "../../routes";
 import { Settings } from "../GameSettings";
 import { saveFile } from "../../../utils/file";
+import { confirmMsg } from "../../../utils/dialogs";
+import { useHotkey } from "../../../utils/hotkeys";
 
 interface Props {
   game: Game;
@@ -26,61 +29,76 @@ interface ButtonsProps extends Props {
   onSet: (settings: Partial<Settings>) => void;
 }
 
-async function getHint(game: Game) {
-  const move = await game.getHint();
-  if (!move) {
-    message.error({ content: "Хороших ходов нет" });
-  } else {
-    notification.info({
-      message: `Попробуйте ${move.from}—${move.to}`,
-    });
-  }
-}
-
-async function askForDraw(game: Game) {
-  const success = await game.askForDraw();
-  if (!success) {
-    Modal.error({ title: "Компьютер отказался принимать ничью." });
-  }
-}
+const resignMsg = "Вы действительно хотите сдаться?";
 
 const Resign: FC<Props> = ({ game }) => {
+  useHotkey("KeyR", () => confirmMsg(resignMsg).then(game.resign));
+
   return (
-    <Popconfirm
-      title="Вы действительно хотите сдаться?"
-      onConfirm={game.resign}
-    >
+    <Popconfirm title={resignMsg} onConfirm={game.resign}>
       <Button size="large" type="primary" danger block>
-        <FiFlag className="icon" /> Сдаться
+        <FiFlag className="icon" /> Сдаться (R)
       </Button>
     </Popconfirm>
   );
 };
 
-const WaitingModeButtons = observer<Props>(({ game }) => (
-  <Fragment>
-    <Button
-      size="large"
-      type="primary"
-      block
-      onClick={() => getHint(game)}
-      disabled={!game.isMyTurn}
-    >
-      <BiHelpCircle className="icon" /> Подсказка
-    </Button>
+const WaitingModeButtons = observer<Props>(({ game }) => {
+  const askForDraw = useCallback(async () => {
+    if (game.canAskForDraw) {
+      const success = await game.askForDraw();
+      if (!success) {
+        Modal.error({ title: "Компьютер отказался принимать ничью." });
+      }
+    }
+  }, [game]);
 
-    <Resign game={game} />
+  const getHint = useCallback(async () => {
+    const move = await game.getHint();
+    if (!move) {
+      message.error({ content: "Хороших ходов нет" });
+    } else {
+      notification.info({ message: `Попробуйте ${move.from}—${move.to}` });
+    }
+  }, [game]);
 
-    {game.canAskForDraw && (
-      <Button size="large" danger block onClick={() => askForDraw(game)}>
-        <FaRegHandPeace className="icon" /> Предложить ничью
+  useHotkey("KeyH", getHint);
+  useHotkey("KeyC", game.undoLastMove);
+  useHotkey("KeyD", askForDraw);
+
+  return (
+    <Fragment>
+      <Button
+        size="large"
+        type="primary"
+        block
+        onClick={getHint}
+        disabled={!game.isMyTurn}
+      >
+        <BiHelpCircle className="icon" /> Подсказка (H)
       </Button>
-    )}
-  </Fragment>
-));
 
-const ActiveGameButtons = observer<Props>(({ game }) =>
-  game.isThinking ? (
+      {game.canUndoLastMove && (
+        <Button size="large" block onClick={game.undoLastMove}>
+          <AiOutlineRollback className="icon" /> Отменить ход (C)
+        </Button>
+      )}
+
+      <Resign game={game} />
+
+      {game.canAskForDraw && (
+        <Button size="large" block onClick={askForDraw}>
+          <FaRegHandPeace className="icon" /> Предложить ничью (D)
+        </Button>
+      )}
+    </Fragment>
+  );
+});
+
+const ActiveGameButtons = observer<Props>(({ game }) => {
+  useHotkey("KeyG", game.stopThinking);
+
+  return game.isThinking ? (
     <Button
       size="large"
       type="primary"
@@ -88,58 +106,62 @@ const ActiveGameButtons = observer<Props>(({ game }) =>
       danger
       onClick={game.stopThinking}
     >
-      <GiStopSign className="icon" /> Остановить поиск
+      <GiStopSign className="icon" /> Остановить поиск (G)
     </Button>
   ) : (
     <WaitingModeButtons game={game} />
-  )
-);
+  );
+});
+
+async function save(game: Game, history: ReturnType<typeof useHistory>) {
+  const state = JSON.stringify(game.serialize());
+  saveFile(state);
+
+  game.stop();
+  history.replace(routes.home);
+
+  notification.success({
+    message: "Игра сохранена",
+    description:
+      "Загрузите сохранение на главном экране, чтобы продолжить игру.",
+    duration: 10,
+  });
+}
 
 export const GameButtons = observer<ButtonsProps>(
   ({ game, onShowSettings, onSet }) => {
     const history = useHistory();
-    const startNewGame = () => history.push(routes.home);
+    const newGame = useCallback(() => history.push(routes.home), [history]);
+    const saveGame = useCallback(() => save(game, history), [game, history]);
+    const sidebar = useCallback(() => onSet({ showSidebar: false }), [onSet]);
 
-    async function save(game: Game) {
-      const state = JSON.stringify(game.serialize());
-      saveFile(state);
-
-      game.stop();
-      history.replace(routes.home);
-
-      notification.success({
-        message: "Игра сохранена",
-        description:
-          "Загрузите сохранение на главном экране, чтобы продолжить игру.",
-        duration: 10,
-      });
-    }
+    useHotkey("KeyS", onShowSettings);
+    useHotkey("KeyQ", saveGame);
+    useHotkey("KeyZ", sidebar);
+    useHotkey("KeyN", newGame);
 
     return (
       <Fragment>
         {game.isPlaying ? (
           <Fragment>
             <ActiveGameButtons game={game} />
-            <Button
-              size="large"
-              block
-              onClick={() => onSet({ showSidebar: false })}
-            >
-              <AiOutlineArrowLeft className="icon" /> Скрыть
+
+            <Button size="large" block onClick={sidebar}>
+              <AiOutlineArrowLeft className="icon" /> Скрыть (Z)
             </Button>
           </Fragment>
         ) : (
-          <Button size="large" block onClick={startNewGame}>
-            <FaChess className="icon" /> Новая партия
+          <Button size="large" block onClick={newGame}>
+            <FaChess className="icon" /> Новая партия (N)
           </Button>
         )}
 
         <Button size="large" block onClick={onShowSettings}>
-          <FiSettings className="icon" /> Настройки
+          <FiSettings className="icon" /> Настройки (S)
         </Button>
 
-        <Button size="large" block onClick={() => save(game)}>
-          <AiOutlineSave className="icon" /> Отложить игру
+        <Button size="large" block onClick={saveGame}>
+          <AiOutlineSave className="icon" /> Отложить игру (Q)
         </Button>
       </Fragment>
     );

@@ -255,6 +255,19 @@ export class Game {
     };
   }
 
+  @computed
+  get canUndoLastMove(): boolean {
+    return this.canUndo(this.moves.length - 2);
+  }
+
+  @action.bound
+  undoLastMove() {
+    const num = this.moves.length - 2;
+    if (this.canUndoLastMove) {
+      this.undoMove(num);
+    }
+  }
+
   canUndo(moveNumber: number): boolean {
     // Если игра завершена — даём возможность изучать историю
     if (!this.isPlaying) {
@@ -402,12 +415,21 @@ export class Game {
     return undefined;
   }
 
+  @observable
+  selected?: Key;
+
+  @action.bound
+  select(selected?: Key) {
+    this.ground.set({ selected });
+  }
+
   private onSelect(_key: Key) {
     const { state } = this.ground;
     if (state.selected) {
       const piece = state.pieces[state.selected];
       playSelectSound(piece);
     }
+    this.selected = state.selected;
   }
 
   private async detectCheck(): Promise<Color | undefined> {
