@@ -38,20 +38,6 @@ cg-container {
   bottom: 0;
 }
 
-cg-container coords.ranks coord {
-  display: flex;
-  align-items: center;
-}
-
-cg-container coords.ranks coord:last-child {
-  visibility: hidden;
-}
-
-cg-container coords.ranks coord:last-child::before {
-  content: "10";
-  visibility: visible;
-}
-
 .cg-wrap svg {
   position: absolute;
 }
@@ -202,8 +188,23 @@ cg-board piece.fading {
   font-weight: bold;
 }
 
+.cg-wrap coords.ranks coord {
+  display: flex;
+  align-items: center;
+}
+
+.cg-wrap coords.ranks coord:last-child {
+  visibility: hidden;
+}
+
+.cg-wrap coords.ranks coord:last-child::before {
+  content: "10";
+  visibility: visible;
+  margin-left: -4px;
+}
+
 .cg-wrap coords.ranks {
-  right: -32px;
+  right: -29px;
   top: 0;
   flex-flow: column-reverse;
   height: 100%;
@@ -216,7 +217,7 @@ cg-board piece.fading {
 }
 
 .cg-wrap coords.files {
-  bottom: -20px;
+  bottom: -23px;
   left: 0;
   flex-flow: row;
   width: 100%;

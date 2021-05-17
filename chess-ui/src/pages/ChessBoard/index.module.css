@@ -7,7 +7,7 @@
 :root {
   --left-width: 300px;
   --right-width: 300px;
-  --board-margin: 80px;
+  --board-margin: 8px;
   --board-size: calc(
     min(
       100vh - var(--board-margin),
@@ -22,6 +22,9 @@
 .board {
   height: var(--board-size);
   width: var(--board-size);
+  background-image: url("../../assets/wood.jpg");
+  padding: 24px;
+  border-radius: 4px;
 }
 
 .board.zen {
@@ -63,11 +66,9 @@
 }
 
 .ranks {
-  right: unset;
-  left: -24px;
+  left: -17px;
 }
 
 .files {
-  bottom: unset;
-  top: -22px;
+  top: -24px;
 }
