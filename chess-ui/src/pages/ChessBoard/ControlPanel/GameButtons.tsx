@@ -19,6 +19,8 @@ import { Settings } from "../GameSettings";
 import { saveFile } from "../../../utils/file";
 import { confirmMsg } from "../../../utils/dialogs";
 import { useHotkey } from "../../../utils/hotkeys";
+import styles from "./index.module.css";
+import { useKeyboardControl } from "./keyboard";
 
 interface Props {
   game: Game;
@@ -62,9 +64,9 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
     }
   }, [game]);
 
-  useHotkey("KeyH", getHint);
-  useHotkey("KeyC", game.undoLastMove);
-  useHotkey("KeyD", askForDraw);
+  useHotkey("KeyV", getHint);
+  useHotkey("KeyU", game.undoLastMove);
+  useHotkey("KeyT", askForDraw);
 
   return (
     <Fragment>
@@ -75,12 +77,12 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
         onClick={getHint}
         disabled={!game.isMyTurn}
       >
-        <BiHelpCircle className="icon" /> Подсказка (H)
+        <BiHelpCircle className="icon" /> Подсказка (V)
       </Button>
 
       {game.canUndoLastMove && (
         <Button size="large" block onClick={game.undoLastMove}>
-          <AiOutlineRollback className="icon" /> Отменить ход (C)
+          <AiOutlineRollback className="icon" /> Отменить ход (U)
         </Button>
       )}
 
@@ -88,7 +90,7 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
 
       {game.canAskForDraw && (
         <Button size="large" block onClick={askForDraw}>
-          <FaRegHandPeace className="icon" /> Предложить ничью (D)
+          <FaRegHandPeace className="icon" /> Предложить ничью (T)
         </Button>
       )}
     </Fragment>
@@ -96,7 +98,7 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
 });
 
 const ActiveGameButtons = observer<Props>(({ game }) => {
-  useHotkey("KeyG", game.stopThinking);
+  useHotkey("KeyW", game.stopThinking);
 
   return game.isThinking ? (
     <Button
@@ -106,7 +108,7 @@ const ActiveGameButtons = observer<Props>(({ game }) => {
       danger
       onClick={game.stopThinking}
     >
-      <GiStopSign className="icon" /> Остановить поиск (G)
+      <GiStopSign className="icon" /> Остановить поиск (W)
     </Button>
   ) : (
     <WaitingModeButtons game={game} />
@@ -134,6 +136,7 @@ export const GameButtons = observer<ButtonsProps>(
     const newGame = useCallback(() => history.push(routes.home), [history]);
     const saveGame = useCallback(() => save(game, history), [game, history]);
     const sidebar = useCallback(() => onSet({ showSidebar: false }), [onSet]);
+    const combo = useKeyboardControl(game);
 
     useHotkey("KeyS", onShowSettings);
     useHotkey("KeyQ", saveGame);
@@ -163,6 +166,13 @@ export const GameButtons = observer<ButtonsProps>(
         <Button size="large" block onClick={saveGame}>
           <AiOutlineSave className="icon" /> Отложить игру (Q)
         </Button>
+
+        {combo.file || combo.rank ? (
+          <div className={styles.keys}>
+            {combo.file}
+            {combo.rank}
+          </div>
+        ) : null}
       </Fragment>
     );
   }

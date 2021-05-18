@@ -135,6 +135,7 @@ export class Game {
     black: new Clock(),
   };
   @observable fen: Fen = null!;
+  @observable premove?: { sources: Key[]; target: Key };
 
   @computed
   get gameScore(): Score | undefined {
@@ -450,6 +451,8 @@ export class Game {
   }
 
   private async onMove(orig: Key, dest: Key, capturedPiece?: Piece) {
+    this.premove = undefined;
+
     playMoveSound();
 
     if (this.turnColor === this.undidMove) {
@@ -688,6 +691,47 @@ export class Game {
         dests: this.validMoves.destinations,
       },
     });
+  }
+
+  @action.bound
+  finishMove(source: Key) {
+    const { premove } = this;
+    if (premove?.sources.includes(source)) {
+      this.move(source, premove.target);
+    }
+    this.premove = undefined;
+  }
+
+  @action.bound
+  setMove(sources: Key[], target: Key) {
+    assert.ok(sources.length > 1);
+
+    this.ground.setShapes(
+      sources.map((source) => ({
+        orig: source,
+        dest: target,
+        brush: "blue",
+      }))
+    );
+
+    this.premove = { sources, target };
+  }
+
+  @action.bound
+  move(from: Key, to: Key) {
+    if (this.isMyTurn && this.validMovesTo(to).includes(from)) {
+      this.ground.move(from, to);
+    }
+  }
+
+  validMovesTo(to: Key): Key[] {
+    const destinations = this.validMoves?.destinations;
+    if (!destinations) {
+      return [];
+    }
+    return Object.entries(destinations)
+      .map(([source, targets]) => (targets.includes(to) ? source : null))
+      .filter(Boolean) as Key[];
   }
 
   @action.bound
