@@ -5,14 +5,14 @@
 }
 
 .clock {
-  height: 25vh;
+  height: 20vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
 .buttons {
-  height: calc(50vh - 32px);
+  height: calc(60vh - 32px);
   display: flex;
   flex-direction: column;
   justify-content: center;

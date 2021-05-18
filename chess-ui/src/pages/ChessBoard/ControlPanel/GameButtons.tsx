@@ -5,6 +5,7 @@ import {
   AiOutlineRollback,
   AiOutlineSave,
   BiHelpCircle,
+  BsArrowsMove,
   FaChess,
   FaRegHandPeace,
   FiFlag,
@@ -142,12 +143,17 @@ export const GameButtons = observer<ButtonsProps>(
     useHotkey("KeyQ", saveGame);
     useHotkey("KeyZ", sidebar);
     useHotkey("KeyN", newGame);
+    useHotkey("KeyM", game.showMoves);
 
     return (
       <Fragment>
         {game.isPlaying ? (
           <Fragment>
             <ActiveGameButtons game={game} />
+
+            <Button size="large" block onClick={game.showMoves}>
+              <BsArrowsMove className="icon" /> Возможные ходы (M)
+            </Button>
 
             <Button size="large" block onClick={sidebar}>
               <AiOutlineArrowLeft className="icon" /> Скрыть (Z)
