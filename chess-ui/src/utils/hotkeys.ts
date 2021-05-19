@@ -10,6 +10,7 @@ export const hotkeys = {
   hint: "V",
   undoMove: "U",
   askDraw: "T",
+  help: "X",
 };
 
 type HotkeyHandler = (key: string) => void;

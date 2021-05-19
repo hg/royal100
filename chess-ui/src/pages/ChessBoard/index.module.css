@@ -45,3 +45,9 @@
   width: var(--right-sidebar);
   background: var(--bg-lighter);
 }
+
+.floatingButtons {
+  position: fixed !important;
+  left: 8px;
+  bottom: 8px;
+}

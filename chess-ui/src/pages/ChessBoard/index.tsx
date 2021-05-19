@@ -10,6 +10,7 @@ import { LeftSidebar } from "./LeftSidebar";
 import { onGameStateChanged } from "./endgame";
 import { ZenButton } from "./ZenButton";
 import { SerializedState } from "../../game/state";
+import { ChessHelpButton } from "./ChessHelp/ChessHelpButton";
 
 interface Props {
   config: GameConfig;
@@ -50,7 +51,10 @@ export const ChessBoard = observer(({ config, state }: Props) => {
         </aside>
       )}
 
-      <ZenButton shown={showSidebar} onToggle={toggleSidebar} />
+      <div className={styles.floatingButtons}>
+        <ZenButton shown={showSidebar} onToggle={toggleSidebar} />
+        <ChessHelpButton />
+      </div>
 
       <main className={styles.boardWrap}>
         <div

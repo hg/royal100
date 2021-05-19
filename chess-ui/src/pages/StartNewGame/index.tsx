@@ -43,7 +43,7 @@ const NewGame: FC<Props> = ({ config, setConfig }) => (
       <Collapse.Panel
         key="advanced"
         header="Дополнительные настройки"
-        extra={<FiSettings className={styles.collapseIcon} />}
+        extra={<FiSettings className="icon-collapse" />}
       >
         <AdvancedSettings config={config} setConfig={setConfig} />
       </Collapse.Panel>

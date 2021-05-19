@@ -21,6 +21,23 @@ html {
   margin-bottom: -2px;
 }
 
+.icon-float {
+  font-size: 28px;
+  margin-top: -3px;
+}
+
+.icon-collapse {
+  font-size: 20px;
+  margin: -4px 0;
+}
+
 body {
   background: var(--bg-dark);
+}
+
+kbd {
+  font-family: monospace;
+  border: 1px solid #555;
+  padding: 0 6px;
+  border-radius: 4px;
 }

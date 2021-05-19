@@ -12,7 +12,7 @@ export const Hotkey: FC<Props> = ({ hotkey, action, children }) => {
 
   return (
     <Fragment>
-      {children} <span className={styles.hotkey}>{hotkey}</span>
+      {children} <kbd className={styles.hotkey}>{hotkey}</kbd>
     </Fragment>
   );
 };
