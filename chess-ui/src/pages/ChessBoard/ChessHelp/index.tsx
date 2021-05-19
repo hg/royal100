@@ -2,12 +2,13 @@ import React, { FC, Fragment } from "react";
 import { Tabs } from "antd";
 import { BsArrowsMove, FaChessKnight, FaKeyboard } from "react-icons/all";
 import Text from "antd/lib/typography/Text";
+import { hotkeys } from "../../../utils/hotkeys";
 
 const C: FC = ({ children }) => <Text code>{children}</Text>;
 
 const HelpKeyboardMoves: FC = () => (
   <Fragment>
-    <h2>Ходы фигурами</h2>
+    <h2>Ходы с клавиатуры</h2>
 
     <p>Ходить фигурами можно с клавиатуры без использования мыши. Для этого:</p>
 
@@ -54,6 +55,49 @@ const HelpKeyboardMoves: FC = () => (
   </Fragment>
 );
 
+const HelpHotkeys: FC = () => (
+  <Fragment>
+    <h2>Горячие клавиши</h2>
+    <p>
+      Каждую кнопку на экране, содержащую значок клавиши (<kbd>K</kbd>), можно
+      вызвать нажатием соответствующей клавиши на клавиатуре.
+    </p>
+    <p>Функция доступна, только пока кнопка отображается на экране.</p>
+    <ul>
+      <li>
+        <kbd>{hotkeys.resign}</kbd> — сдать игру
+      </li>
+      <li>
+        <kbd>{hotkeys.settings}</kbd> — показать настройки
+      </li>
+      <li>
+        <kbd>{hotkeys.saveGame}</kbd> — сохранить игру и продолжить позже
+      </li>
+      <li>
+        <kbd>{hotkeys.sidebar}</kbd> — убрать лишнее и оставить только доску
+      </li>
+      <li>
+        <kbd>{hotkeys.newGame}</kbd> — начать новую игру
+      </li>
+      <li>
+        <kbd>{hotkeys.stopThinking}</kbd> — принудить сделать ход
+      </li>
+      <li>
+        <kbd>{hotkeys.hint}</kbd> — запросить подсказку
+      </li>
+      <li>
+        <kbd>{hotkeys.undoMove}</kbd> — отменить ход
+      </li>
+      <li>
+        <kbd>{hotkeys.askDraw}</kbd> — запросить ничью
+      </li>
+      <li>
+        <kbd>{hotkeys.help}</kbd> — показать справку
+      </li>
+    </ul>
+  </Fragment>
+);
+
 export const ChessHelp: FC = () => (
   <Tabs tabPosition="right">
     <Tabs.TabPane
@@ -75,7 +119,7 @@ export const ChessHelp: FC = () => (
         </Fragment>
       }
     >
-      Здесь пока пусто
+      <HelpHotkeys />
     </Tabs.TabPane>
 
     <Tabs.TabPane
