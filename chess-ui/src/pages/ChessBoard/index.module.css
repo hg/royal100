@@ -1,6 +1,7 @@
 .wrap {
   height: 100%;
   display: flex;
+  background: url(../../assets/wood.jpg);
 }
 
 :root {
@@ -21,9 +22,9 @@
 .board {
   height: var(--board-size);
   width: var(--board-size);
-  background-image: url("../../assets/wood.jpg");
   padding: 24px;
   border-radius: 4px;
+  outline: 1px solid #666;
 }
 
 .board.zen {
