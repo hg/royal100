@@ -33,10 +33,10 @@ import {
   pieces,
 } from "../utils/consts";
 import { playMoveSound, playSelectSound } from "./sounds";
-import styles from "../pages/ChessBoard/index.module.css";
 import { secToMs } from "../utils/time";
 import { SerializedState } from "./state";
 import { DrawShape } from "chessgroundx/draw";
+import { cloneAddressRows } from "./address";
 
 export enum OpponentType {
   Computer = "Computer",
@@ -214,15 +214,8 @@ export class Game {
   @action.bound
   private redraw() {
     this.ground?.redrawAll();
-
-    const cg = this.element.querySelector("cg-container");
-    const ranks = cg?.querySelector("coords.ranks")?.cloneNode(true) as Element;
-    const files = cg?.querySelector("coords.files")?.cloneNode(true) as Element;
-
-    if (cg && ranks && files) {
-      ranks.classList.add(styles.ranks);
-      files.classList.add(styles.files);
-      cg.append(ranks, files);
+    if (this.element) {
+      cloneAddressRows(this.element);
     }
   }
 

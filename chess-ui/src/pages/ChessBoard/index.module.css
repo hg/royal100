@@ -1,22 +1,6 @@
 .wrap {
   height: 100%;
   display: flex;
-  background: url(../../assets/wood.jpg);
-}
-
-:root {
-  --left-width: 280px;
-  --right-width: 280px;
-  --board-margin: 8px;
-  --board-size: calc(
-    min(
-      100vh - var(--board-margin),
-      100vw - var(--left-width) - var(--right-width) - var(--board-margin)
-    )
-  );
-  --board-size-zen: calc(
-    min(100vh - var(--board-margin), 100vw - var(--board-margin))
-  );
 }
 
 .board {
@@ -34,40 +18,30 @@
 
 .boardWrap {
   flex: 1 0 auto;
-  padding: 16px;
   display: flex;
   justify-content: center;
   align-items: center;
   border-left: 1px solid #424242;
   border-right: 1px solid #424242;
-  height: 100%;
-  overflow: hidden;
+  background: url(../../assets/wood.jpg);
 }
 
-.left {
+.leftSidebar {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   flex: 0 0 auto;
-  width: var(--left-width);
+  width: var(--left-sidebar);
   padding: 16px;
   background: var(--bg-lighter);
 }
 
-.right {
+.rightSidebar {
   flex: 0 0 auto;
   height: 100%;
   overflow-y: auto;
   padding: 8px;
-  width: var(--right-width);
+  width: var(--right-sidebar);
   background: var(--bg-lighter);
-}
-
-.ranks {
-  left: -17px;
-}
-
-.files {
-  top: -24px;
 }

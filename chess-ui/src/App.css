@@ -1,10 +1,6 @@
 @import "~antd/dist/antd.dark.css";
 @import "pages/ChessBoard/style.css";
-
-:root {
-  --bg-dark: #141414;
-  --bg-lighter: #242424;
-}
+@import "./vars.css";
 
 #root,
 body,

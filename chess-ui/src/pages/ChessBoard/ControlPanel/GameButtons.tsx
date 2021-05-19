@@ -43,7 +43,7 @@ const Resign: FC<Props> = ({ game }) => {
 
   return (
     <Popconfirm title={resignMsg} onConfirm={game.resign}>
-      <Button size="large" type="primary" danger block>
+      <Button size="large" block>
         <Hotkey hotkey={hotkeys.resign} action={confirmResignation}>
           <FiFlag className="icon" /> Сдаться
         </Hotkey>
@@ -103,7 +103,7 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
 });
 
 const ThinkingButtons: FC<{ game: Game }> = ({ game }) => (
-  <Button size="large" type="primary" block danger onClick={game.stopThinking}>
+  <Button size="large" block danger onClick={game.stopThinking}>
     <Hotkey hotkey={hotkeys.stopThinking} action={game.stopThinking}>
       <GiStopSign className="icon" /> Остановить поиск
     </Hotkey>

@@ -39,7 +39,7 @@ export const ChessBoard = observer(({ config, state }: Props) => {
   return (
     <div className={`${styles.wrap} board-wrap ${settings.pieces}`}>
       {showSidebar ? (
-        <aside className={styles.left}>
+        <aside className={styles.leftSidebar}>
           {game && (
             <LeftSidebar
               game={game}
@@ -63,7 +63,7 @@ export const ChessBoard = observer(({ config, state }: Props) => {
       </main>
 
       {showSidebar && (
-        <aside className={styles.right}>
+        <aside className={styles.rightSidebar}>
           {game && (
             <MoveHistory
               detailed={settings.history === "detailed"}

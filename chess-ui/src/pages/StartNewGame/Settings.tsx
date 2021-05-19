@@ -8,6 +8,7 @@ import { SliderMarks } from "antd/lib/slider";
 import {
   BiBot,
   GiPerspectiveDiceSixFacesRandom,
+  ImHourGlass,
   IoIosPerson,
 } from "react-icons/all";
 import { ToggleButton } from "./ToggleButton";
@@ -20,7 +21,7 @@ interface Props {
 }
 
 const depthMarks: SliderMarks = {
-  [depth.max + 1]: "∞",
+  [depth.max + 1]: <ImHourGlass />,
   [depth.novice]: "новичок",
   [depth.amateur]: "любитель",
   [depth.master]: "мастер",
