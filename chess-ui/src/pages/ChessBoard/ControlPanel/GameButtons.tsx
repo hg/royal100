@@ -19,7 +19,7 @@ import { routes } from "../../routes";
 import { Settings } from "../GameSettings";
 import { saveFile } from "../../../utils/file";
 import { confirmMsg } from "../../../utils/dialogs";
-import { useHotkey } from "../../../utils/hotkeys";
+import { hotkeys, useHotkey } from "../../../utils/hotkeys";
 import styles from "./index.module.css";
 import { useKeyboardControl } from "./keyboard";
 
@@ -35,12 +35,13 @@ interface ButtonsProps extends Props {
 const resignMsg = "Вы действительно хотите сдаться?";
 
 const Resign: FC<Props> = ({ game }) => {
-  useHotkey("KeyR", () => confirmMsg(resignMsg).then(game.resign));
+  useHotkey(hotkeys.resign, () => confirmMsg(resignMsg).then(game.resign));
 
   return (
     <Popconfirm title={resignMsg} onConfirm={game.resign}>
       <Button size="large" type="primary" danger block>
-        <FiFlag className="icon" /> Сдаться (R)
+        <FiFlag className="icon" />
+        Сдаться ({hotkeys.resign})
       </Button>
     </Popconfirm>
   );
@@ -65,9 +66,9 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
     }
   }, [game]);
 
-  useHotkey("KeyV", getHint);
-  useHotkey("KeyU", game.undoLastMove);
-  useHotkey("KeyT", askForDraw);
+  useHotkey(hotkeys.hint, getHint);
+  useHotkey(hotkeys.undoMove, game.undoLastMove);
+  useHotkey(hotkeys.askDraw, askForDraw);
 
   return (
     <Fragment>
@@ -78,12 +79,14 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
         onClick={getHint}
         disabled={!game.isMyTurn}
       >
-        <BiHelpCircle className="icon" /> Подсказка (V)
+        <BiHelpCircle className="icon" />
+        Подсказка ({hotkeys.hint})
       </Button>
 
       {game.canUndoLastMove && (
         <Button size="large" block onClick={game.undoLastMove}>
-          <AiOutlineRollback className="icon" /> Отменить ход (U)
+          <AiOutlineRollback className="icon" />
+          Отменить ход ({hotkeys.undoMove})
         </Button>
       )}
 
@@ -91,7 +94,8 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
 
       {game.canAskForDraw && (
         <Button size="large" block onClick={askForDraw}>
-          <FaRegHandPeace className="icon" /> Предложить ничью (T)
+          <FaRegHandPeace className="icon" />
+          Предложить ничью ({hotkeys.askDraw})
         </Button>
       )}
     </Fragment>
@@ -99,7 +103,7 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
 });
 
 const ActiveGameButtons = observer<Props>(({ game }) => {
-  useHotkey("KeyW", game.stopThinking);
+  useHotkey(hotkeys.stopThinking, game.stopThinking);
 
   return game.isThinking ? (
     <Button
@@ -109,7 +113,7 @@ const ActiveGameButtons = observer<Props>(({ game }) => {
       danger
       onClick={game.stopThinking}
     >
-      <GiStopSign className="icon" /> Остановить поиск (W)
+      <GiStopSign className="icon" /> Остановить поиск ({hotkeys.stopThinking})
     </Button>
   ) : (
     <WaitingModeButtons game={game} />
@@ -139,11 +143,11 @@ export const GameButtons = observer<ButtonsProps>(
     const sidebar = useCallback(() => onSet({ showSidebar: false }), [onSet]);
     const combo = useKeyboardControl(game);
 
-    useHotkey("KeyS", onShowSettings);
-    useHotkey("KeyQ", saveGame);
-    useHotkey("KeyZ", sidebar);
-    useHotkey("KeyN", newGame);
-    useHotkey("KeyM", game.showMoves);
+    useHotkey(hotkeys.settings, onShowSettings);
+    useHotkey(hotkeys.saveGame, saveGame);
+    useHotkey(hotkeys.sidebar, sidebar);
+    useHotkey(hotkeys.newGame, newGame);
+    useHotkey(hotkeys.showMoves, game.showMoves);
 
     return (
       <Fragment>
@@ -152,25 +156,30 @@ export const GameButtons = observer<ButtonsProps>(
             <ActiveGameButtons game={game} />
 
             <Button size="large" block onClick={game.showMoves}>
-              <BsArrowsMove className="icon" /> Возможные ходы (M)
+              <BsArrowsMove className="icon" />
+              Возможные ходы ({hotkeys.showMoves})
             </Button>
 
             <Button size="large" block onClick={sidebar}>
-              <AiOutlineArrowLeft className="icon" /> Скрыть (Z)
+              <AiOutlineArrowLeft className="icon" />
+              Скрыть ({hotkeys.sidebar})
             </Button>
           </Fragment>
         ) : (
           <Button size="large" block onClick={newGame}>
-            <FaChess className="icon" /> Новая партия (N)
+            <FaChess className="icon" />
+            Новая партия ({hotkeys.newGame})
           </Button>
         )}
 
         <Button size="large" block onClick={onShowSettings}>
-          <FiSettings className="icon" /> Настройки (S)
+          <FiSettings className="icon" />
+          Настройки ({hotkeys.settings})
         </Button>
 
         <Button size="large" block onClick={saveGame}>
-          <AiOutlineSave className="icon" /> Отложить игру (Q)
+          <AiOutlineSave className="icon" />
+          Отложить игру ({hotkeys.saveGame})
         </Button>
 
         {combo.file || combo.rank ? (

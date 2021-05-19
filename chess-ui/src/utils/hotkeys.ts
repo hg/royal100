@@ -1,13 +1,32 @@
 import { useLayoutEffect } from "react";
 
-export function useHotkey(key: string, hotkeyHandler: (key: string) => void) {
+export const hotkeys = {
+  resign: "R",
+  settings: "S",
+  saveGame: "Q",
+  sidebar: "Z",
+  newGame: "N",
+  showMoves: "M",
+  stopThinking: "W",
+  hint: "V",
+  undoMove: "U",
+  askDraw: "T",
+};
+
+type HotkeyHandler = (key: string) => void;
+
+export function useHotkey(key: string, callback: HotkeyHandler) {
   useLayoutEffect(() => {
-    function handler(e: KeyboardEvent) {
-      if (e.code === key) {
-        hotkeyHandler(key);
+    let hotkey = key;
+    if (key.length === 1 && key >= "A" && key <= "Z") {
+      hotkey = `Key${key}`;
+    }
+    function eventHandler(e: KeyboardEvent) {
+      if (e.code === hotkey) {
+        callback(key);
       }
     }
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [key, hotkeyHandler]);
+    document.addEventListener("keydown", eventHandler);
+    return () => document.removeEventListener("keydown", eventHandler);
+  }, [key, callback]);
 }
