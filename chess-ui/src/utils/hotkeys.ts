@@ -6,7 +6,6 @@ export const hotkeys = {
   saveGame: "Q",
   sidebar: "Z",
   newGame: "N",
-  showMoves: "M",
   stopThinking: "W",
   hint: "V",
   undoMove: "U",

@@ -5,7 +5,6 @@ import {
   AiOutlineRollback,
   AiOutlineSave,
   BiHelpCircle,
-  BsArrowsMove,
   FaChess,
   FaRegHandPeace,
   FiFlag,
@@ -142,12 +141,6 @@ const PlayingButtons: FC<Pick<ButtonsProps, "onSet" | "game">> = ({
   return (
     <Fragment>
       <ActiveGameButtons game={game} />
-
-      <Button size="large" block onClick={game.showMoves}>
-        <Hotkey hotkey={hotkeys.showMoves} action={game.showMoves}>
-          <BsArrowsMove className="icon" /> Возможные ходы
-        </Hotkey>
-      </Button>
 
       <Button size="large" block onClick={sidebar}>
         <Hotkey hotkey={hotkeys.sidebar} action={sidebar}>

@@ -35,7 +35,6 @@ import {
 import { playMoveSound, playSelectSound } from "./sounds";
 import { secToMs } from "../utils/time";
 import { SerializedState } from "./state";
-import { DrawShape } from "chessgroundx/draw";
 import { cloneAddressRows } from "./address";
 
 export enum OpponentType {
@@ -685,24 +684,6 @@ export class Game {
         dests: this.validMoves.destinations,
       },
     });
-  }
-
-  @action.bound
-  showMoves() {
-    const moves = this.validMoves?.destinations;
-    if (this.isPlaying && moves) {
-      const shapes = Object.entries(moves).flatMap(([source, destinations]) =>
-        destinations.map(
-          (destination) =>
-            ({
-              orig: source,
-              dest: destination,
-              brush: "green",
-            } as DrawShape)
-        )
-      );
-      this.ground.setShapes(shapes);
-    }
   }
 
   @action.bound
