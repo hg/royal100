@@ -1,7 +1,6 @@
 import { Game } from "../../../game/game";
 import { Button, message, Modal, notification, Popconfirm } from "antd";
 import {
-  AiOutlineArrowLeft,
   AiOutlineRollback,
   AiOutlineSave,
   BiHelpCircle,
@@ -15,7 +14,6 @@ import React, { FC, Fragment, useCallback } from "react";
 import { observer } from "mobx-react-lite";
 import { useHistory } from "react-router";
 import { routes } from "../../routes";
-import { Settings } from "../GameSettings";
 import { saveFile } from "../../../utils/file";
 import { confirmMsg } from "../../../utils/dialogs";
 import { hotkeys } from "../../../utils/hotkeys";
@@ -29,7 +27,6 @@ interface Props {
 
 interface ButtonsProps extends Props {
   onShowSettings: () => void;
-  onSet: (settings: Partial<Settings>) => void;
 }
 
 const resignMsg = "Вы действительно хотите сдаться?";
@@ -132,25 +129,6 @@ async function save(game: Game, history: ReturnType<typeof useHistory>) {
   });
 }
 
-const PlayingButtons: FC<Pick<ButtonsProps, "onSet" | "game">> = ({
-  game,
-  onSet,
-}) => {
-  const sidebar = useCallback(() => onSet({ showSidebar: false }), [onSet]);
-
-  return (
-    <Fragment>
-      <ActiveGameButtons game={game} />
-
-      <Button size="large" block onClick={sidebar}>
-        <Hotkey hotkey={hotkeys.sidebar} action={sidebar}>
-          <AiOutlineArrowLeft className="icon" /> Скрыть
-        </Hotkey>
-      </Button>
-    </Fragment>
-  );
-};
-
 const NonPlayingButtons: FC = () => {
   const history = useHistory();
   const newGame = useCallback(() => history.push(routes.home), [history]);
@@ -165,7 +143,7 @@ const NonPlayingButtons: FC = () => {
 };
 
 export const GameButtons = observer<ButtonsProps>(
-  ({ game, onShowSettings, onSet }) => {
+  ({ game, onShowSettings }) => {
     const history = useHistory();
     const saveGame = useCallback(() => save(game, history), [game, history]);
     const combo = useKeyboardControl(game);
@@ -173,7 +151,7 @@ export const GameButtons = observer<ButtonsProps>(
     return (
       <Fragment>
         {game.isPlaying ? (
-          <PlayingButtons game={game} onSet={onSet} />
+          <ActiveGameButtons game={game} />
         ) : (
           <NonPlayingButtons />
         )}

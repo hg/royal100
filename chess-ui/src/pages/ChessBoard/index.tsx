@@ -31,14 +31,14 @@ export const ChessBoard = observer(({ config, state }: Props) => {
     }
   }, [game]);
 
-  const revealSidebar = useCallback(
-    () => setSettings((old) => ({ ...old, showSidebar: true })),
+  const toggleSidebar = useCallback(
+    () => setSettings((old) => ({ ...old, showSidebar: !old.showSidebar })),
     [setSettings]
   );
 
   return (
     <div className={`${styles.wrap} board-wrap ${settings.pieces}`}>
-      {showSidebar ? (
+      {showSidebar && (
         <aside className={styles.leftSidebar}>
           {game && (
             <LeftSidebar
@@ -48,9 +48,9 @@ export const ChessBoard = observer(({ config, state }: Props) => {
             />
           )}
         </aside>
-      ) : (
-        <ZenButton onClick={revealSidebar} />
       )}
+
+      <ZenButton shown={showSidebar} onToggle={toggleSidebar} />
 
       <main className={styles.boardWrap}>
         <div

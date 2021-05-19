@@ -22,11 +22,7 @@ export const LeftSidebar = observer<Props>(
         onHide={() => setShowSettings(false)}
       />
     ) : (
-      <ControlPanel
-        game={game}
-        onShowSettings={() => setShowSettings(true)}
-        onSet={(next) => setSettings({ ...settings, ...next })}
-      />
+      <ControlPanel game={game} onShowSettings={() => setShowSettings(true)} />
     );
   }
 );
