@@ -38,4 +38,5 @@
   z-index: 1;
   background: rgba(0, 0, 0, 0.55);
   pointer-events: none;
+  border-radius: 4px;
 }

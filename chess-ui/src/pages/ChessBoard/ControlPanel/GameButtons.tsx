@@ -19,9 +19,10 @@ import { routes } from "../../routes";
 import { Settings } from "../GameSettings";
 import { saveFile } from "../../../utils/file";
 import { confirmMsg } from "../../../utils/dialogs";
-import { hotkeys, useHotkey } from "../../../utils/hotkeys";
+import { hotkeys } from "../../../utils/hotkeys";
 import styles from "./index.module.css";
 import { useKeyboardControl } from "./keyboard";
+import { Hotkey } from "../../../components/Hotkey";
 
 interface Props {
   game: Game;
@@ -35,13 +36,17 @@ interface ButtonsProps extends Props {
 const resignMsg = "Вы действительно хотите сдаться?";
 
 const Resign: FC<Props> = ({ game }) => {
-  useHotkey(hotkeys.resign, () => confirmMsg(resignMsg).then(game.resign));
+  const confirmResignation = useCallback(
+    () => confirmMsg(resignMsg).then(game.resign),
+    [game]
+  );
 
   return (
     <Popconfirm title={resignMsg} onConfirm={game.resign}>
       <Button size="large" type="primary" danger block>
-        <FiFlag className="icon" />
-        Сдаться ({hotkeys.resign})
+        <Hotkey hotkey={hotkeys.resign} action={confirmResignation}>
+          <FiFlag className="icon" /> Сдаться
+        </Hotkey>
       </Button>
     </Popconfirm>
   );
@@ -66,27 +71,21 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
     }
   }, [game]);
 
-  useHotkey(hotkeys.hint, getHint);
-  useHotkey(hotkeys.undoMove, game.undoLastMove);
-  useHotkey(hotkeys.askDraw, askForDraw);
-
   return (
     <Fragment>
-      <Button
-        size="large"
-        type="primary"
-        block
-        onClick={getHint}
-        disabled={!game.isMyTurn}
-      >
-        <BiHelpCircle className="icon" />
-        Подсказка ({hotkeys.hint})
-      </Button>
+      {game.isMyTurn && (
+        <Button size="large" type="primary" block onClick={getHint}>
+          <Hotkey hotkey={hotkeys.hint} action={getHint}>
+            <BiHelpCircle className="icon" /> Подсказка
+          </Hotkey>
+        </Button>
+      )}
 
       {game.canUndoLastMove && (
         <Button size="large" block onClick={game.undoLastMove}>
-          <AiOutlineRollback className="icon" />
-          Отменить ход ({hotkeys.undoMove})
+          <Hotkey hotkey={hotkeys.undoMove} action={game.undoLastMove}>
+            <AiOutlineRollback className="icon" /> Отменить ход
+          </Hotkey>
         </Button>
       )}
 
@@ -94,31 +93,30 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
 
       {game.canAskForDraw && (
         <Button size="large" block onClick={askForDraw}>
-          <FaRegHandPeace className="icon" />
-          Предложить ничью ({hotkeys.askDraw})
+          <Hotkey hotkey={hotkeys.askDraw} action={askForDraw}>
+            <FaRegHandPeace className="icon" /> Предложить ничью
+          </Hotkey>
         </Button>
       )}
     </Fragment>
   );
 });
 
-const ActiveGameButtons = observer<Props>(({ game }) => {
-  useHotkey(hotkeys.stopThinking, game.stopThinking);
+const ThinkingButtons: FC<{ game: Game }> = ({ game }) => (
+  <Button size="large" type="primary" block danger onClick={game.stopThinking}>
+    <Hotkey hotkey={hotkeys.stopThinking} action={game.stopThinking}>
+      <GiStopSign className="icon" /> Остановить поиск
+    </Hotkey>
+  </Button>
+);
 
-  return game.isThinking ? (
-    <Button
-      size="large"
-      type="primary"
-      block
-      danger
-      onClick={game.stopThinking}
-    >
-      <GiStopSign className="icon" /> Остановить поиск ({hotkeys.stopThinking})
-    </Button>
+const ActiveGameButtons = observer<Props>(({ game }) =>
+  game.isThinking ? (
+    <ThinkingButtons game={game} />
   ) : (
     <WaitingModeButtons game={game} />
-  );
-});
+  )
+);
 
 async function save(game: Game, history: ReturnType<typeof useHistory>) {
   const state = JSON.stringify(game.serialize());
@@ -135,51 +133,68 @@ async function save(game: Game, history: ReturnType<typeof useHistory>) {
   });
 }
 
+const PlayingButtons: FC<Pick<ButtonsProps, "onSet" | "game">> = ({
+  game,
+  onSet,
+}) => {
+  const sidebar = useCallback(() => onSet({ showSidebar: false }), [onSet]);
+
+  return (
+    <Fragment>
+      <ActiveGameButtons game={game} />
+
+      <Button size="large" block onClick={game.showMoves}>
+        <Hotkey hotkey={hotkeys.showMoves} action={game.showMoves}>
+          <BsArrowsMove className="icon" /> Возможные ходы
+        </Hotkey>
+      </Button>
+
+      <Button size="large" block onClick={sidebar}>
+        <Hotkey hotkey={hotkeys.sidebar} action={sidebar}>
+          <AiOutlineArrowLeft className="icon" /> Скрыть
+        </Hotkey>
+      </Button>
+    </Fragment>
+  );
+};
+
+const NonPlayingButtons: FC = () => {
+  const history = useHistory();
+  const newGame = useCallback(() => history.push(routes.home), [history]);
+
+  return (
+    <Button size="large" block onClick={newGame}>
+      <Hotkey hotkey={hotkeys.newGame} action={newGame}>
+        <FaChess className="icon" /> Новая партия
+      </Hotkey>
+    </Button>
+  );
+};
+
 export const GameButtons = observer<ButtonsProps>(
   ({ game, onShowSettings, onSet }) => {
     const history = useHistory();
-    const newGame = useCallback(() => history.push(routes.home), [history]);
     const saveGame = useCallback(() => save(game, history), [game, history]);
-    const sidebar = useCallback(() => onSet({ showSidebar: false }), [onSet]);
     const combo = useKeyboardControl(game);
-
-    useHotkey(hotkeys.settings, onShowSettings);
-    useHotkey(hotkeys.saveGame, saveGame);
-    useHotkey(hotkeys.sidebar, sidebar);
-    useHotkey(hotkeys.newGame, newGame);
-    useHotkey(hotkeys.showMoves, game.showMoves);
 
     return (
       <Fragment>
         {game.isPlaying ? (
-          <Fragment>
-            <ActiveGameButtons game={game} />
-
-            <Button size="large" block onClick={game.showMoves}>
-              <BsArrowsMove className="icon" />
-              Возможные ходы ({hotkeys.showMoves})
-            </Button>
-
-            <Button size="large" block onClick={sidebar}>
-              <AiOutlineArrowLeft className="icon" />
-              Скрыть ({hotkeys.sidebar})
-            </Button>
-          </Fragment>
+          <PlayingButtons game={game} onSet={onSet} />
         ) : (
-          <Button size="large" block onClick={newGame}>
-            <FaChess className="icon" />
-            Новая партия ({hotkeys.newGame})
-          </Button>
+          <NonPlayingButtons />
         )}
 
         <Button size="large" block onClick={onShowSettings}>
-          <FiSettings className="icon" />
-          Настройки ({hotkeys.settings})
+          <Hotkey hotkey={hotkeys.settings} action={onShowSettings}>
+            <FiSettings className="icon" /> Настройки
+          </Hotkey>
         </Button>
 
         <Button size="large" block onClick={saveGame}>
-          <AiOutlineSave className="icon" />
-          Отложить игру ({hotkeys.saveGame})
+          <Hotkey hotkey={hotkeys.saveGame} action={saveGame}>
+            <AiOutlineSave className="icon" /> Отложить игру
+          </Hotkey>
         </Button>
 
         {combo.file || combo.rank ? (

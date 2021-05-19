@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import styles from "./index.module.css";
 import { observer } from "mobx-react-lite";
 import { reaction } from "mobx";
@@ -31,15 +31,14 @@ export const ChessBoard = observer(({ config, state }: Props) => {
     }
   }, [game]);
 
+  const revealSidebar = useCallback(
+    () => setSettings((old) => ({ ...old, showSidebar: true })),
+    [setSettings]
+  );
+
   return (
     <div className={`${styles.wrap} board-wrap ${settings.pieces}`}>
-      {showSidebar || (
-        <ZenButton
-          onClick={() => setSettings({ ...settings, showSidebar: true })}
-        />
-      )}
-
-      {showSidebar && (
+      {showSidebar ? (
         <aside className={styles.left}>
           {game && (
             <LeftSidebar
@@ -49,6 +48,8 @@ export const ChessBoard = observer(({ config, state }: Props) => {
             />
           )}
         </aside>
+      ) : (
+        <ZenButton onClick={revealSidebar} />
       )}
 
       <main className={styles.boardWrap}>
