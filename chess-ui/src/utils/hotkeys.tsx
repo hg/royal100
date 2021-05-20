@@ -16,7 +16,7 @@ export const hotkeys = {
   stopThinking: "W",
   hint: "V",
   undoMove: "U",
-  askDraw: "T",
+  offerDraw: "T",
   help: "X",
 };
 

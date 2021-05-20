@@ -50,8 +50,8 @@ const Resign: FC<Props> = ({ game }) => {
 
 const WaitingModeButtons = observer<Props>(({ game }) => {
   const askForDraw = useCallback(async () => {
-    if (game.canAskForDraw) {
-      const success = await game.askForDraw();
+    if (game.canOfferDraw) {
+      const success = await game.offerDraw();
       if (!success) {
         Modal.error({ title: "Компьютер отказался принимать ничью." });
       }
@@ -87,9 +87,9 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
 
       <Resign game={game} />
 
-      {game.canAskForDraw && (
+      {game.canOfferDraw && (
         <Button size="large" block onClick={askForDraw}>
-          <Hotkey hotkey={hotkeys.askDraw} action={askForDraw}>
+          <Hotkey hotkey={hotkeys.offerDraw} action={askForDraw}>
             <FaRegHandPeace className="icon" /> Предложить ничью
           </Hotkey>
         </Button>

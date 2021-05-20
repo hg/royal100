@@ -177,7 +177,7 @@ export function parseBestMove(data: string): BestMove | undefined {
 }
 
 export enum ScoreType {
-  Cp,
+  Chances,
   Mate,
 }
 
@@ -199,7 +199,9 @@ export function checkScore(line: string): Score | undefined {
       return { type: ScoreType.Mate, value: Number(score) };
     }
     if (type === "cp") {
-      return { type: ScoreType.Cp, value: Number(score) };
+      const raw = winningChances(Number(score));
+      const value = Math.round(raw * 100);
+      return { type: ScoreType.Chances, value };
     }
     assert.fail("unexpected type " + type);
   }

@@ -13,7 +13,7 @@ import {
 } from "mobx";
 import assert from "assert";
 import { opposite } from "chessgroundx/util";
-import { BestMove, Score, ScoreType, winningChances } from "../utils/chess";
+import { BestMove, Score, ScoreType } from "../utils/chess";
 import { numCpus } from "../utils/system";
 import { isEmpty } from "../utils/util";
 import {
@@ -374,7 +374,7 @@ export class Game {
   }
 
   @computed
-  get canAskForDraw(): boolean {
+  get canOfferDraw(): boolean {
     return Boolean(
       this.isOpponentAComputer &&
         this.isPlaying &&
@@ -752,10 +752,10 @@ export class Game {
     }
   }
 
-  async askForDraw() {
+  async offerDraw() {
     assert.deepStrictEqual(this.opponent, OpponentType.Computer);
 
-    if (!this.canAskForDraw) {
+    if (!this.canOfferDraw) {
       return false;
     }
     assert.ok(this.score);
@@ -771,10 +771,9 @@ export class Game {
       return false;
     }
 
-    assert.deepStrictEqual(this.score.type, ScoreType.Cp);
+    assert.deepStrictEqual(this.score.type, ScoreType.Chances);
 
-    const engineChances = winningChances(this.score.value);
-    if (engineChances >= 0.15) {
+    if (this.score.value >= 20) {
       return false;
     }
 

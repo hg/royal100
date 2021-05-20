@@ -89,7 +89,7 @@ const HelpHotkeys: FC = () => (
         <kbd>{hotkeys.undoMove}</kbd> — отменить ход
       </li>
       <li>
-        <kbd>{hotkeys.askDraw}</kbd> — запросить ничью
+        <kbd>{hotkeys.offerDraw}</kbd> — запросить ничью
       </li>
       <li>
         <kbd>{hotkeys.help}</kbd> — показать справку
