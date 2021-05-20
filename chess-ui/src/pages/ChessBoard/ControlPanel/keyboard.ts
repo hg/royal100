@@ -1,7 +1,8 @@
 import { Game } from "../../../game/game";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { File, Key, Rank } from "chessgroundx/types";
 import { notification } from "antd";
+import { useHotkey } from "../../../utils/hotkeys";
 
 const keymapFiles: { [key: string]: File } = {
   KeyA: "a",
@@ -29,22 +30,25 @@ const keymapRanks: { [key: string]: Rank } = {
   Digit0: ":",
 };
 
+const allKeys = [...Object.keys(keymapFiles), ...Object.keys(keymapRanks)];
+
 export function useKeyboardControl(game: Game) {
   const [combo, setCombo] = useState<{ rank?: Rank; file?: File }>({});
 
-  useLayoutEffect(() => {
-    function handler({ code }: KeyboardEvent) {
-      const rank = keymapRanks[code];
-      const file = keymapFiles[code];
-      setCombo((prev) => ({
-        rank: prev.rank || rank,
-        file: prev.file || file,
-      }));
-    }
-
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
+  const handler = useCallback((code: string) => {
+    const rank = keymapRanks[code];
+    const file = keymapFiles[code];
+    setCombo((prev) => ({
+      rank: prev.rank || rank,
+      file: prev.file || file,
+    }));
   }, []);
+
+  for (const key of allKeys) {
+    // Список не меняется от вызова к вызову
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useHotkey(key, handler);
+  }
 
   useEffect(() => {
     const { file, rank } = combo;

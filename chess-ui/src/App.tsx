@@ -13,6 +13,7 @@ import { defaultConfig } from "./game/game";
 import "./App.css";
 import { useWasmCheck } from "./utils/wasm";
 import { SerializedState } from "./game/state";
+import { HotkeyContextProvider } from "./utils/hotkeys";
 
 moment.locale("ru");
 
@@ -80,7 +81,9 @@ export const App = () => (
   <ConfigProvider locale={ruRu}>
     <HashRouter>
       <React.Suspense fallback={suspenseFallback}>
-        <AppRoutes />
+        <HotkeyContextProvider>
+          <AppRoutes />
+        </HotkeyContextProvider>
       </React.Suspense>
     </HashRouter>
   </ConfigProvider>
