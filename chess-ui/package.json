@@ -17,6 +17,7 @@
     "lint-staged": "^10.5.4",
     "mobx": "^6.3.0",
     "mobx-react-lite": "^3.2.0",
+    "mobx-utils": "^6.0.4",
     "moment": "^2.29.1",
     "prettier": "^2.2.1",
     "react": "^17.0.2",

@@ -36,6 +36,7 @@ import { playMoveSound, playSelectSound } from "./sounds";
 import { secToMs } from "../utils/time";
 import { SerializedState } from "./state";
 import { cloneAddressRows } from "./address";
+import { computedFn } from "mobx-utils";
 
 export enum OpponentType {
   Computer = "Computer",
@@ -125,6 +126,7 @@ export class Game {
   @observable private myColor: Color = "white";
   @observable private score?: Score;
   @observable private undo: UndoMove = UndoMove.Single;
+  @observable currentMove?: number;
   @observable state: GameState = { state: StateType.Paused };
   @observable moves: Move[] = [];
   @observable isThinking = false;
@@ -256,13 +258,14 @@ export class Game {
 
   @action.bound
   undoLastMove() {
-    const num = this.moves.length - 2;
-    if (this.canUndoLastMove) {
-      this.undoMove(num);
-    }
+    this.undoMove(this.moves.length - 2);
   }
 
-  canUndo(moveNumber: number): boolean {
+  canUndo = computedFn(function (this: Game, moveNumber: number): boolean {
+    const move = this.moves[moveNumber];
+    if (!move) {
+      return false;
+    }
     // Если игра завершена — даём возможность изучать историю
     if (!this.isPlaying) {
       return true;
@@ -276,10 +279,6 @@ export class Game {
     }
     // Нам нужна возможность вытаскивать fen из предыдущих двух ходов
     if (moveNumber < 2) {
-      return false;
-    }
-    const move = this.moves[moveNumber];
-    if (!move) {
       return false;
     }
     // Отмена только своих ходов
@@ -297,16 +296,26 @@ export class Game {
       }
     }
     return true;
-  }
+  });
 
   @action.bound
   async undoMove(moveNumber: number) {
+    if (!this.canUndo(moveNumber)) {
+      return;
+    }
+
+    this.currentMove = moveNumber;
+
     const undoMove = this.moves[moveNumber];
+    assert.ok(undoMove);
 
     // Если не играем — больше ничего делать не нужно,
     // даём спокойно изучать историю вперёд/назад.
     if (!this.isPlaying) {
       await this.setFen(undoMove.fen, []);
+      this.ground.setShapes([
+        { orig: undoMove.from, dest: undoMove.to, brush: "blue" },
+      ]);
       return;
     }
 
@@ -394,6 +403,7 @@ export class Game {
       this.ground.set({
         movable: { color: undefined },
       });
+      this.currentMove = this.moves.length ? this.moves.length - 1 : undefined;
     }
   }
 
@@ -445,6 +455,10 @@ export class Game {
 
   private async onMove(orig: Key, dest: Key, capturedPiece?: Piece) {
     this.premove = undefined;
+
+    if (this.isPlaying) {
+      this.currentMove = undefined;
+    }
 
     playMoveSound();
 
@@ -605,6 +619,7 @@ export class Game {
     await this.assignConfig(state.config);
 
     this.moves = state.moves;
+    this.currentMove = state.moves.length ? state.moves.length - 1 : undefined;
     this.undo = state.undo;
     this.clocks.white.set(
       state.clocks.white.remaining,
@@ -658,6 +673,7 @@ export class Game {
   async newGame(config: GameConfig) {
     assert.ok(!this.isPlaying);
 
+    this.currentMove = undefined;
     await this.assignConfig(config);
     await this.setFen(config.fen || fens.start, []);
 

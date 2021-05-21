@@ -1,6 +1,8 @@
 import { Game } from "../../../game/game";
 import { Button, message, Modal, notification, Popconfirm } from "antd";
 import {
+  AiOutlineLeft,
+  AiOutlineRight,
   AiOutlineRollback,
   AiOutlineSave,
   BiHelpCircle,
@@ -98,13 +100,13 @@ const WaitingModeButtons = observer<Props>(({ game }) => {
   );
 });
 
-const ThinkingButtons: FC<{ game: Game }> = ({ game }) => (
+const ThinkingButtons = observer<{ game: Game }>(({ game }) => (
   <Button size="large" block danger onClick={game.stopThinking}>
     <Hotkey hotkey={hotkeys.stopThinking} action={game.stopThinking}>
       <GiStopSign className="icon" /> Остановить поиск
     </Hotkey>
   </Button>
-);
+));
 
 const ActiveGameButtons = observer<Props>(({ game }) =>
   game.isThinking ? (
@@ -129,18 +131,51 @@ async function save(game: Game, history: ReturnType<typeof useHistory>) {
   });
 }
 
-const NonPlayingButtons: FC = () => {
+const NonPlayingButtons = observer<Props>(({ game }) => {
   const history = useHistory();
   const newGame = useCallback(() => history.push(routes.home), [history]);
+  const current = game.currentMove || 0;
+  const prevMove = useCallback(
+    () => game.undoMove((game.currentMove || 0) - 1),
+    [game]
+  );
+  const nextMove = useCallback(
+    () => game.undoMove((game.currentMove || 0) + 1),
+    [game]
+  );
 
   return (
-    <Button size="large" block onClick={newGame}>
-      <Hotkey hotkey={hotkeys.newGame} action={newGame}>
-        <FaChess className="icon" /> Новая партия
-      </Hotkey>
-    </Button>
+    <Fragment>
+      <Button size="large" block onClick={newGame}>
+        <Hotkey hotkey={hotkeys.newGame} action={newGame}>
+          <FaChess className="icon" /> Новая партия
+        </Hotkey>
+      </Button>
+
+      <Button
+        size="large"
+        block
+        onClick={prevMove}
+        disabled={!game.canUndo(current - 1)}
+      >
+        <Hotkey hotkey={hotkeys.prevMove} action={prevMove} title="←">
+          <AiOutlineLeft className="icon" /> Предыдущий ход
+        </Hotkey>
+      </Button>
+
+      <Button
+        size="large"
+        block
+        onClick={nextMove}
+        disabled={!game.canUndo(current + 1)}
+      >
+        <Hotkey hotkey={hotkeys.nextMove} action={nextMove} title="→">
+          <AiOutlineRight className="icon" /> Следующий ход
+        </Hotkey>
+      </Button>
+    </Fragment>
   );
-};
+});
 
 export const GameButtons = observer<ButtonsProps>(
   ({ game, onShowSettings }) => {
@@ -153,7 +188,7 @@ export const GameButtons = observer<ButtonsProps>(
         {game.isPlaying ? (
           <ActiveGameButtons game={game} />
         ) : (
-          <NonPlayingButtons />
+          <NonPlayingButtons game={game} />
         )}
 
         <Button size="large" block onClick={onShowSettings}>

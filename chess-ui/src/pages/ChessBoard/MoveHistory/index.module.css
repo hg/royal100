@@ -16,7 +16,7 @@
 }
 
 .historyTable tbody tr:nth-child(odd) {
-  background: #484848;
+  background: #383838;
   color: white;
 }
 
@@ -55,4 +55,12 @@
 .compactMove.canMove {
   background: #0e4980;
   cursor: pointer;
+}
+
+.row {
+  transition: background-color 250ms ease-in-out;
+}
+
+.currentMove {
+  background: #165996 !important;
 }

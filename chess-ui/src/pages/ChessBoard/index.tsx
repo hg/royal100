@@ -74,6 +74,7 @@ export const ChessBoard = observer(({ config, state }: Props) => {
               moves={game.moves}
               canMove={game.canUndo}
               setMove={game.undoMove}
+              current={game.currentMove}
             />
           )}
         </aside>

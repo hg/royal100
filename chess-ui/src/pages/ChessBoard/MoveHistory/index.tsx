@@ -14,6 +14,7 @@ import { Color, Role } from "chessgroundx/types";
 
 interface Props {
   detailed: boolean;
+  current?: number;
   moves: Move[];
   canMove: (moveNumber: number) => boolean;
   setMove: (moveNumber: number) => void;
@@ -50,6 +51,7 @@ interface RowProps {
   move: Move;
   num: number;
   isLast: boolean;
+  isCurrent: boolean;
   setMove?: () => void;
 }
 
@@ -65,8 +67,8 @@ function useScrolling(isLast: boolean) {
   return ref;
 }
 
-const TableRow: FC<RowProps> = ({ move, num, setMove, isLast }) => {
-  const ref = useScrolling(isLast);
+const TableRow: FC<RowProps> = ({ move, num, setMove, isLast, isCurrent }) => {
+  const ref = useScrolling(isCurrent || isLast);
 
   return (
     <tr
@@ -74,6 +76,7 @@ const TableRow: FC<RowProps> = ({ move, num, setMove, isLast }) => {
       title="Скопировать позицию в нотации FEN"
       role="button"
       onClick={() => copyFen(num, move.fen)}
+      className={`${styles.row} ${isCurrent ? styles.currentMove : ""}`}
     >
       <td>
         {setMove ? (
@@ -162,7 +165,7 @@ export const CompactMoveHistory = observer<Props>(
 );
 
 export const DetailedMoveHistory = observer<Props>(
-  ({ moves, canMove, setMove }) => (
+  ({ moves, canMove, setMove, current }) => (
     <table className={styles.historyTable}>
       <TableHeader />
 
@@ -172,6 +175,7 @@ export const DetailedMoveHistory = observer<Props>(
             key={index}
             num={index}
             move={move}
+            isCurrent={index === current}
             isLast={index === moves.length - 1}
             setMove={canMove(index) ? () => setMove(index) : undefined}
           />

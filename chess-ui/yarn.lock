@@ -4410,6 +4410,7 @@ __metadata:
     lint-staged: ^10.5.4
     mobx: ^6.3.0
     mobx-react-lite: ^3.2.0
+    mobx-utils: ^6.0.4
     moment: ^2.29.1
     prettier: ^2.2.1
     react: ^17.0.2
@@ -10224,6 +10225,15 @@ fsevents@^1.2.7:
     react-native:
       optional: true
   checksum: 80d782f9e31039fd352b1021e9edd2ab1aaa17fe9893e0a0fd833ca964567691e80f02643b77bbc5f8fb62db08a23b418c9e1e5dbf7de13ab222d82b31a53ec6
+  languageName: node
+  linkType: hard
+
+"mobx-utils@npm:^6.0.4":
+  version: 6.0.4
+  resolution: "mobx-utils@npm:6.0.4"
+  peerDependencies:
+    mobx: ^6.0.0
+  checksum: ceb03a7ce9a81addf417582b7cc35fff29cbd6333a33685da41a66baa2601a16e10e11033e5fb32f19e8bf2e3d2922cf7b7ac6890e6641d5a44b3c9add08c813
   languageName: node
   linkType: hard
 

@@ -13,6 +13,8 @@ export const hotkeys = {
   saveGame: "Q",
   sidebar: "Z",
   newGame: "N",
+  prevMove: "ArrowLeft",
+  nextMove: "ArrowRight",
   stopThinking: "W",
   hint: "V",
   undoMove: "U",
