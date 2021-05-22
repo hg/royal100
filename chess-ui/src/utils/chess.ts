@@ -69,15 +69,8 @@ export function compressPieces(pieces: string): string {
 }
 
 export function parseFen(fen: string): Fen {
-  const [
-    pieces,
-    color,
-    castling,
-    princess,
-    enPassant,
-    halfMoves,
-    fullMoves,
-  ] = fen.split(reWs);
+  const [pieces, color, castling, princess, enPassant, halfMoves, fullMoves] =
+    fen.split(reWs);
 
   return {
     raw: fen,
