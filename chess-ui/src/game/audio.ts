@@ -17,7 +17,7 @@ export enum Track {
 }
 
 type Sounds = {
-  [key in Track]?: HTMLAudioElement;
+  [key in Track]?: string | HTMLAudioElement;
 };
 
 class Sound {
@@ -35,7 +35,7 @@ class Sound {
   }
 
   private addSound(track: Track, filename: string) {
-    this.sounds[track] = new Audio(filename);
+    this.sounds[track] = filename;
   }
 
   toggle(enabled: boolean) {
@@ -46,10 +46,14 @@ class Sound {
     if (!this.enabled) {
       return;
     }
-    const audio = this.sounds[track];
+    let audio = this.sounds[track];
     if (!audio) {
       console.error("track not found", track);
       return;
+    }
+    if (typeof audio === "string") {
+      audio = new Audio(audio);
+      this.sounds[track] = audio;
     }
     try {
       await audio.play();

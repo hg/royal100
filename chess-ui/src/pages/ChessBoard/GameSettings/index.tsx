@@ -22,7 +22,7 @@ export interface Settings {
 }
 
 const defaultSettings: Settings = {
-  background: "wood",
+  background: "brown",
   history: "detailed",
   pieces: "merida",
   sound: true,
