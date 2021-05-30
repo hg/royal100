@@ -1,0 +1,18 @@
+(common) {
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Cross-Origin-Embedder-Policy require-corp
+		Cross-Origin-Opener-Policy same-origin
+	}
+}
+
+chess.8086.cf {
+	import common
+	root * /var/www/chess.8086.cf
+	file_server {
+		precompressed br gzip
+	}
+}
