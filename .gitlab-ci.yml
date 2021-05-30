@@ -16,6 +16,7 @@ workflow:
 stages:
   - build-engine
   - build-app
+  - build-desktop
   - deploy-app
 
 build-engine-wasm:
@@ -29,7 +30,7 @@ build-engine-wasm:
     - make -j$(nproc) ARCH=wasm clean build
     - mv royal100.{js,wasm,worker.js} ../engine-wasm/
   artifacts:
-    expire_in: 1 hour
+    expire_in: 20 minutes
     paths:
       - engine-wasm
   cache:
@@ -50,13 +51,28 @@ build-app-browser:
     - pnpm install
     - pnpm build
   artifacts:
-    expire_in: 1 hour
+    expire_in: 20 minutes
     paths:
       - chess-ui/build
   cache:
     key: browser-${CI_COMMIT_REF_SLUG}
     paths:
       - .pnpm-store/
+
+build-app-desktop:
+  stage: build-desktop
+  image: golang
+  needs:
+    - build-app-browser
+  script:
+    - mv desktop royal100
+    - cp -r chess-ui/build royal100/
+    - bash royal100/build.sh
+    - mv royal100/apps .
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - apps
 
 deploy-app-browser:
   stage: deploy-app
