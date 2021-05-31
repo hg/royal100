@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"embed"
+	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -13,7 +14,6 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"time"
 )
 
@@ -66,31 +66,32 @@ func randomPort() int {
 	return 1024 + rand.Intn(40000)
 }
 
-func startServer() chan string {
-	ch := make(chan string)
-
+func startServer() string {
 	http.HandleFunc("/", serveStatic)
 
-	go func() {
-		for i := 0; i < 10; i++ {
-			port := randomPort()
-			addr := "localhost:" + strconv.Itoa(port)
+	port := 16810
 
-			listener, err := net.Listen("tcp", addr)
-			if err != nil {
-				log.Print("could not start server on ", addr)
-				continue
-			}
+	for i := 0; i < 10; i++ {
+		addr := fmt.Sprintf("localhost:%d", port)
 
-			ch <- addr
-
-			server := &http.Server{Addr: addr}
-			err = server.Serve(listener)
-			log.Fatal(err)
+		listener, err := net.Listen("tcp", addr)
+		if err != nil {
+			log.Print("could not start server on ", addr)
+			port = randomPort()
+			continue
 		}
-	}()
 
-	return ch
+		go func() {
+			server := &http.Server{Addr: addr}
+			err := server.Serve(listener)
+			log.Fatal(err)
+		}()
+
+		return addr
+	}
+
+	log.Fatal("could not bind to any port")
+	panic(nil)
 }
 
 func open(url string) error {
@@ -115,8 +116,7 @@ func open(url string) error {
 func main() {
 	rand.Seed(time.Now().Unix())
 
-	ch := startServer()
-	addr := "http://" + <-ch
+	addr := "http://" + startServer()
 
 	if err := open(addr); err != nil {
 		log.Print("не удалось открыть браузер, перейдите на страницу самостоятельно: ", addr)
