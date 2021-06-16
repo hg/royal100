@@ -316,6 +316,7 @@ export class Game {
       this.ground.setShapes([
         { orig: undoMove.from, dest: undoMove.to, brush: "blue" },
       ]);
+      this.ground.set({ check: undefined });
       return;
     }
 
