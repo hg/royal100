@@ -19,6 +19,12 @@
   justify-content: center;
 }
 
+.settingsForm {
+  overflow-y: auto !important;
+  padding: 0 2px !important;
+  padding-bottom: 36px !important;
+}
+
 .title {
   color: white;
   background: rgba(0, 0, 0, 0.5);

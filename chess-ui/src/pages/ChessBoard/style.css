@@ -136,10 +136,10 @@ cg-board square.current-premove {
 
 .cg-wrap piece {
   position: absolute;
-  top: 0.5%;
-  left: 0.5%;
-  width: 9%;
-  height: 9%;
+  top: calc((10% - var(--piece-scale)) / 2);
+  left: calc((10% - var(--piece-scale)) / 2);
+  width: var(--piece-scale);
+  height: var(--piece-scale);
   background-size: cover;
   z-index: 2;
   will-change: transform;

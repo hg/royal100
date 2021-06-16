@@ -1,4 +1,5 @@
 :root {
+  --piece-scale: 9%;
   --bg-dark: #141414;
   --bg-lighter: #242424;
   --left-sidebar: 280px;

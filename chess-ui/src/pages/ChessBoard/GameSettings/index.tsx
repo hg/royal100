@@ -1,5 +1,5 @@
-import React, { FC, useEffect, useState } from "react";
-import { Button, Checkbox, Form, Radio } from "antd";
+import React, { FC, useEffect, useLayoutEffect, useState } from "react";
+import { Button, Checkbox, Form, Radio, Slider } from "antd";
 import { localStore } from "../../../utils/store";
 import styles from "./index.module.css";
 import { BackgroundButton } from "./BackgroundButton";
@@ -19,6 +19,8 @@ export interface Settings {
   pieces: "default" | "merida" | "royal";
   sound: boolean;
   showSidebar: boolean;
+  boardMargin: number;
+  pieceScale: number;
 }
 
 const defaultSettings: Settings = {
@@ -27,6 +29,8 @@ const defaultSettings: Settings = {
   pieces: "royal",
   sound: true,
   showSidebar: true,
+  boardMargin: 8,
+  pieceScale: 9,
 };
 
 export function useSettings(): [Settings, StateSetter<Settings>] {
@@ -43,11 +47,25 @@ export function useSettings(): [Settings, StateSetter<Settings>] {
     sound.toggle(settings.sound);
   }, [settings.sound]);
 
+  useLayoutEffect(() => {
+    document.documentElement.style.setProperty(
+      "--board-margin",
+      `${settings.boardMargin}px`
+    );
+  }, [settings.boardMargin]);
+
+  useLayoutEffect(() => {
+    document.documentElement.style.setProperty(
+      "--piece-scale",
+      `${settings.pieceScale}%`
+    );
+  }, [settings.pieceScale]);
+
   return [settings, setSettings];
 }
 
 export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
-  <Form layout="vertical">
+  <Form layout="vertical" className={styles.settingsForm}>
     <h1>Настройки</h1>
 
     <Form.Item label="Фон доски">
@@ -58,6 +76,16 @@ export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
         <BackgroundButton onSet={onSet} type="metal" title="Металл" />
         <BackgroundButton onSet={onSet} type="blue" title="Синий" />
       </div>
+    </Form.Item>
+
+    <Form.Item label="Размер доски">
+      <Slider
+        value={value.boardMargin}
+        min={8}
+        max={256}
+        onChange={(boardMargin: number) => onSet({ boardMargin })}
+        reverse
+      />
     </Form.Item>
 
     <Form.Item label="Набор фигур">
@@ -81,6 +109,16 @@ export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
           title="Третий набор"
         />
       </div>
+    </Form.Item>
+
+    <Form.Item label="Размер фигур">
+      <Slider
+        value={value.pieceScale}
+        min={6}
+        max={11}
+        step={0.1}
+        onChange={(pieceScale: number) => onSet({ pieceScale })}
+      />
     </Form.Item>
 
     <Form.Item label="Звук">
