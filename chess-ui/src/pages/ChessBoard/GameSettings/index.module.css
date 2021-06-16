@@ -1,7 +1,7 @@
 .imageBtn {
   all: unset;
-  height: 96px;
-  width: 96px;
+  height: 64px;
+  width: 64px;
   background-position: center;
   background-size: cover;
   color: black;
@@ -27,11 +27,15 @@
 }
 
 .default {
-  background-image: url(../../../assets/images/pieces/default/wN.svg);
+  background-image: url(../../../assets/images/pieces/default/wK.svg);
 }
 
 .merida {
-  background-image: url(../../../assets/images/pieces/merida/wN.svg);
+  background-image: url(../../../assets/images/pieces/merida/wK.svg);
+}
+
+.royal {
+  background-image: url(../../../assets/images/pieces/royal/wK.svg);
 }
 
 .blue {
@@ -40,6 +44,10 @@
 
 .brown {
   background-image: url(../../../assets/images/board/brown.svg);
+}
+
+.yellow {
+  background-image: url(../../../assets/images/board/yellow.svg);
 }
 
 .metal {

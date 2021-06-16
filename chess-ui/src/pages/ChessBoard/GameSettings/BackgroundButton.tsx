@@ -14,6 +14,8 @@ function cssClass(type: Props["type"]) {
       return styles.blue;
     case "brown":
       return styles.brown;
+    case "yellow":
+      return styles.yellow;
     case "metal":
       return styles.metal;
     case "wood":

@@ -15,8 +15,8 @@ interface Props {
 
 export interface Settings {
   history: "compact" | "detailed";
-  background: "blue" | "brown" | "metal" | "wood";
-  pieces: "default" | "merida";
+  background: "blue" | "brown" | "metal" | "wood" | "yellow";
+  pieces: "default" | "merida" | "royal";
   sound: boolean;
   showSidebar: boolean;
 }
@@ -24,7 +24,7 @@ export interface Settings {
 const defaultSettings: Settings = {
   background: "brown",
   history: "detailed",
-  pieces: "merida",
+  pieces: "royal",
   sound: true,
   showSidebar: true,
 };
@@ -52,10 +52,11 @@ export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
 
     <Form.Item label="Фон доски">
       <div className={styles.imageBtns}>
-        <BackgroundButton onSet={onSet} type="blue" title="Синий" />
-        <BackgroundButton onSet={onSet} type="brown" title="Коричневый" />
-        <BackgroundButton onSet={onSet} type="metal" title="Металл" />
+        <BackgroundButton onSet={onSet} type="brown" title="Корич." />
+        <BackgroundButton onSet={onSet} type="yellow" title="Жёлтый" />
         <BackgroundButton onSet={onSet} type="wood" title="Дерево" />
+        <BackgroundButton onSet={onSet} type="metal" title="Металл" />
+        <BackgroundButton onSet={onSet} type="blue" title="Синий" />
       </div>
     </Form.Item>
 
@@ -63,15 +64,21 @@ export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
       <div className={styles.imageBtns}>
         <button
           type="button"
+          onClick={() => onSet({ pieces: "royal" })}
+          className={`${styles.imageBtn} ${styles.royal}`}
+          title="Первый набор"
+        />
+        <button
+          type="button"
           onClick={() => onSet({ pieces: "default" })}
           className={`${styles.imageBtn} ${styles.default}`}
-          title="Первый набор"
+          title="Второй набор"
         />
         <button
           type="button"
           onClick={() => onSet({ pieces: "merida" })}
           className={`${styles.imageBtn} ${styles.merida}`}
-          title="Второй набор"
+          title="Третий набор"
         />
       </div>
     </Form.Item>

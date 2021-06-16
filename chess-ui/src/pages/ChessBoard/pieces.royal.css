@@ -1,0 +1,63 @@
+.board-wrap.royal .p-piece.white {
+  background-image: url(../../assets/images/pieces/royal/wP.svg);
+}
+
+.board-wrap.royal .b-piece.white {
+  background-image: url(../../assets/images/pieces/royal/wB.svg);
+}
+
+.board-wrap.royal .n-piece.white {
+  background-image: url(../../assets/images/pieces/royal/wN.svg);
+}
+
+.board-wrap.royal .r-piece.white {
+  background-image: url(../../assets/images/pieces/royal/wR.svg);
+}
+
+.board-wrap.royal .q-piece.white {
+  background-image: url(../../assets/images/pieces/royal/wQ.svg);
+}
+
+.board-wrap.royal .k-piece.white {
+  background-image: url(../../assets/images/pieces/royal/wK.svg);
+}
+
+.board-wrap.royal .p-piece.black {
+  background-image: url(../../assets/images/pieces/royal/bP.svg);
+}
+
+.board-wrap.royal .b-piece.black {
+  background-image: url(../../assets/images/pieces/royal/bB.svg);
+}
+
+.board-wrap.royal .n-piece.black {
+  background-image: url(../../assets/images/pieces/royal/bN.svg);
+}
+
+.board-wrap.royal .r-piece.black {
+  background-image: url(../../assets/images/pieces/royal/bR.svg);
+}
+
+.board-wrap.royal .q-piece.black {
+  background-image: url(../../assets/images/pieces/royal/bQ.svg);
+}
+
+.board-wrap.royal .k-piece.black {
+  background-image: url(../../assets/images/pieces/royal/bK.svg);
+}
+
+.board-wrap.royal .t-piece.black {
+  background-image: url(../../assets/images/pieces/royal/bT.svg);
+}
+
+.board-wrap.royal .t-piece.white {
+  background-image: url(../../assets/images/pieces/royal/wT.svg);
+}
+
+.board-wrap.royal .s-piece.black {
+  background-image: url(../../assets/images/pieces/royal/bS.svg);
+}
+
+.board-wrap.royal .s-piece.white {
+  background-image: url(../../assets/images/pieces/royal/wS.svg);
+}

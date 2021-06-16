@@ -1,5 +1,6 @@
 @import "./pieces.default.css";
 @import "./pieces.merida.css";
+@import "./pieces.royal.css";
 
 .board-wrap piece {
   transition: background-image 500ms ease-in-out;
@@ -20,6 +21,10 @@
 
 .cg-wrap.brown {
   background-image: url(../../assets/images/board/brown.svg);
+}
+
+.cg-wrap.yellow {
+  background-image: url(../../assets/images/board/yellow.svg);
 }
 
 .cg-wrap.metal {
@@ -131,14 +136,14 @@ cg-board square.current-premove {
 
 .cg-wrap piece {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 0.5%;
+  left: 0.5%;
+  width: 9%;
+  height: 9%;
   background-size: cover;
   z-index: 2;
   will-change: transform;
   pointer-events: none;
-  width: 10%;
-  height: 10%;
 }
 
 cg-board piece.dragging {
@@ -200,30 +205,33 @@ cg-board piece.fading {
 .cg-wrap coords.ranks coord:last-child::before {
   content: "10";
   visibility: visible;
-  margin-left: -4px;
+  margin-left: -6px;
 }
 
 .cg-wrap coords.ranks {
-  right: -29px;
+  right: -34px;
   top: 0;
   flex-flow: column-reverse;
   height: 100%;
-  font-size: 14px;
+  font-size: 18px;
   font-family: monospace;
-}
-
-.cg-wrap coords.ranks.black {
-  flex-flow: column;
+  color: white;
 }
 
 .cg-wrap coords.files {
-  bottom: -23px;
+  bottom: -26px;
+  margin-top: -2px;
   left: 0;
   flex-flow: row;
   width: 100%;
   text-align: center;
-  font-size: 14px;
+  font-size: 18px;
   font-family: monospace;
+  color: white;
+}
+
+.cg-wrap coords.ranks.black {
+  flex-flow: column;
 }
 
 .cg-wrap coords.files.black {
