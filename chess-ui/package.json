@@ -50,7 +50,7 @@
       "@typescript-eslint"
     ],
     "rules": {
-      "prettier/prettier": "error",
+      "prettier/prettier": "warn",
       "unused-imports/no-unused-imports-ts": "error",
       "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
