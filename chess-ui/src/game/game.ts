@@ -76,6 +76,8 @@ export interface Move {
   from: Key;
   to: Key;
   captured?: Piece;
+  check: boolean;
+  mate: boolean;
   piece: Piece;
   fen: string;
 }
@@ -316,7 +318,7 @@ export class Game {
       this.ground.setShapes([
         { orig: undoMove.from, dest: undoMove.to, brush: "blue" },
       ]);
-      this.ground.set({ check: undefined });
+      this.ground.set({ check: undoMove.check || undoMove.mate });
       return;
     }
 
@@ -373,6 +375,13 @@ export class Game {
   @computed
   get isPlaying(): boolean {
     return this.state.state === StateType.Playing;
+  }
+
+  @computed
+  get isMate(): boolean {
+    return (
+      this.state.state === StateType.Win && this.state.reason === WinReason.Mate
+    );
   }
 
   @computed
@@ -480,14 +489,16 @@ export class Game {
       drawable: { shapes: [] },
     });
 
-    this.moves.push({
+    const move: Move = {
       from: orig,
       to: dest,
       captured: capturedPiece,
       piece: this.ground.state.pieces[dest]!,
       color: opposite(this.turnColor),
       fen: this.fen.raw,
-    });
+      mate: false,
+      check: false,
+    };
 
     this.previousFen = this.fen.raw;
 
@@ -504,6 +515,10 @@ export class Game {
 
     const check = await this.detectCheck();
     await this.detectEndGame(check);
+
+    move.check = Boolean(check);
+    move.mate = this.isMate;
+    this.moves.push(move);
 
     if (!this.isPlaying) {
       return;

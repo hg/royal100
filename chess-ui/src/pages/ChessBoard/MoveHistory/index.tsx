@@ -6,7 +6,7 @@ import {
   FaChessKnight,
   HiOutlineRefresh,
 } from "react-icons/all";
-import React, { FC, Fragment, Ref, useEffect, useRef } from "react";
+import React, { FC, Ref, useEffect, useRef } from "react";
 import { Move } from "../../../game/game";
 import { Button, Empty, notification } from "antd";
 import { formatMove } from "./util";
@@ -76,7 +76,9 @@ const TableRow: FC<RowProps> = ({ move, num, setMove, isLast, isCurrent }) => {
       title="Скопировать позицию в нотации FEN"
       role="button"
       onClick={() => copyFen(num, move.fen)}
-      className={`${styles.row} ${isCurrent ? styles.currentMove : ""}`}
+      className={`${styles.row} ${isCurrent ? styles.currentMove : ""} ${
+        move.check && styles.check
+      } ${move.mate && styles.mate}`}
     >
       <td>
         {setMove ? (
@@ -129,23 +131,22 @@ const CompactMove: FC<{
   const ref = useScrolling(isLast);
 
   return (
-    <div
-      className={`${styles.compactMove} ${setMove && styles.canMove}`}
-      ref={ref as Ref<HTMLDivElement>}
-      role="button"
+    <button
+      className={`${styles.compactMove} ${setMove && styles.canMove} ${
+        move.check && styles.check
+      } ${move.mate && styles.mate}`}
+      ref={ref as Ref<HTMLButtonElement>}
       title={setMove && "Вернуться к ходу"}
       onClick={setMove}
     >
       <MovePiece role={move.piece.role} color={move.color} />
-      {formatMove(move.from)} {formatMove(move.to)}
+      <span className={styles.moves}>
+        {formatMove(move.from)} {formatMove(move.to)}
+      </span>
       {move.captured && (
-        <Fragment>
-          {" "}
-          ×
-          <MovePiece role={move.captured.role} color={move.captured.color} />
-        </Fragment>
+        <MovePiece role={move.captured.role} color={move.captured.color} />
       )}
-    </div>
+    </button>
   );
 };
 
