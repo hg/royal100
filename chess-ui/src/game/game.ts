@@ -591,7 +591,7 @@ export class Game {
   }
 
   private async detectEndGame(check?: Color) {
-    this.assertPlayingState();
+    assert.ok(this.isPlaying);
 
     // 50 полуходов — ничья
     if (this.fen.halfMoves >= drawHalfMoves) {
@@ -852,9 +852,5 @@ export class Game {
   stop() {
     this.setState({ state: StateType.Paused });
     this.engine.quit();
-  }
-
-  private assertPlayingState() {
-    assert.ok(this.isPlaying);
   }
 }
