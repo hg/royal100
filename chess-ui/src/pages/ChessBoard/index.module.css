@@ -7,8 +7,18 @@
   height: var(--board-size);
   width: var(--board-size);
   padding: 24px;
-  border-radius: 4px;
-  outline: 1px solid #666;
+  border-radius: 2px;
+  outline: 1px solid #555;
+}
+
+.board:global(.brown),
+.board:global(.gold) {
+  background: white;
+}
+
+.board:global(.brown) coords,
+.board:global(.gold) coords {
+  color: black !important;
 }
 
 .board.zen {

@@ -56,9 +56,9 @@ export const ChessBoard = observer(({ config, state }: Props) => {
         <ChessHelpButton />
       </div>
 
-      <main className={styles.boardWrap}>
+      <main className={`${styles.boardWrap} ${settings.background}`}>
         <div
-          className={`${styles.board} ${
+          className={`${styles.board} ${settings.background} ${
             settings.showSidebar ? "" : styles.zen
           }`}
         >
