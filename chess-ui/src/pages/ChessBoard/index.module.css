@@ -16,8 +16,15 @@
   background: white;
 }
 
+.board:global(.blue),
+.board:global(.green) {
+  background: #fcfcc3;
+}
+
 .board:global(.brown) coords,
-.board:global(.gold) coords {
+.board:global(.gold) coords,
+.board:global(.blue) coords,
+.board:global(.green) coords {
   color: black !important;
 }
 

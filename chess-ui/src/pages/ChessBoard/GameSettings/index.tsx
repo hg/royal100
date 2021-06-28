@@ -15,7 +15,7 @@ interface Props {
 
 export interface Settings {
   history: "compact" | "detailed";
-  background: "blue" | "brown" | "metal" | "wood" | "gold";
+  background: "blue" | "brown" | "green" | "metal" | "wood" | "gold";
   pieces: "default" | "merida" | "royal";
   sound: boolean;
   showSidebar: boolean;
@@ -24,7 +24,7 @@ export interface Settings {
 }
 
 const defaultSettings: Settings = {
-  background: "brown",
+  background: "gold",
   history: "detailed",
   pieces: "royal",
   sound: true,
@@ -75,6 +75,7 @@ export const GameSettings: FC<Props> = ({ onHide, value, onSet }) => (
         <BackgroundButton onSet={onSet} type="wood" title="Дерево" />
         <BackgroundButton onSet={onSet} type="metal" title="Металл" />
         <BackgroundButton onSet={onSet} type="blue" title="Синий" />
+        <BackgroundButton onSet={onSet} type="green" title="Зелёный" />
       </div>
     </Form.Item>
 

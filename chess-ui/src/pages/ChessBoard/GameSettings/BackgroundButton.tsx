@@ -12,6 +12,8 @@ function cssClass(type: Props["type"]) {
   switch (type) {
     case "blue":
       return styles.blue;
+    case "green":
+      return styles.green;
     case "brown":
       return styles.brown;
     case "gold":

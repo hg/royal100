@@ -16,7 +16,11 @@
 }
 
 .cg-wrap.blue {
-  background-image: url(../../assets/images/board/blue.jpg);
+  background-image: url(../../assets/images/board/blue.svg);
+}
+
+.cg-wrap.green {
+  background-image: url(../../assets/images/board/green.svg);
 }
 
 .cg-wrap.brown {

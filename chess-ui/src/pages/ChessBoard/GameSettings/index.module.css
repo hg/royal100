@@ -45,7 +45,11 @@
 }
 
 .blue {
-  background-image: url(../../../assets/images/board/preview/blue.png);
+  background-image: url(../../../assets/images/board/blue.svg);
+}
+
+.green {
+  background-image: url(../../../assets/images/board/green.svg);
 }
 
 .brown {
