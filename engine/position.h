@@ -44,7 +44,7 @@ struct StateInfo {
   bool   princessRights[COLOR_NB];
   int    rule50;
   int    pliesFromNull;
-  Square epSquare;
+  Move   epMove;
   Square princessSquare;
 
   // Not copied when making a move (will be recomputed anyhow)
@@ -91,7 +91,7 @@ public:
   Bitboard pieces(Color c, PieceType pt) const;
   Bitboard pieces(Color c, PieceType pt1, PieceType pt2) const;
   Piece piece_on(Square s) const;
-  Square ep_square() const;
+  Move ep_move() const;
   bool empty(Square s) const;
   template<PieceType Pt> int count(Color c) const;
   template<PieceType Pt> int count() const;
@@ -251,8 +251,8 @@ template<PieceType Pt> inline Square Position::square(Color c) const {
   return lsb(pieces(c, Pt));
 }
 
-inline Square Position::ep_square() const {
-  return st->epSquare;
+inline Move Position::ep_move() const {
+  return st->epMove;
 }
 
 inline Square Position::princess_square() const {

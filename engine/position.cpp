@@ -224,21 +224,45 @@ Position& Position::set(const string& fenStr, StateInfo* si, Thread* th) {
   }
 
   // 4. En passant square. Ignore if no pawn capture is possible
-  st->epSquare = SQ_NONE;
+  st->epMove = MOVE_NONE;
 
-  if (   ((ss >> col) && (col >= 'a' && col <= 'j'))
-      && ((ss >> row) && (row >= '4' && row <= '7')))
+  while ((ss >> token) && !isspace(token))
   {
-      Square ep = make_square(File(col - 'a'), Rank(row - '1'));
-      Bitboard pawns = pieces(sideToMove, PAWN);
-      Bitboard attacks = pawn_attacks_bb(sideToMove, pawns);
-      Bitboard target = forward_file_bb(sideToMove, ep) & EPRanks;
+    if (token == '-')
+    {
+        //no en passant move
+        //std::cout << "<ep MOVE: just a dash>" << std::endl;
+        st->epMove = MOVE_NONE;
+        break;
+    }
+    else //probably an actual move
+    {
+      //we have an actual move
+      char fromFile, fromRank, toFile, toRank;
+      fromFile = token;
+      ss >> fromRank;
+      ss >> toFile;
+      ss >> toRank;
 
-      if (attacks & target)
+      //std::cout << "<ep MOVE: " << fromFile << fromRank << toFile << toRank << ">" << std::endl;
+
+      if (
+            ((fromFile >= 'a' && fromFile <= 'j'))
+         && ((fromRank >= '0' && fromRank <= '9'))
+         && ((  toFile >= 'a' &&   toFile <= 'j'))
+         && ((  toRank >= '0' &&   toRank <= '9')))
       {
-          //std::cout << "<set epsquare: " << ep << ">";
-          st->epSquare = ep;
+        //looks like a valid move
+        int fr = fromRank - '0';
+        int ff = fromFile - 'a';
+        int tr = toRank - '0';
+        int tf = toFile  - 'a';
+
+        //std::cout << "<ep move: " << fr * 10 + ff << "," << tr * 10 + tf << ">" << std::endl;
+
+        st->epMove = make_move(Square(fr * 10 + ff), Square(tr * 10 + tf));
       }
+    }
   }
 
   // 5-6. Halfmove clock and fullmove number
@@ -317,8 +341,8 @@ void Position::set_state(StateInfo* si) const {
           si->nonPawnMaterial[color_of(pc)] += PieceValue[MG][pc];
   }
 
-  if (si->epSquare != SQ_NONE)
-      si->key ^= Zobrist::enpassant[si->epSquare];
+  if (si->epMove != MOVE_NONE)
+      si->key ^= Zobrist::enpassant[to_sq(si->epMove)];
 
   if (sideToMove == BLACK)
       si->key ^= Zobrist::side;
@@ -410,7 +434,9 @@ const string Position::fen() const {
       ss << '-';
 
   //En passant square
-  ss << (ep_square() == SQ_NONE ? " - " : " " + UCI::square(ep_square()) + " ")
+  //std::cout << "<" << from_sq(ep_move()) << "," << to_sq(ep_move()) << ">" << std::endl;
+
+  ss << (ep_move() == MOVE_NONE ? " - " : " " + UCI::move(ep_move())) + " "
      << st->rule50 << " " << 1 + (gamePly - (sideToMove == BLACK)) / 2;
 
   return ss.str();
@@ -525,7 +551,7 @@ bool Position::legal(Move m) const {
 
   assert(is_ok(m));
 
-  //std::cout << "<checking move legality: " << from_sq(m) << "," << to_sq(m) << ">";
+  //std::cout << "<checking move legality: " << UCI::move(m) << ">";
   //std::cout << std::endl;
   //std::cout << *this;
 
@@ -543,7 +569,7 @@ bool Position::legal(Move m) const {
   if (type_of(m) == ENPASSANT)
   {
       Square ksq = square<KING>(us);
-      Square capsq = ep_square(); //make_square(file_of(to) , relative_rank(sideToMove, RANK_6));
+      Square capsq = to_sq(ep_move()); //make_square(file_of(to) , relative_rank(sideToMove, RANK_6));
 
 
       //Bitboard eptargets = forward_file_bb(sideToMove, ep_square()) & EPRanks;
@@ -593,10 +619,18 @@ bool Position::legal(Move m) const {
 
   // If the moving piece is a king, check whether the destination square is
   // attacked by the opponent.
+  // Careful: the piece may cause princess promotion.
   if (!pieces(us, PRINCE))
   {
       if (type_of(piece_on(from)) == KING)
-          return !(attackers_to(to, pieces() ^ from) & pieces(~us));
+      {
+          //return !(attackers_to(to, pieces() ^ from) & pieces(~us));
+          if (attackers_to(to, pieces() ^ from) & pieces(~us))
+          {
+              //std::cout << "<illegal: king move into check?>" << std::endl;
+              return false;
+          }
+      }
   }
 
   // Generally, if we move and king is in check, it's not legal
@@ -605,12 +639,12 @@ bool Position::legal(Move m) const {
   //std::cout << "<legal2>" << std::endl;
   if ((!pieces(us, PRINCE)))// && ((pt == PRINCE) || (pt == PRINCESS)))
   {
+      Square ourKing = (type_of(piece_on(from)) == KING) ? to : square<KING>(us);
       Bitboard occupied = (pieces() & ~square_bb(from)) | square_bb(to);
-      Bitboard attackers = attackers_to(square<KING>(us), occupied) & pieces(~us) & ~square_bb(to);
-      //if ((attackers_to(square<KING>(us), occupied) ^ to) & pieces(~us))
+      Bitboard attackers = attackers_to(ourKing, occupied) & pieces(~us) & ~square_bb(to);
       if (attackers)
       {
-          //std::cout << "<ILLEGAL MOVE: " << from << "," << to << ">" <<
+          //std::cout << "<ILLEGAL MOVE: " << UCI::move(m) << ">";
               //"<OCCUPIED>" << Bitboards::pretty(occupied) <<
               //"<ATTACKER>" << Bitboards::pretty(attackers);
           return false;
@@ -633,9 +667,11 @@ bool Position::legal(Move m) const {
      {
          //std::cout << "<do move: there is a princess>" << std::endl;
          Square newQueen = square<PRINCESS>(~us);
+         Square ourKsq = piece_on(from) == make_piece(us, KING) ? to
+                       : square<KING>(us);
 
-         Bitboard occupied = (pieces() & ~square_bb(from));
-         if (attacks_bb<QUEEN>(newQueen, occupied) & square<KING>(us))
+         Bitboard occupied = (pieces() & ~square_bb(from)) | square_bb(to);
+         if (attacks_bb<QUEEN>(newQueen, occupied) & ourKsq)
          {
              if (!pieces(us, PRINCE))
              {
@@ -665,7 +701,7 @@ bool Position::legal(Move m) const {
 
       //If the move type is ENPASSANT, also remove the check square
       if (type_of(m) == ENPASSANT)
-          occupied &= ~square_bb(ep_square());
+          occupied &= ~square_bb(to_sq(ep_move()));
 
       Bitboard theirCheckers = attackers_to(ourKsq, occupied) & pieces(~us) & ~square_bb(to);
       if (theirCheckers)
@@ -923,7 +959,7 @@ bool Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
           if (type_of(m) == ENPASSANT)
           {
               //capsq = make_square(file_of(to), relative_rank(sideToMove, RANK_6));
-              capsq = ep_square(); //make_square(file_of(to), relative_rank(sideToMove, RANK_6));
+              capsq = to_sq(ep_move()); //make_square(file_of(to), relative_rank(sideToMove, RANK_6));
 
               //Bitboard eptargets = forward_file_bb(us, capsq) & EPRanks;
               assert(pc == make_piece(us, PAWN));
@@ -1041,10 +1077,10 @@ bool Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
   k ^= Zobrist::psq[pc][from] ^ Zobrist::psq[pc][to];
 
   // Reset en passant square
-  if (st->epSquare != SQ_NONE)
+  if (st->epMove != MOVE_NONE)
   {
-      k ^= Zobrist::enpassant[st->epSquare];
-      st->epSquare = SQ_NONE;
+      k ^= Zobrist::enpassant[to_sq(st->epMove)];
+      st->epMove = MOVE_NONE;
   }
 
   // Reset princess promote square
@@ -1072,8 +1108,8 @@ bool Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
              //||(pawn_attacks_bb(us, to - pawn_push(us) - pawn_push(us)) & pieces(them, PAWN))))
       {
           //std::cout << "<epmove: " << from << "," << to << ">";
-          st->epSquare = to; // - pawn_push(us);
-          k ^= Zobrist::enpassant[st->epSquare];
+          st->epMove = m; // - pawn_push(us);
+          k ^= Zobrist::enpassant[to_sq(st->epMove)];
       }
 
       else if (type_of(m) == PROMOTION)
@@ -1207,7 +1243,7 @@ void Position::undo_move(Move m) {
           if (type_of(m) == ENPASSANT)
           {
               //capsq = make_square(file_of(to), relative_rank(sideToMove, RANK_6));
-              capsq = st->previous->epSquare;
+              capsq = to_sq(st->previous->epMove);
 
               assert(type_of(pc) == PAWN);
               //assert(to == st->previous->epSquare);
@@ -1507,9 +1543,9 @@ bool Position::pos_is_ok() const {
   assert(piece_on(square<KING>(WHITE)) == W_KING);
   assert(piece_on(square<KING>(BLACK)) == B_KING);
 
-  if (ep_square() != SQ_NONE)
-          assert((relative_rank(sideToMove, ep_square()) == RANK_6) ||
-                 (relative_rank(sideToMove, ep_square()) == RANK_7));
+  //if (ep_move() != MOVE_NONE)
+          //assert((relative_rank(sideToMove, to_sq(ep_square())) == RANK_6) ||
+                 //(relative_rank(sideToMove, to_sq(ep_square())) == RANK_7));
       //assert(0 && "pos_is_ok: Default");
 
   if (Fast)

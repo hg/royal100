@@ -67,7 +67,7 @@ constexpr Bitboard QueenSide   = FileABB | FileBBB | FileCBB | FileDBB;
 constexpr Bitboard CenterFiles = FileDBB | FileEBB | FileFBB | FileGBB;
 constexpr Bitboard KingSide    = FileGBB | FileHBB | FileIBB | FileJBB;
 constexpr Bitboard Center      = (FileEBB | FileFBB) & (Rank5BB | Rank6BB);
-constexpr Bitboard EPRanks     = Rank3BB | Rank4BB | Rank8BB | Rank9BB;
+constexpr Bitboard EPRanks     = Rank3BB | Rank4BB | Rank7BB | Rank8BB;
 
 constexpr Bitboard KingFlank[FILE_NB] = {
   QueenSide ^ FileDBB, QueenSide, QueenSide,

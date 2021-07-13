@@ -175,18 +175,20 @@ namespace {
             *moveList++ = make_move(to - UpLeft, to);
         }
 
-        if (pos.ep_square() != SQ_NONE)
+        if (pos.ep_move() != MOVE_NONE)
         {
-            assert((rank_of(pos.ep_square()) == relative_rank(Us, RANK_6)) ||
-                   (rank_of(pos.ep_square()) == relative_rank(Us, RANK_7)));
+            //assert((rank_of(to(pos.ep_square()) == relative_rank(Us, RANK_6)) ||
+                   //(rank_of(pos.ep_square()) == relative_rank(Us, RANK_7)));
 
             // An en passant capture can be an evasion only if the checking piece
             // is the double pushed pawn and so is in the target. Otherwise this
             // is a discovery check and we are forced to do otherwise.
-            if (Type == EVASIONS && !(target & (pos.ep_square())))
+            if (Type == EVASIONS && !(target & square_bb(to_sq(pos.ep_move()))))
                 return moveList;
 
-            Bitboard eptargets = forward_file_bb(Us, pos.ep_square()) & EPRanks;
+            // Any en passant capture that removes this pawn
+            //Bitboard eptargets = forward_file_bb(Us, pos.ep_square()) & EPRanks;
+            Bitboard eptargets = between_bb(from_sq(pos.ep_move()), to_sq(pos.ep_move())) & EPRanks;
 
             while(eptargets)
             {
