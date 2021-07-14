@@ -253,14 +253,17 @@ Position& Position::set(const string& fenStr, StateInfo* si, Thread* th) {
          && ((  toRank >= '0' &&   toRank <= '9')))
       {
         //looks like a valid move
-        int fr = fromRank - '0';
+        int fr = fromRank - '1';
         int ff = fromFile - 'a';
-        int tr = toRank - '0';
+        int tr = toRank - '1';
         int tf = toFile  - 'a';
 
         //std::cout << "<ep move: " << fr * 10 + ff << "," << tr * 10 + tf << ">" << std::endl;
+        //std::cout << "<ep move2: " << fromFile << "," << fromRank << ","
+                                   //<< toFile << "," << toRank << ">" << std::endl;
 
         st->epMove = make_move(Square(fr * 10 + ff), Square(tr * 10 + tf));
+        //std::cout << "<ep move: " << from_sq(st->epMove) << "," << to_sq(st->epMove) << ">" << std::endl;
       }
     }
   }
