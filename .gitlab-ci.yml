@@ -8,11 +8,6 @@ variables:
 
   DEPLOY_PATH: /var/www/chess.8086.cf
 
-workflow:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
 stages:
   - build-engine
   - build-app
@@ -77,6 +72,8 @@ build-app-desktop:
 deploy-app-browser:
   stage: deploy-app
   image: alpine
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   needs:
     - build-app-browser
   script:
