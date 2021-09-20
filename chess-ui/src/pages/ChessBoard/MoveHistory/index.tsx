@@ -22,7 +22,7 @@ interface Props {
 
 function copyFen(num: number, fen: string) {
   notification.success({
-    message: `Нотация хода №${num} скопирована в буфер обмена`,
+    message: `Нотация хода №${num + 1} скопирована в буфер обмена`,
   });
   navigator.clipboard.writeText(fen);
 }
