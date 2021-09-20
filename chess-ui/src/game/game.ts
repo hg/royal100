@@ -36,7 +36,6 @@ import { playMoveSound, playSelectSound } from "./sounds";
 import { secToMs } from "../utils/time";
 import { SerializedState } from "./state";
 import { cloneAddressRows } from "./address";
-import { computedFn } from "mobx-utils";
 
 export enum OpponentType {
   Computer = "Computer",
@@ -263,7 +262,7 @@ export class Game {
     this.undoMove(this.moves.length - 2);
   }
 
-  canUndo = computedFn(function (this: Game, moveNumber: number): boolean {
+  canUndo(moveNumber: number): boolean {
     const move = this.moves[moveNumber];
     if (!move) {
       return false;
@@ -298,7 +297,7 @@ export class Game {
       }
     }
     return true;
-  });
+  }
 
   @action.bound
   async undoMove(moveNumber: number) {
