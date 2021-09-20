@@ -815,9 +815,10 @@ export class Game {
   @action.bound
   resign() {
     if (this.isPlaying) {
+      const loser = this.isOpponentHuman ? this.turnColor : this.myColor;
       this.setState({
         state: StateType.Win,
-        side: opposite(this.myColor),
+        side: opposite(loser),
         reason: WinReason.Resign,
       });
     }
