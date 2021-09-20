@@ -524,12 +524,6 @@ export class Game {
       return;
     }
 
-    if (this.isOpponentHuman) {
-      this.ground.set({
-        movable: { color: this.turnColor },
-      });
-    }
-
     await this.makeOpponentMove();
   }
 
@@ -705,6 +699,11 @@ export class Game {
       fen: this.fen.pieces,
       turnColor: this.turnColor,
     });
+    if (this.isOpponentHuman) {
+      this.ground.set({
+        movable: { color: this.turnColor },
+      });
+    }
   }
 
   private async updateValidMoves(fen: Fen) {
