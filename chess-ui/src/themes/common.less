@@ -1,0 +1,20 @@
+:root {
+  --piece-scale: 9%;
+  --bg-dark: @component-background;
+  --bg-lighter: lighten(@component-background, 5%);
+  --border-color: @border-color-base;
+  --active-color: @item-active-bg;
+  --selected-color: darken(@item-active-bg, 10%);
+  --left-sidebar: 280px;
+  --right-sidebar: 280px;
+  --board-margin: 8px;
+  --board-size: ~"calc(
+          min(
+                  100vh - var(--board-margin),
+                  100vw - var(--left-sidebar) - var(--right-sidebar) - var(--board-margin)
+          )
+  )";
+  --board-size-zen: ~"calc(
+          min(100vh - var(--board-margin), 100vw - var(--board-margin))
+  )";
+}

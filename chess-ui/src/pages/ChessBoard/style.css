@@ -213,7 +213,7 @@ cg-board piece.fading {
 }
 
 .cg-wrap coords.ranks {
-  right: -34px;
+  right: -44px;
   top: 0;
   flex-flow: column-reverse;
   height: 100%;

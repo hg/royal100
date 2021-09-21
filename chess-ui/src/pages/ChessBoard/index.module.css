@@ -21,6 +21,14 @@
   background: #fcfcc3;
 }
 
+.board:global(.wood) {
+  background: #795030;
+}
+
+.board:global(.metal) {
+  background: #7C7C7C;
+}
+
 .board:global(.brown) coords,
 .board:global(.gold) coords,
 .board:global(.blue) coords,
@@ -38,9 +46,16 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  border-left: 1px solid #424242;
-  border-right: 1px solid #424242;
-  background: url(../../assets/wood.jpg);
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+}
+
+.boardWrap.dark {
+  background: url(../../assets/wood.dark.jpg);
+}
+
+.boardWrap.light {
+  background: url(../../assets/wood.light.jpg);
 }
 
 .leftSidebar {

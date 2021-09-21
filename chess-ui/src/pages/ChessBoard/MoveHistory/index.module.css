@@ -7,7 +7,7 @@
 .historyTable td,
 .historyTable th {
   text-align: center;
-  border: 1px solid #383838;
+  border: 1px solid var(--border-color);
   padding: 0;
 }
 
@@ -16,8 +16,7 @@
 }
 
 .historyTable tbody tr:nth-child(odd) {
-  background: #383838;
-  color: white;
+  background: var(--active-color);
 }
 
 .piece {
@@ -28,7 +27,7 @@
 }
 
 .piece:global(.black) {
-  filter: drop-shadow(1px 1px 0 #606060) drop-shadow(-1px -1px 0 #606060);
+  filter: drop-shadow(1px 1px 0 var(--border-color)) drop-shadow(-1px -1px 0 var(--border-color));
 }
 
 .noMoves {
@@ -67,7 +66,7 @@
 }
 
 .currentMove {
-  background: #165996 !important;
+  background: var(--selected-color) !important;
 }
 
 .check {

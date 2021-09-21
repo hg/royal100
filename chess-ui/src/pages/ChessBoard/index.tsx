@@ -11,6 +11,8 @@ import { onGameStateChanged } from "./endgame";
 import { ZenButton } from "./ZenButton";
 import { SerializedState } from "../../game/state";
 import { ChessHelpButton } from "./ChessHelp/ChessHelpButton";
+import { ThemeButton } from "../../components/ThemeButton";
+import { themeManager } from "../../themes/themes";
 
 interface Props {
   config: GameConfig;
@@ -54,9 +56,14 @@ export const ChessBoard = observer(({ config, state }: Props) => {
       <div className={styles.floatingButtons}>
         <ZenButton shown={showSidebar} onToggle={toggleSidebar} />
         <ChessHelpButton />
+        <ThemeButton />
       </div>
 
-      <main className={`${styles.boardWrap} ${settings.background}`}>
+      <main
+        className={`${styles.boardWrap} ${styles[themeManager.theme]} ${
+          settings.background
+        }`}
+      >
         <div
           className={`${styles.board} ${settings.background} ${
             settings.showSidebar ? "" : styles.zen

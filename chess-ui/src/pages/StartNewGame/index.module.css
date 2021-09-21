@@ -31,7 +31,7 @@
 .form {
   width: 1100px;
   padding: 16px 32px;
-  border: 1px solid #424242;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   background: var(--bg-dark);
   max-height: 95vh;
@@ -40,7 +40,7 @@
 
 .sideButton {
   background: transparent;
-  border: 1px solid #323232;
+  border: 1px solid var(--border-color);
   border-radius: 2px;
   margin-right: 8px;
   cursor: pointer;
@@ -54,7 +54,7 @@
 }
 
 .sideButton.active {
-  background: #242424;
+  background: var(--active-color);
 }
 
 .sideIcon {

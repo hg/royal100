@@ -31,6 +31,6 @@ export const BackgroundButton: FC<Props> = ({ title, type, onSet }) => (
     onClick={() => onSet({ background: type })}
     className={`${styles.imageBtn} ${cssClass(type)}`}
   >
-    <span className={styles.title}>{title}</span>
+    <span className={styles.overlayTitle}>{title}</span>
   </button>
 );

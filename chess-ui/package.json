@@ -13,6 +13,11 @@
     "eslint-config-react-app": "^6.0.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-unused-imports": "^1.1.4",
+    "gulp": "^4.0.2",
+    "gulp-csso": "^4.0.1",
+    "gulp-less": "^5.0.0",
+    "less-plugin-autoprefix": "^2.0.0",
+    "less-plugin-npm-import": "^2.1.0",
     "mobx": "^6.3.3",
     "mobx-react-lite": "^3.2.1",
     "mobx-utils": "^6.0.4",
@@ -31,10 +36,8 @@
     "lint-staged": "^11.1.2"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "start": "pnpx gulp themes && react-scripts start",
+    "build": "pnpx gulp themes && react-scripts build",
     "lint": "eslint --max-warnings=0 --fix --ext .js,.jsx,.ts,.tsx src"
   },
   "eslintConfig": {

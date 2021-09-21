@@ -1,6 +1,4 @@
-@import "~antd/dist/antd.dark.css";
 @import "pages/ChessBoard/style.css";
-@import "./vars.css";
 
 #root,
 body,
