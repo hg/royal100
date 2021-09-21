@@ -90,7 +90,13 @@ export function parseFen(fen: string): Fen {
       white: princess.includes("S"),
       black: princess.includes("s"),
     },
-    enPassant: enPassant === "-" ? undefined : (enPassant as Key),
+    enPassant:
+      enPassant === "-" || enPassant.length !== 4
+        ? undefined
+        : {
+            from: enPassant.substring(0, 2) as Key,
+            to: enPassant.substring(2, 4) as Key,
+          },
     halfMoves: Number(halfMoves),
     fullMoves: Number(fullMoves),
   };

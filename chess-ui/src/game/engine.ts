@@ -43,7 +43,10 @@ export interface Fen {
   princess: {
     [key in Color]: boolean;
   };
-  enPassant?: Key;
+  enPassant?: {
+    from: Key;
+    to: Key;
+  };
   halfMoves: number;
   fullMoves: number;
 }
@@ -63,7 +66,7 @@ export function fenToString(f: Fen): string {
       (f.castling.black.K ? "k" : "") +
       (f.castling.black.Q ? "q" : "") || "-",
     (f.princess.white ? "S" : "") + (f.princess.black ? "s" : "") || "-",
-    f.enPassant || "-",
+    f.enPassant ? f.enPassant.from + f.enPassant.to : "-",
     f.halfMoves,
     f.fullMoves,
   ].join(" ");

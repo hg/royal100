@@ -469,6 +469,25 @@ export class Game {
       this.currentMove = undefined;
     }
 
+    if (!capturedPiece) {
+      const enpTo = this.fen.enPassant?.to;
+      if (enpTo) {
+        const [destFile, destRank] = dest;
+        const [enpFile, enpRank] = enpTo;
+        if (destFile === enpFile) {
+          // Have we moved behind the pawn?
+          const expectedSign = this.turnColor === "white" ? 1 : -1;
+          const sign = Math.sign(Number(destRank) - Number(enpRank));
+          if (sign === expectedSign) {
+            capturedPiece = {
+              color: opposite(this.turnColor),
+              role: pieces.pawn,
+            };
+          }
+        }
+      }
+    }
+
     playMoveSound();
 
     if (this.turnColor === this.undidMove) {
