@@ -47,7 +47,7 @@ export async function choosePromotion(
       cancelButtonProps: propsHide,
       okButtonProps: propsHide,
       content: (
-        <div className="board-wrap default" style={{ textAlign: "center" }}>
+        <div className="board-wrap royal" style={{ textAlign: "center" }}>
           <Promotion
             promotions={promotions}
             color={side}

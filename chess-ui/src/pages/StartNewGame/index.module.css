@@ -63,6 +63,8 @@
   margin-right: 8px;
   background-size: cover;
   background-position: center;
+  filter: drop-shadow(4px 4px 0 var(--border-color))
+    drop-shadow(-3px -3px 0 var(--border-color));
 }
 
 .timeControl {
