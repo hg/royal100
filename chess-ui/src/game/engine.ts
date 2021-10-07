@@ -222,6 +222,8 @@ export class Engine {
     const lines = data.split(/\r?\n/);
 
     for (const line of lines) {
+      console.log("engine", line);
+
       if (line.includes("readyok")) {
         this.events.emit(EngineEvent.Ready);
         continue;
