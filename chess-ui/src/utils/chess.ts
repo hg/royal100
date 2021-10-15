@@ -73,7 +73,8 @@ export function parseFen(fen: string): Fen {
     fen.split(reWs);
 
   return {
-    raw: fen,
+    from: "",
+    to: fen,
     pieces: compressPieces(pieces),
     color: color === "w" ? "white" : "black",
     castling: {
@@ -158,20 +159,22 @@ export interface BestMove {
   from: Key;
   to: Key;
   promotion?: Letter;
+  coronation?: "K" | "Q";
 }
 
-const reBestMove = /\bbestmove ([a-j]\d+)([a-j]\d+)(\w?)\b/;
+const reBestMove = /\bbestmove ([KQ]?)([a-j]\d+)([a-j]\d+)(\w?)\b/;
 
 export function parseBestMove(data: string): BestMove | undefined {
   const matchMove = data.match(reBestMove);
   if (!matchMove) {
     return undefined;
   }
-  const [, from, to, promotion] = matchMove;
+  const [, coronation, from, to, promotion] = matchMove;
   return {
     from: enginePositionToBoard(from),
     to: enginePositionToBoard(to),
-    promotion: promotion as Letter,
+    promotion: promotion as BestMove["promotion"],
+    coronation: coronation as BestMove["coronation"],
   };
 }
 

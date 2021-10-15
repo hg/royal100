@@ -34,7 +34,8 @@ interface CastlingAvailability {
 }
 
 export interface Fen {
-  raw: string;
+  from: string;
+  to: string;
   pieces: string;
   color: Color;
   castling: {
@@ -169,7 +170,10 @@ export class Engine {
       try {
         const fen: string = await this.wait(EngineEvent.Fen, 5000);
         if (fen) {
-          return parseFen(fen);
+          return {
+            ...parseFen(fen),
+            from: currentFen,
+          };
         }
       } catch (e) {
         await this.restartEngine();
@@ -322,6 +326,7 @@ export class Engine {
 
   private position(fen: string) {
     assert.ok(this.engine);
+    console.log("sending fen", fen);
     this.engine.postMessage(`position fen ${fen}`);
   }
 

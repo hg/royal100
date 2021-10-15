@@ -121,6 +121,7 @@ export class Game {
   private reactionDisposers: IReactionDisposer[] = [];
   private validMoves?: ValidMoves;
   private promotion?: Letter;
+  private coronation?: "K" | "Q";
   private plyIncrement = 0;
   private showAnalysis = true;
   @observable private opponent = OpponentType.Computer;
@@ -498,7 +499,7 @@ export class Game {
       this.promotion = await this.checkPawnPromotions(orig, dest);
     }
 
-    await this.setFen(this.fen.raw, [`${orig}${dest}${this.promotion || ""}`]);
+    await this.setFen(this.fen.to, [`${orig}${dest}${this.promotion || ""}`]);
 
     this.promotion = undefined;
 
@@ -513,15 +514,36 @@ export class Game {
       captured: capturedPiece,
       piece: this.ground.state.pieces[dest]!,
       color: opposite(this.turnColor),
-      fen: this.fen.raw,
+      fen: this.fen.to,
       mate: false,
       check: false,
     };
 
-    this.previousFen = this.fen.raw;
+    this.previousFen = this.fen.to;
 
     if (capturedPiece) {
       await this.checkRoyaltyPromotions(capturedPiece);
+    }
+
+    if (this.isOpponentAComputer && this.turnColor === this.myColor) {
+      if (this.coronation === "Q") {
+        const princess = this.locatePiece(
+          pieces.princess,
+          opposite(this.turnColor)
+        );
+        if (princess) {
+          this.ground.setPieces({
+            [princess]: {
+              role: pieces.queen,
+              color: opposite(this.turnColor),
+              promoted: true,
+            },
+          });
+          this.fen.pieces = fixBoardFen(this.ground.getFen());
+          this.fen.to = fenToString(this.fen);
+        }
+        this.coronation = undefined;
+      }
     }
 
     if (this.clocks.used) {
@@ -579,7 +601,7 @@ export class Game {
         },
       });
       this.fen.pieces = fixBoardFen(this.ground.getFen());
-      this.fen.raw = fenToString(this.fen);
+      this.fen.to = fenToString(this.fen);
     }
   }
 
@@ -784,7 +806,7 @@ export class Game {
   async getHint(): Promise<BestMove | undefined> {
     this.setThinking(true);
     try {
-      const move = await this.engine.calculateMove(this.fen.raw);
+      const move = await this.engine.calculateMove(this.fen.to);
       if (move) {
         this.ground.selectSquare(move.from);
         this.ground.setShapes([
@@ -811,7 +833,7 @@ export class Game {
 
     this.setThinking(true);
     try {
-      await this.engine.calculateMove(this.fen.raw);
+      await this.engine.calculateMove(this.fen.to);
     } finally {
       this.setThinking(false);
     }
@@ -844,18 +866,27 @@ export class Game {
   }
 
   private async makeOpponentMove() {
-    if (this.isOpponentAComputer && this.turnColor !== this.myColor) {
-      this.setThinking(true);
-      try {
-        const move = await this.engine.calculateMove(this.fen.raw);
-        if (move) {
-          this.promotion = move.promotion;
-          const captured = this.ground.state.pieces[move.to];
-          await this.onMove(move.from, move.to, captured);
-        }
-      } finally {
-        this.setThinking(false);
+    if (this.isOpponentHuman || this.turnColor === this.myColor) {
+      return;
+    }
+
+    const lastMove = this.moves[this.moves.length - 1];
+
+    const fen = lastMove
+      ? `${this.fen.from} moves ${lastMove.from}${lastMove.to}`
+      : this.fen.to;
+
+    this.setThinking(true);
+    try {
+      const move = await this.engine.calculateMove(fen);
+      if (move) {
+        this.coronation = move.coronation;
+        this.promotion = move.promotion;
+        const captured = this.ground.state.pieces[move.to];
+        await this.onMove(move.from, move.to, captured);
       }
+    } finally {
+      this.setThinking(false);
     }
   }
 
