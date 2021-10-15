@@ -326,8 +326,9 @@ export class Engine {
 
   private position(fen: string) {
     assert.ok(this.engine);
-    console.log("sending fen", fen);
-    this.engine.postMessage(`position fen ${fen}`);
+    const normalized = fen.replaceAll(":", "10");
+    console.log("sending fen", normalized);
+    this.engine.postMessage(`position fen ${normalized}`);
   }
 
   private go() {

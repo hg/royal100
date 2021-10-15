@@ -98,7 +98,7 @@ const TableRow: FC<RowProps> = ({ move, num, setMove, isLast, isCurrent }) => {
         )}
       </td>
       <td>
-        <MovePiece role={move.piece.role} color={move.color} />
+        <MovePiece role={move.piece?.role} color={move.color} />
       </td>
       <td>{formatMove(move.from)}</td>
       <td>{formatMove(move.to)}</td>
