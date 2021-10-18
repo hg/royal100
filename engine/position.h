@@ -307,9 +307,12 @@ inline Bitboard Position::attackers_to(Square s) const {
 }
 
 inline Bitboard Position::checkers() const {
-  if (!pieces(sideToMove, PRINCE))
-      return st->checkersBB;
-  return 0;
+  //If there are two Princes on the board, a player can ignore check and
+  //make a normal move.
+  if (more_than_one(pieces(PRINCE)))
+    return 0;
+
+  return st->checkersBB;
 }
 
 inline Bitboard Position::blockers_for_king(Color c) const {
