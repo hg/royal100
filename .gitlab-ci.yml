@@ -35,7 +35,7 @@ build-engine-wasm:
 
 build-app-browser:
   stage: build-app
-  image: node:lts
+  image: node:16-slim
   needs:
     - build-engine-wasm
   script:
