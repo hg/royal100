@@ -1,12 +1,12 @@
 variables:
   SSH_CONFIG: >
     Host server
-      HostName chess.8086.cf
+      HostName royalchess100.com
       User chess
       IdentityFile ~/.ssh/key
       StrictHostKeyChecking no
 
-  DEPLOY_PATH: /var/www/chess.8086.cf
+  DEPLOY_PATH: /var/www/chess
 
 stages:
   - build-engine
