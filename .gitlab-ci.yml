@@ -39,7 +39,7 @@ build-app-browser:
   needs:
     - build-engine-wasm
   script:
-    - npm install -g pnpm
+    - npm install -g pnpm@6
     - pnpm config set store-dir $PWD/.pnpm-store
     - cp -r engine-wasm/* chess-ui/public/engine/
     - cd chess-ui
@@ -78,9 +78,9 @@ deploy-app-browser:
     - build-app-browser
   script:
     - apk update
-    - apk add brotli openssh-client rsync
+    - apk add zstd openssh-client rsync
     - cd chess-ui
-    - find build/ -type f -exec brotli --best --keep '{}' +
+    - zstd -rk16 build
     - mkdir -p ~/.ssh
     - echo "$SSH_DEPLOY_KEY" >~/.ssh/key
     - chmod 400 ~/.ssh/key
