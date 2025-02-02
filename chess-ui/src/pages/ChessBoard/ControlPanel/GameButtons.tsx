@@ -5,13 +5,7 @@ import {
   AiOutlineRight,
   AiOutlineRollback,
   AiOutlineSave,
-  BiHelpCircle,
-  FaChess,
-  FaRegHandPeace,
-  FiFlag,
-  FiSettings,
-  GiStopSign,
-} from "react-icons/all";
+} from "react-icons/ai";
 import React, { FC, Fragment, useCallback } from "react";
 import { observer } from "mobx-react-lite";
 import { useHistory } from "react-router";
@@ -22,6 +16,10 @@ import { hotkeys } from "../../../utils/hotkeys";
 import styles from "./index.module.css";
 import { useKeyboardControl } from "./keyboard";
 import { Hotkey } from "../../../components/Hotkey";
+import { FiFlag, FiSettings } from "react-icons/fi";
+import { BiHelpCircle } from "react-icons/bi";
+import { FaChess, FaRegHandPeace } from "react-icons/fa";
+import { GiStopSign } from "react-icons/gi";
 
 interface Props {
   game: Game;

@@ -5,7 +5,7 @@ import styles from "./index.module.css";
 import { BackgroundButton } from "./BackgroundButton";
 import { sound } from "../../../game/audio";
 import { StateSetter } from "../../../types";
-import { AiOutlineClose } from "react-icons/all";
+import { AiOutlineClose } from "react-icons/ai";
 
 interface Props {
   onHide: () => void;

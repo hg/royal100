@@ -1,8 +1,8 @@
 import { Button, Modal } from "antd";
 import { hotkeys, useHotkey } from "../../../utils/hotkeys";
-import { AiOutlineQuestionCircle } from "react-icons/all";
 import React, { FC, Fragment, useCallback, useState } from "react";
 import { ChessHelp } from "./index";
+import { AiOutlineQuestionCircle } from "react-icons/ai";
 
 export const ChessHelpButton: FC = () => {
   const [show, setShow] = useState(false);

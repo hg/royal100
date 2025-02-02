@@ -1,8 +1,9 @@
 import React, { FC, Fragment } from "react";
 import { Tabs } from "antd";
-import { BsArrowsMove, FaChessKnight, FaKeyboard } from "react-icons/all";
 import Text from "antd/lib/typography/Text";
 import { hotkeys } from "../../../utils/hotkeys";
+import { BsArrowsMove } from "react-icons/bs";
+import { FaChessKnight, FaKeyboard } from "react-icons/fa";
 
 const C: FC = ({ children }) => <Text code>{children}</Text>;
 

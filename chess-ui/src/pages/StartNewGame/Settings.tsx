@@ -5,15 +5,13 @@ import styles from "./index.module.css";
 import React, { FC, Fragment, useLayoutEffect } from "react";
 import { GameConfig, OpponentType } from "../../game/game";
 import { SliderMarks } from "antd/lib/slider";
-import {
-  BiBot,
-  GiPerspectiveDiceSixFacesRandom,
-  ImHourGlass,
-  IoIosPerson,
-} from "react-icons/all";
 import { ToggleButton } from "./ToggleButton";
 import { TimeControl, TimeRange } from "./TimeControl";
 import { StateSetter } from "../../types";
+import { ImHourGlass } from "react-icons/im";
+import { BiBot } from "react-icons/bi";
+import { IoIosPerson } from "react-icons/io";
+import { GiPerspectiveDiceSixFacesRandom } from "react-icons/gi";
 
 interface Props {
   config: GameConfig;

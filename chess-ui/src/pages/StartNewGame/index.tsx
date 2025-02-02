@@ -12,12 +12,7 @@ import styles from "./index.module.css";
 import { GameConfig, GameState } from "../../game/game";
 import { Settings } from "./Settings";
 import { AdvancedSettings } from "./AdvancedSettings";
-import {
-  AiOutlineCloudUpload,
-  AiOutlinePlusSquare,
-  FaChessKing,
-  FiSettings,
-} from "react-icons/all";
+import { AiOutlineCloudUpload, AiOutlinePlusSquare } from "react-icons/ai";
 import { StartGameButtons } from "./StartGameButtons";
 import { routes } from "../routes";
 import { useHistory } from "react-router";
@@ -29,6 +24,8 @@ import {
 import { formatTime } from "../../utils/time";
 import { StateSetter } from "../../types";
 import { formatGameResult } from "../ChessBoard/endgame";
+import { FiSettings } from "react-icons/fi";
+import { FaChessKing } from "react-icons/fa";
 
 interface Props {
   config: GameConfig;

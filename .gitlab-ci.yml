@@ -1,11 +1,10 @@
 variables:
-  SSH_CONFIG: >
+  SSH_CONFIG: |
     Host server
       HostName royalchess100.com
       User chess
       IdentityFile ~/.ssh/key
       StrictHostKeyChecking no
-
   DEPLOY_PATH: /var/www/chess
 
 stages:
@@ -35,11 +34,11 @@ build-engine-wasm:
 
 build-app-browser:
   stage: build-app
-  image: node:16-slim
+  image: node:23-slim
   needs:
     - build-engine-wasm
   script:
-    - npm install -g pnpm@6
+    - npm install -g pnpm@10
     - pnpm config set store-dir $PWD/.pnpm-store
     - cp -r engine-wasm/* chess-ui/public/engine/
     - cd chess-ui

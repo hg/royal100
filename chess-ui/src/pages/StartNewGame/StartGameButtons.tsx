@@ -4,9 +4,9 @@ import { randomColor, validateFen } from "../../utils/chess";
 import { GameConfig } from "../../game/game";
 import { routes } from "../routes";
 import { Button } from "antd";
-import { FaChessKing, FaChessQueen } from "react-icons/all";
 import { generate960 } from "../../utils/variants";
 import { StateSetter } from "../../types";
+import { FaChessKing, FaChessQueen } from "react-icons/fa";
 
 interface Props {
   config: GameConfig;

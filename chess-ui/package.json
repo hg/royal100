@@ -3,16 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@types/node": "^16.9.4",
+    "@types/node": "^22.13.0",
     "@types/react": "^17.0.22",
     "@types/react-dom": "^17.0.9",
     "@types/react-router": "^5.1.16",
     "@types/react-router-dom": "^5.1.9",
+    "@vitejs/plugin-react-swc": "^3.7.2",
     "antd": "^4.16.13",
     "chessgroundx": "^8.3.0",
-    "eslint-config-react-app": "^6.0.0",
-    "eslint-plugin-prettier": "^4.0.0",
-    "eslint-plugin-unused-imports": "^1.1.4",
+    "events": "^3.3.0",
     "gulp": "^4.0.2",
     "gulp-csso": "^4.0.1",
     "gulp-less": "^5.0.0",
@@ -25,65 +24,21 @@
     "prettier": "^2.4.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-icons": "^4.2.0",
+    "react-icons": "^5.4.0",
     "react-router": "^5.2.1",
     "react-router-dom": "^5.3.0",
     "react-scripts": "4.0.3",
-    "typescript": "^4.4.3"
-  },
-  "devDependencies": {
-    "husky": "^7.0.2",
-    "lint-staged": "^11.1.2"
+    "typescript": "^4.4.3",
+    "vite": "^6.0.11"
   },
   "scripts": {
-    "start": "pnpx gulp themes && react-scripts start",
-    "build": "pnpx gulp themes && react-scripts build",
-    "lint": "eslint --max-warnings=0 --fix --ext .js,.jsx,.ts,.tsx src"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended"
-    ],
-    "plugins": [
-      "prettier",
-      "react-hooks",
-      "unused-imports",
-      "@typescript-eslint"
-    ],
-    "rules": {
-      "prettier/prettier": "warn",
-      "unused-imports/no-unused-imports-ts": "error",
-      "@typescript-eslint/no-non-null-assertion": "off",
-      "@typescript-eslint/explicit-module-boundary-types": "off",
-      "no-constant-condition": "off",
-      "no-var": "error",
-      "prefer-const": "error",
-      "no-eval": "error",
-      "curly": [
-        "error",
-        "all"
-      ]
-    }
+    "start": "gulp themes && vite start",
+    "build": "gulp themes && vite build"
   },
   "prettier": {
     "arrowParens": "always",
     "trailingComma": "es5",
     "endOfLine": "lf"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx,json,css,scss,json}": [
-      "yarn prettier --write"
-    ],
-    "*.{js,jsx,ts,tsx}": [
-      "yarn eslint --fix --max-warnings=0"
-    ]
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn lint-staged"
-    }
   },
   "browserslist": [
     "last 1 firefox version",

@@ -1,16 +1,14 @@
 import { observer } from "mobx-react-lite";
 import styles from "./index.module.css";
-import {
-  AiOutlineArrowDown,
-  BsArrowUpRight,
-  FaChessKnight,
-  HiOutlineRefresh,
-} from "react-icons/all";
 import React, { FC, Ref, useEffect, useRef } from "react";
 import { Move } from "../../../game/game";
 import { Button, Empty, notification } from "antd";
 import { formatMove } from "./util";
 import { Color, Role } from "chessgroundx/types";
+import { FaChessKnight } from "react-icons/fa";
+import { BsArrowUpRight } from "react-icons/bs";
+import { AiOutlineArrowDown } from "react-icons/ai";
+import { HiOutlineRefresh } from "react-icons/hi";
 
 interface Props {
   detailed: boolean;

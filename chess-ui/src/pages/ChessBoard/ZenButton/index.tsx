@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 import { Button } from "antd";
-import { AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/all";
+import { AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";
 import { hotkeys, useHotkey } from "../../../utils/hotkeys";
 
 interface Props {
