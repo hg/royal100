@@ -40,10 +40,11 @@ build-app-browser:
   script:
     - npm install -g pnpm@10
     - pnpm config set store-dir $PWD/.pnpm-store
-    - cp -r engine-wasm/* chess-ui/public/engine/
     - cd chess-ui
     - pnpm install
     - pnpm build
+    - cp -a public/. build/public/
+    - cp -a ../engine-wasm/. build/public/engine/
   artifacts:
     expire_in: 20 minutes
     paths:
