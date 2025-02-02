@@ -43,8 +43,7 @@ build-app-browser:
     - cd chess-ui
     - pnpm install
     - pnpm build
-    - cp -a public/. build/public/
-    - cp -a ../engine-wasm/. build/public/engine/
+    - cp -a ../engine-wasm/. build/engine/
   artifacts:
     expire_in: 20 minutes
     paths:
